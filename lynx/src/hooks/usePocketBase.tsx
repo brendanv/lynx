@@ -12,7 +12,7 @@ const PocketBaseContext = createContext<PocketBaseContextValue | null>(null);
 const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL;
 
 export const PocketBaseProvider = ({ children }) => {
-  const pb = new PocketBase(POCKETBASE_URL);
+  const [pb, setPb] = useState(new PocketBase(POCKETBASE_URL))
   const [user, setUser] = useState(pb.authStore.model);
 
   useEffect(() => {
@@ -21,9 +21,7 @@ export const PocketBaseProvider = ({ children }) => {
       setUser(model);
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [pb.authStore]);
 
   return (

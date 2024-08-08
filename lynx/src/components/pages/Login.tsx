@@ -14,9 +14,11 @@ const Login = () => {
     setError("");
 
     try {
-      await pb.collection("users").authWithPassword(email, password);
+      await pb.collection("users").authWithPassword(email, password, {
+        autoRefreshThreshold: 30 * 60,
+      });
       console.log("Logged in successfully");
-      navigate("/dashboard"); // Redirect to dashboard after successful login
+      navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
       setError("Login failed. Please check your credentials and try again.");
