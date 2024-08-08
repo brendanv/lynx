@@ -1,7 +1,15 @@
 import React from "react";
+import { usePocketBase } from "@/hooks/usePocketBase";
 
 const Home = () => {
-  return <h1>Home Page</h1>;
+  const { user } = usePocketBase();
+
+  return (
+    <div>
+      <h1>Lynx</h1>
+      {user && <p>Welcome, {user.username || user.email}!</p>}
+    </div>
+  );
 };
 
 export default Home;
