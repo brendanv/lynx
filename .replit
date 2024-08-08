@@ -1,6 +1,6 @@
-entrypoint = "index.js"
 modules = ["nodejs-20"]
 hidden = [".config", "package-lock.json"]
+run = "cd lynx && npm run dev"
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", "package.json", "package-lock.json"]
@@ -15,3 +15,7 @@ language = "nodejs"
 run = ["node", "index.js"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
+
+[[ports]]
+localPort = 5173
+externalPort = 80
