@@ -5,6 +5,7 @@ import Login from "@/components/pages/Login";
 import AuthWrapper from "@/components/AuthWrapper";
 import { PocketBaseProvider } from "@/hooks/usePocketBase";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import URLS from "@/lib/urls";
 
 const App = () => {
   return (
@@ -12,9 +13,9 @@ const App = () => {
       <PocketBaseProvider>
         <Router>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path={URLS.LOGIN} element={<Login />} />
             <Route element={<AuthWrapper />}>
-              <Route path="/" element={<Home />} />
+              <Route path={URLS.HOME} element={<Home />} />
             </Route>
           </Routes>
         </Router>

@@ -41,7 +41,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px8">
+    <main className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px8">
       <Card className="max-w-md w-full p-8 space-y-8 shadow-lg bg-background rounded-lg">
         <CardHeader>
           <CardTitle>Lynx</CardTitle>
@@ -87,7 +87,7 @@ const Login = () => {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 

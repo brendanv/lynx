@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import PocketBase from "pocketbase";
 import type { AuthModel } from "pocketbase";
 import { useNavigate } from "react-router-dom";
+import URLS from "@/lib/urls";
 
 type PocketBaseContextValue = {
   pb: PocketBase;
@@ -45,7 +46,7 @@ export const useRequireAuth = () => {
 
   useEffect(() => {
     if (!pb.authStore.isValid) {
-      navigate("/login");
+      navigate(URLS.LOGIN);
     }
   }, [pb.authStore.isValid, navigate]);
 
