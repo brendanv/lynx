@@ -8,4 +8,6 @@ export default {
   TAGS: "/tags",
   COOKIES: "/cookies",
   IMPORT: "/import",
+
+  LINK_VIEWER: (id: string) => `/link/${id}/view`,
 };
