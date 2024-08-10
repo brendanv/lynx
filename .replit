@@ -1,0 +1,19 @@
+entrypoint = "main.go"
+run = ["go", "run", "main.go", "serve", "--http", "0.0.0.0:3000"]
+
+modules = ["go-1.21"]
+
+[nix]
+channel = "stable-24_05"
+
+[gitHubImport]
+requiredFiles = [".replit"]
+
+[deployment]
+run = ["go", "run", "."]
+ignorePorts = false
+deploymentTarget = "gce"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
