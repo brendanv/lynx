@@ -1,0 +1,8 @@
+modules = ["go-1.21"]
+run = "cd backend && go run main.go serve --http 0.0.0.0:3000"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "cd backend && go run main.go serve --http 0.0.0.0:3000"]
