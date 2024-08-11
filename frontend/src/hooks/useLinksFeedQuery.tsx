@@ -20,7 +20,7 @@ type QueryResult = {
 
 // Represents the raw object returned by Pocketbase. This should be
 // kept in sync with any changes to the fields returned by the query, etc
-type FeedQueryItem = {
+export type FeedQueryItem = {
   id: string;
   added_to_library: string;
   article_date: string | null;
@@ -38,7 +38,7 @@ type FeedQueryItem = {
   user: string;
 };
 
-const convertToFeedLink = (item: FeedQueryItem): FeedLink => {
+export const convertFeedQueryItemToFeedLink = (item: FeedQueryItem): FeedLink => {
   return {
     id: item.id,
     added_to_library: new Date(item.added_to_library),
@@ -100,7 +100,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
           });
         setResult({
           ...queryResult,
-          items: queryResult.items.map(convertToFeedLink),
+          items: queryResult.items.map(convertFeedQueryItemToFeedLink),
         });
       } catch (e: any) {
         setError(e);
