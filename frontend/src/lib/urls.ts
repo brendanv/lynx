@@ -9,5 +9,6 @@ export default {
   COOKIES: "/cookies",
   IMPORT: "/import",
 
+  LINK_VIEWER_TEMPLATE: "/link/:id/view",
   LINK_VIEWER: (id: string) => `/link/${id}/view`,
 };

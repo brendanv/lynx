@@ -1,0 +1,113 @@
+import React from "react";
+import { useParams } from "react-router-dom";
+import useLinkViewerQuery from "@/hooks/useLinkViewerQuery";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, ClockIcon, LinkIcon, UserIcon } from "lucide-react";
+import Tag from "@/types/Tag";
+
+const LinkViewer = () => {
+  const { id } = useParams();
+  if (id !== undefined) {
+    const result = useLinkViewerQuery({ id });
+    if (result.result) {
+      return (
+        <div className="container mx-auto px-4">
+          <ArticleView linkView={result.result} />
+        </div>
+      );
+    }
+  }
+  return <div />;
+};
+
+type LinkView = {
+  id: string;
+  article_date: Date | null;
+  author: string | null;
+  excerpt: string | null;
+  header_image_url: string | null;
+  hostname: string | null;
+  last_viewed_at: Date | null;
+  read_time_display: string | null;
+  tags: Tag[];
+  title: string | null;
+  cleaned_url: string | null;
+  article_html: string | null;
+};
+
+const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
+  return (
+    <Card className="w-full max-w-4xl mx-auto overflow-hidden">
+      <div
+        className="relative bg-cover bg-center h-64"
+        style={{
+          backgroundImage: linkView.header_image_url
+            ? `url(${linkView.header_image_url})`
+            : "none",
+        }}
+      >
+        <div className="absolute inset-0 bg-black bg-opacity-50" />
+        <CardHeader className="relative z-10 text-white">
+          <CardTitle className="text-3xl font-bold mb-4">
+            {linkView.title}
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            {linkView.author && (
+              <div className="flex items-center gap-1">
+                <UserIcon size={16} />
+                <span>{linkView.author}</span>
+              </div>
+            )}
+            {linkView.article_date && (
+              <div className="flex items-center gap-1">
+                <CalendarIcon size={16} />
+                <span>
+                  {new Date(linkView.article_date).toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            {linkView.read_time_display && (
+              <div className="flex items-center gap-1">
+                <ClockIcon size={16} />
+                <span>{linkView.read_time_display}</span>
+              </div>
+            )}
+            {linkView.hostname && (
+              <div className="flex items-center gap-1">
+                <LinkIcon size={16} />
+                <span>{linkView.hostname}</span>
+              </div>
+            )}
+          </div>
+          {linkView.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {linkView.tags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant="secondary"
+                  className="bg-white bg-opacity-20"
+                >
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardHeader>
+      </div>
+      <CardContent className="mt-6">
+        {linkView.excerpt && (
+          <p className="text-gray-600 italic mb-4">{linkView.excerpt}</p>
+        )}
+        {linkView.article_html && (
+          <div
+            className="prose lg:prose-xl dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: linkView.article_html }}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default LinkViewer;
