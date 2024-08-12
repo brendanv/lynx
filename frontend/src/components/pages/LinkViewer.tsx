@@ -5,19 +5,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ClockIcon, LinkIcon, UserIcon } from "lucide-react";
 import Tag from "@/types/Tag";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const LinkViewer = () => {
   const { id } = useParams();
-  if (id !== undefined) {
-    const result = useLinkViewerQuery({ id });
-    if (result.result) {
-      return (
-        <div className="container mx-auto px-4">
-          <ArticleView linkView={result.result} />
-        </div>
-      );
-    }
+
+  if (id === undefined) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>No article ID provided.</AlertDescription>
+      </Alert>
+    );
   }
+
+  const { result, loading, error } = useLinkViewerQuery(id);
+
+  if (result) {
+    return (
+      <div className="container mx-auto px-4">
+        <ArticleView linkView={result} />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (<LoadingView />)
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="w-full max-w-4xl mx-auto overflow-hidden">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error.message}</AlertDescription>
+      </Alert>
+    );
+  }
+
   return <div />;
 };
 
@@ -35,6 +60,38 @@ type LinkView = {
   cleaned_url: string | null;
   article_html: string | null;
 };
+
+const LoadingView = () => (
+  <Card className="w-full max-w-4xl mx-auto overflow-hidden border-none">
+    <div className="relative h-64">
+      <Skeleton className="absolute inset-0" />
+    </div>
+    <CardHeader className="relative z-10">
+      <Skeleton className="h-9 w-3/4 mb-4" />
+      <div className="flex flex-wrap items-center gap-4">
+        {[...Array(4)].map((_, index) => (
+          <Skeleton key={index} className="h-5 w-24" />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 mt-4">
+        {[...Array(3)].map((_, index) => (
+          <Skeleton key={index} className="h-6 w-16 rounded-full" />
+        ))}
+      </div>
+    </CardHeader>
+    <CardContent className="mt-6">
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-5/6 mb-2" />
+      <Skeleton className="h-4 w-4/5 mb-6" />
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-5/6 mb-2" />
+      <Skeleton className="h-4 w-4/5 mb-6" />
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-5/6 mb-2" />
+      <Skeleton className="h-4 w-4/5 mb-6" />
+    </CardContent>
+  </Card>
+);
 
 const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
   return (

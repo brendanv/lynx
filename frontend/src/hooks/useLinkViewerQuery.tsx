@@ -3,10 +3,6 @@ import type Tag from "@/types/Tag";
 import Client from "pocketbase";
 import { useEffect, useState } from "react";
 
-type Props = {
-  id: string;
-};
-
 type QueryResult = {
   loading: boolean;
   error: Error | null;
@@ -28,7 +24,7 @@ type LinkView = {
   article_html: string | null;
 };
 
-const useLinkViewerQuery = (props: Props): QueryResult => {
+const useLinkViewerQuery = (id: string): QueryResult => {
   const { pb } = usePocketBase();
   const authModel = pb.authStore.model;
   if (authModel === null) {
@@ -44,7 +40,7 @@ const useLinkViewerQuery = (props: Props): QueryResult => {
       setLoading(true);
       setError(null);
       try {
-        const linkResult = await runQuery(props.id, pb);
+        const linkResult = await runQuery(id, pb);
         setLink(linkResult);
       } catch (e: any) {
         setError(e);
@@ -53,7 +49,7 @@ const useLinkViewerQuery = (props: Props): QueryResult => {
       }
     };
     fetchData();
-  }, [props.id, authModel.id]);
+  }, [id, authModel.id]);
 
   return { result: link, loading, error };
 };
