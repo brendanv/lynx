@@ -24,7 +24,10 @@ type LinkView = {
   article_html: string | null;
 };
 
-const useLinkViewerQuery = (id: string): QueryResult => {
+const useLinkViewerQuery = (
+  id: string,
+  updateLastViewedAt: boolean,
+): QueryResult => {
   const { pb } = usePocketBase();
   const authModel = pb.authStore.model;
   if (authModel === null) {
@@ -40,7 +43,7 @@ const useLinkViewerQuery = (id: string): QueryResult => {
       setLoading(true);
       setError(null);
       try {
-        const linkResult = await runQuery(id, pb);
+        const linkResult = await runQuery(id, pb, updateLastViewedAt);
         setLink(linkResult);
       } catch (e: any) {
         setError(e);
@@ -54,7 +57,11 @@ const useLinkViewerQuery = (id: string): QueryResult => {
   return { result: link, loading, error };
 };
 
-const runQuery = async (id: string, client: Client): Promise<LinkView> => {
+const runQuery = async (
+  id: string,
+  client: Client,
+  updateLastViewedAt: boolean,
+): Promise<LinkView> => {
   const queryResult = await client.collection("links").getOne<{
     id: string;
     article_date: string | null;
@@ -86,6 +93,7 @@ const runQuery = async (id: string, client: Client): Promise<LinkView> => {
       "article_html",
       "expand.tags.*",
     ].join(","),
+    headers: updateLastViewedAt ? { "X-Lynx-Update-Last-Viewed": "true" } : {},
   });
   return {
     ...queryResult,

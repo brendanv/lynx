@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useLinkViewerQuery from "@/hooks/useLinkViewerQuery";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +7,11 @@ import { CalendarIcon, ClockIcon, LinkIcon, UserIcon } from "lucide-react";
 import Tag from "@/types/Tag";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePocketBase } from "@/hooks/usePocketBase";
 
 const LinkViewer = () => {
   const { id } = useParams();
+  const { pb } = usePocketBase();
 
   if (id === undefined) {
     return (
@@ -20,7 +22,7 @@ const LinkViewer = () => {
     );
   }
 
-  const { result, loading, error } = useLinkViewerQuery(id);
+  const { result, loading, error } = useLinkViewerQuery(id, true);
 
   if (result) {
     return (
@@ -31,12 +33,15 @@ const LinkViewer = () => {
   }
 
   if (loading) {
-    return (<LoadingView />)
+    return <LoadingView />;
   }
 
   if (error) {
     return (
-      <Alert variant="destructive" className="w-full max-w-4xl mx-auto overflow-hidden">
+      <Alert
+        variant="destructive"
+        className="w-full max-w-4xl mx-auto overflow-hidden"
+      >
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error.message}</AlertDescription>
       </Alert>
