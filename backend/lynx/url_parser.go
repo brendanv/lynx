@@ -11,8 +11,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 
 	"github.com/go-shiori/go-readability"
@@ -20,7 +20,7 @@ import (
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func handleParseURL(app *pocketbase.PocketBase, c echo.Context) error {
+func handleParseURL(app core.App, c echo.Context) error {
 	urlParam := c.FormValue("url")
 	if urlParam == "" {
 		return apis.NewBadRequestError("Missing 'url' parameter", nil)
