@@ -1,55 +1,31 @@
-package main
+package lynx
 
 import (
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
-	"main/lynx"
-
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 
 	"github.com/go-shiori/go-readability"
-
-	_ "main/migrations"
 )
-
-func main() {
-	app := pocketbase.New()
-
-	// Enable the migration command, but only enable
-	// Automigrate in dev (if go-run is used)
-	isGoRun := strings.HasPrefix(os.Args[0], os.TempDir())
-	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
-		Automigrate: isGoRun,
-	})
-
-	lynx.InitializePocketbase(app)
-
-	if err := app.Start(); err != nil {
-		log.Fatal(err)
-	}
-}
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func handleParseURL(app *pocketbase.PocketBase, c echo.Context) error {
+func handleParseURL(app core.App, c echo.Context) error {
 	urlParam := c.FormValue("url")
 	if urlParam == "" {
 		return apis.NewBadRequestError("Missing 'url' parameter", nil)
 	}
-	
+
 	parsedURL, err := url.Parse(urlParam)
 	if err != nil {
 		return apis.NewBadRequestError("Failed to parse URL", err)
@@ -61,7 +37,7 @@ func handleParseURL(app *pocketbase.PocketBase, c echo.Context) error {
 		return apis.NewForbiddenError("Not authenticated", nil)
 	}
 
-	// Load user cookies 
+	// Load user cookies
 	cookieRecords, err := app.Dao().FindRecordsByFilter(
 		"user_cookies",
 		"user = {:user} && domain = {:url}",

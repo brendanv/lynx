@@ -2,7 +2,12 @@ module main
 
 go 1.21
 
-require github.com/pocketbase/pocketbase v0.22.18
+require (
+	github.com/go-shiori/go-readability v0.0.0-20240701094332-1070de7e32ef
+	github.com/labstack/echo/v5 v5.0.0-20230722203903-ec5b858dab61
+	github.com/pocketbase/dbx v1.10.1
+	github.com/pocketbase/pocketbase v0.22.18
+)
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
@@ -36,7 +41,6 @@ require (
 	github.com/ganigeorgiev/fexpr v0.4.1 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20210627111528-4e4722cd0d65 // indirect
-	github.com/go-shiori/go-readability v0.0.0-20240701094332-1070de7e32ef // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -46,13 +50,11 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/labstack/echo/v5 v5.0.0-20230722203903-ec5b858dab61 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
-	github.com/pocketbase/dbx v1.10.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
