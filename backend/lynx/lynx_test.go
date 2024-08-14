@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/core"
@@ -60,6 +61,70 @@ func TestHandleParseURL(t *testing.T) {
 			ExpectedStatus:  200,
 			ExpectedContent: []string{`"id":"mock_id_12345"`},
 			TestAppFactory:  setupTestApp,
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
+
+func TestOnRecordViewRequest(t *testing.T) {
+	setupTestApp := func(t *testing.T) *tests.TestApp {
+		testApp, err := tests.NewTestApp(testDataDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		InitializePocketbase(testApp)
+
+		return testApp
+	}
+
+	scenarios := []tests.ApiScenario{
+		{
+			Name:   "View link without update header",
+			Method: http.MethodGet,
+			Url:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
+			RequestHeaders: map[string]string{
+				"Authorization": generateRecordToken("users", "test2@example.com"),
+			},
+			ExpectedStatus: 200,
+			ExpectedContent: []string{"8n3iq8dt6vwi4ph"},
+			ExpectedEvents: map[string]int{
+				"OnRecordViewRequest": 1,
+			},
+			TestAppFactory: setupTestApp,
+		},
+		{
+			Name:   "View link with update header",
+			Method: http.MethodGet,
+			Url:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
+			RequestHeaders: map[string]string{
+				"Authorization":             generateRecordToken("users", "test2@example.com"),
+				"X-Lynx-Update-Last-Viewed": "true",
+			},
+			ExpectedStatus: 200,
+			ExpectedContent: []string{"8n3iq8dt6vwi4ph"},
+			ExpectedEvents: map[string]int{
+				"OnRecordViewRequest": 1,
+				"OnModelBeforeUpdate": 1,
+				"OnModelAfterUpdate":  1,
+			},
+			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				record, err := app.Dao().FindRecordById("links", "8n3iq8dt6vwi4ph")
+				if err != nil {
+					t.Fatal(err)
+				}
+				lastViewedAt := record.GetDateTime("last_viewed_at")
+				if lastViewedAt.IsZero() {
+					t.Fatal("last_viewed_at was not updated")
+				}
+				if time.Since(lastViewedAt.Time()) > time.Minute {
+					t.Fatal("last_viewed_at was not updated recently")
+				}
+			},
+			TestAppFactory: setupTestApp,
 		},
 	}
 
