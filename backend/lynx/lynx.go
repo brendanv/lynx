@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/tools/security"
 )
 
 var parseUrlHandlerFunc = handleParseURL
@@ -26,6 +28,17 @@ func InitializePocketbase(app core.App) {
 			},
 			Middlewares: []echo.MiddlewareFunc{
 				apiKeyAuth,
+				apis.RequireAdminOrRecordAuth(),
+			},
+		})
+
+		e.Router.AddRoute(echo.Route{
+			Method: http.MethodPost,
+			Path:   "/lynx/generate_api_key",
+			Handler: func(c echo.Context) error {
+				return handleGenerateAPIKey(app, c)
+			},
+			Middlewares: []echo.MiddlewareFunc{
 				apis.RequireAdminOrRecordAuth(),
 			},
 		})
@@ -51,5 +64,44 @@ func InitializePocketbase(app core.App) {
 		}
 
 		return nil
+	})
+}
+
+func handleGenerateAPIKey(app core.App, c echo.Context) error {
+	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+	if authRecord == nil {
+		return apis.NewForbiddenError("Not authenticated", nil)
+	}
+
+	name := c.FormValue("name")
+	if name == "" {
+		return apis.NewBadRequestError("'name' parameter is required", nil)
+	}
+
+	apiKey := security.RandomString(32)
+
+	// Set expiration date to 6 months from now
+	expiresAt := time.Now().UTC().AddDate(0, 6, 0)
+
+	collection, err := app.Dao().FindCollectionByNameOrId("api_keys")
+	if err != nil {
+		return apis.NewBadRequestError("Failed to find api_keys collection", err)
+	}
+
+	record := models.NewRecord(collection)
+	record.Set("user", authRecord.Id)
+	record.Set("api_key", apiKey)
+	record.Set("name", name)
+	record.Set("expires_at", expiresAt.Format(time.RFC3339))
+
+	if err := app.Dao().SaveRecord(record); err != nil {
+		return apis.NewBadRequestError("Failed to save API key", err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"name":       name,
+		"api_key":    apiKey,
+		"expires_at": expiresAt.Format(time.RFC3339),
+		"id":					record.Id,
 	})
 }

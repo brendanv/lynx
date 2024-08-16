@@ -1,7 +1,9 @@
 package lynx
 
 import (
+	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -76,7 +78,7 @@ func TestHandleParseURL(t *testing.T) {
 				"OnModelBeforeUpdate": 1,
 				"OnModelAfterUpdate":  1,
 			},
-			TestAppFactory:  setupTestApp,
+			TestAppFactory: setupTestApp,
 		},
 		{
 			Name:   "Request with invalid API key",
@@ -129,7 +131,7 @@ func TestOnRecordViewRequest(t *testing.T) {
 			RequestHeaders: map[string]string{
 				"Authorization": generateRecordToken("users", "test2@example.com"),
 			},
-			ExpectedStatus: 200,
+			ExpectedStatus:  200,
 			ExpectedContent: []string{"8n3iq8dt6vwi4ph"},
 			ExpectedEvents: map[string]int{
 				"OnRecordViewRequest": 1,
@@ -144,7 +146,7 @@ func TestOnRecordViewRequest(t *testing.T) {
 				"Authorization":             generateRecordToken("users", "test2@example.com"),
 				"X-Lynx-Update-Last-Viewed": "true",
 			},
-			ExpectedStatus: 200,
+			ExpectedStatus:  200,
 			ExpectedContent: []string{"8n3iq8dt6vwi4ph"},
 			ExpectedEvents: map[string]int{
 				"OnRecordViewRequest": 1,
@@ -165,6 +167,103 @@ func TestOnRecordViewRequest(t *testing.T) {
 				}
 			},
 			TestAppFactory: setupTestApp,
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
+
+func TestHandleGenerateAPIKey(t *testing.T) {
+	setupTestApp := func(t *testing.T) *tests.TestApp {
+		testApp, err := tests.NewTestApp(testDataDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		InitializePocketbase(testApp)
+
+		return testApp
+	}
+
+	scenarios := []tests.ApiScenario{
+		{
+			Name:   "Generate API key with valid user and name",
+			Method: http.MethodPost,
+			Url:    "/lynx/generate_api_key",
+			Body:   strings.NewReader(url.Values{"name": {"Test API Key"}}.Encode()),
+			RequestHeaders: map[string]string{
+				"Content-Type":  "application/x-www-form-urlencoded",
+				"Authorization": generateRecordToken("users", "test@example.com"),
+			},
+			ExpectedStatus: 200,
+			ExpectedEvents: map[string]int{
+				"OnModelBeforeCreate": 1,
+				"OnModelAfterCreate":  1,
+			},
+			ExpectedContent: []string{`"name":"Test API Key"`},
+			TestAppFactory: setupTestApp,
+			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				var result map[string]interface{}
+				if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+					t.Fatal(err)
+				}
+
+				// Check if the response contains the expected fields
+				if name, ok := result["name"].(string); !ok || name != "Test API Key" {
+					t.Fatalf("Expected name 'Test API Key', got %v", name)
+				}
+				if _, ok := result["api_key"].(string); !ok {
+					t.Fatal("Expected api_key to be a string")
+				}
+				if _, ok := result["expires_at"].(string); !ok {
+					t.Fatal("Expected expires_at to be a string")
+				}
+				if _, ok := result["id"].(string); !ok {
+					t.Fatal("Expected expires_at to be a string")
+				}
+
+				// Check if the API key was saved in the database
+				apiKey, err := app.Dao().FindRecordById("api_keys", result["id"].(string))
+				if err != nil {
+					t.Fatal("Failed to find the created API key in the database")
+				}
+
+				// Check if the expiration date is roughly 6 months in the future
+				expiresAt := apiKey.GetDateTime("expires_at")
+				expectedExpiration := time.Now().AddDate(0, 6, 0)
+
+				// Convert types.DateTime to time.Time for comparison
+				expiresAtTime := expiresAt.Time()
+
+				timeDiff := expiresAtTime.Sub(expectedExpiration)
+				if timeDiff < -24*time.Hour || timeDiff > 24*time.Hour {
+					t.Fatalf("Expiration date is not within 24 hours of the expected 6 months: got %v, expected close to %v", expiresAtTime, expectedExpiration)
+				}
+			},
+		},
+		{
+			Name:   "Generate API key without name",
+			Method: http.MethodPost,
+			Url:    "/lynx/generate_api_key",
+			Body:   strings.NewReader(""),
+			RequestHeaders: map[string]string{
+				"Content-Type":  "application/x-www-form-urlencoded",
+				"Authorization": generateRecordToken("users", "test@example.com"),
+			},
+			ExpectedStatus:  400,
+			ExpectedContent: []string{`"message":"'name' parameter is required."`},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:            "Generate API key without authentication",
+			Method:          http.MethodPost,
+			Url:             "/lynx/generate_api_key",
+			Body:            strings.NewReader(url.Values{"name": {"Test API Key"}}.Encode()),
+			ExpectedStatus:  401,
+			ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
+			TestAppFactory:  setupTestApp,
 		},
 	}
 
