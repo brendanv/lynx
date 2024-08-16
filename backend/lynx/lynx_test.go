@@ -51,7 +51,7 @@ func TestHandleParseURL(t *testing.T) {
 			TestAppFactory:  setupTestApp,
 		},
 		{
-			Name:   "Authenticated request",
+			Name:   "Authenticated request with user token",
 			Method: http.MethodPost,
 			Url:    "/lynx/parse_link",
 			Body:   strings.NewReader("url=https://example.com"),
@@ -60,6 +60,46 @@ func TestHandleParseURL(t *testing.T) {
 			},
 			ExpectedStatus:  200,
 			ExpectedContent: []string{`"id":"mock_id_12345"`},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:   "Authenticated request with API key",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_link",
+			Body:   strings.NewReader("url=https://example.com"),
+			RequestHeaders: map[string]string{
+				"X-API-KEY": "this_is_a_test_api_key",
+			},
+			ExpectedStatus:  200,
+			ExpectedContent: []string{`"id":"mock_id_12345"`},
+			ExpectedEvents: map[string]int{
+				"OnModelBeforeUpdate": 1,
+				"OnModelAfterUpdate":  1,
+			},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:   "Request with invalid API key",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_link",
+			Body:   strings.NewReader("url=https://example.com"),
+			RequestHeaders: map[string]string{
+				"X-API-KEY": "INVALID_API_KEY",
+			},
+			ExpectedStatus:  401,
+			ExpectedContent: []string{`"message":"Invalid or expired API key."`},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:   "Request with expired API key",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_link",
+			Body:   strings.NewReader("url=https://example.com"),
+			RequestHeaders: map[string]string{
+				"X-API-KEY": "this_key_is_expired",
+			},
+			ExpectedStatus:  401,
+			ExpectedContent: []string{`"message":"Invalid or expired API key."`},
 			TestAppFactory:  setupTestApp,
 		},
 	}

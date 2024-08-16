@@ -13,6 +13,10 @@ import (
 var parseUrlHandlerFunc = handleParseURL
 
 func InitializePocketbase(app core.App) {
+
+	apiKeyAuth := ApiKeyAuthMiddleware(app)
+
+	
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.AddRoute(echo.Route{
 			Method: http.MethodPost,
@@ -21,6 +25,7 @@ func InitializePocketbase(app core.App) {
 				return parseUrlHandlerFunc(app, c)
 			},
 			Middlewares: []echo.MiddlewareFunc{
+				apiKeyAuth,
 				apis.RequireAdminOrRecordAuth(),
 			},
 		})
