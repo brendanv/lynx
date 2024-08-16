@@ -27,6 +27,7 @@ func InitializePocketbase(app core.App) {
 				return parseUrlHandlerFunc(app, c)
 			},
 			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
 				apiKeyAuth,
 				apis.RequireAdminOrRecordAuth(),
 			},
@@ -39,6 +40,7 @@ func InitializePocketbase(app core.App) {
 				return handleGenerateAPIKey(app, c)
 			},
 			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
 				apis.RequireAdminOrRecordAuth(),
 			},
 		})
