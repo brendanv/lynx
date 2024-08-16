@@ -79,6 +79,21 @@ func TestHandleParseURL(t *testing.T) {
 				"OnModelAfterUpdate":  1,
 			},
 			TestAppFactory: setupTestApp,
+			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				// Check if the API key was saved in the database
+				apiKey, err := app.Dao().FindRecordById("api_keys", "qvwy0nqws813o4s")
+				if err != nil {
+					t.Fatal("Failed to find the existing API key in the database")
+				}
+
+				lastUsedAt := apiKey.GetDateTime("last_used_at")
+				if lastUsedAt.IsZero() {
+					t.Fatal("last_used_at was not updated")
+				}
+				if time.Since(lastUsedAt.Time()) > time.Minute {
+					t.Fatal("last_used_at was not updated recently")
+				}
+			},
 		},
 		{
 			Name:   "Request with invalid API key",

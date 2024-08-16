@@ -36,7 +36,7 @@ func ApiKeyAuthMiddleware(app core.App) echo.MiddlewareFunc {
         return apis.NewUnauthorizedError("Invalid or expired API key", nil)
       }
 
-      apiKeyRecord.Set("lastUsedAt", time.Now().UTC())
+      apiKeyRecord.Set("last_used_at", time.Now().UTC())
       if err := app.Dao().SaveRecord(apiKeyRecord); err != nil {
         app.Logger().Error("Failed to update API key last used timestamp", "error", err)
       }
