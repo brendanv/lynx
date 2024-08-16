@@ -80,6 +80,7 @@ const Header = () => {
                       <ListItem href={URLS.COOKIES} title="Cookies">Save logins from your favorite sites</ListItem>
                       <ListItem href={URLS.TAGS} title="Tags">Organize and manage your tags</ListItem>
                       <ListItem href={URLS.IMPORT} title="Import">Import links from other services</ListItem>
+                      <ListItem href={URLS.API_KEYS} title="API Keys">Control access from third party services</ListItem>
                       <ListItem onClick= {handleLogout} title="Logout">Logout</ListItem>
                     </ul>
                   </NavigationMenuContent>
