@@ -11,6 +11,7 @@ const Login = lazy(() => import("@/components/pages/Login"));
 const AddLink = lazy(() => import("@/components/pages/AddLink"));
 const ApiKeys = lazy(() => import("@/components/pages/ApiKeys"));
 const Cookies = lazy(() => import("@/components/pages/Cookies"));
+const Feeds = lazy(() => import("@/components/pages/Feeds"));
 
 const App = () => {
   return (
@@ -29,6 +30,7 @@ const App = () => {
                 />
                 <Route path={URLS.COOKIES} element={<Cookies />} />
                 <Route path={URLS.API_KEYS} element={<ApiKeys />} />
+                <Route path={URLS.FEEDS} element={<Feeds />} />
               </Route>
             </Routes>
           </Router>
