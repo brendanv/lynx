@@ -1,3 +1,4 @@
+import React from "react";
 import type FeedLink from "@/types/FeedLink";
 import {
   Card,
@@ -6,6 +7,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
 
@@ -21,7 +23,7 @@ const LinkCard: React.FC<{ link: FeedLink }> = ({ link }) => {
           className="object-cover w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg"
         />
         {isUnread && (
-          <div className="absolute -top-1 -left-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white"></div>
+          <div className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
         )}
       </div>
       <div className="flex-grow min-w-0">
@@ -35,6 +37,24 @@ const LinkCard: React.FC<{ link: FeedLink }> = ({ link }) => {
         </Link>
         <CardContent className="p-0 mt-2">
           <p className="line-clamp-2">{link.excerpt}</p>
+        </CardContent>
+      </div>
+    </Card>
+  );
+};
+
+export const LinkCardSkeleton: React.FC = () => {
+  return (
+    <Card className="flex items-start p-4 gap-4 mb-4">
+      <Skeleton className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg" />
+      <div className="flex-grow min-w-0">
+        <CardHeader className="p-0">
+          <Skeleton className="h-6 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-1/2" />
+        </CardHeader>
+        <CardContent className="p-0 mt-2">
+          <Skeleton className="h-4 w-full mb-2" />
+          <Skeleton className="h-4 w-5/6" />
         </CardContent>
       </div>
     </Card>
