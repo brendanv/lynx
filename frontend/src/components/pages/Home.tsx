@@ -4,6 +4,7 @@ import useLinksFeedQuery from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SearchBar, { SearchParams } from "@/components/SearchBar";
+import Paginator from "@/components/Paginator";
 
 const Home: React.FC = () => {
   const [page, setPage] = useState(1);
@@ -22,7 +23,7 @@ const Home: React.FC = () => {
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
-    setPage(1); // Reset to first page when search parameters change
+    setPage(1);
   };
 
   const renderContent = () => {
@@ -33,9 +34,20 @@ const Home: React.FC = () => {
     }
 
     if (queryResult && queryResult.items.length > 0) {
-      return queryResult.items.map((item) => (
-        <LinkCard key={item.id} link={item} />
-      ));
+      return (
+        <>
+          {queryResult.items.map((item) => (
+            <LinkCard key={item.id} link={item} />
+          ))}
+          {queryResult.totalPages > 1 && (
+            <Paginator
+              currentPage={page}
+              totalPages={queryResult.totalPages}
+              onPageChange={setPage}
+            />
+          )}
+        </>
+      );
     }
 
     if (feedError || !queryResult || queryResult.items.length === 0) {
