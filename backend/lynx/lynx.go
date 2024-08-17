@@ -3,6 +3,7 @@ package lynx
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v5"
@@ -18,8 +19,13 @@ func InitializePocketbase(app core.App) {
 
 	apiKeyAuth := ApiKeyAuthMiddleware(app)
 
-	
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+
+		e.Router.GET(
+			"/*",
+			apis.StaticDirectoryHandler(os.DirFS("./pb_public"), true),
+		)
+
 		e.Router.AddRoute(echo.Route{
 			Method: http.MethodPost,
 			Path:   "/lynx/parse_link",
@@ -104,6 +110,6 @@ func handleGenerateAPIKey(app core.App, c echo.Context) error {
 		"name":       name,
 		"api_key":    apiKey,
 		"expires_at": expiresAt.Format(time.RFC3339),
-		"id":					record.Id,
+		"id":         record.Id,
 	})
 }
