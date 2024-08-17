@@ -3,11 +3,13 @@ import Header from "@/components/Header";
 import useLinksFeedQuery from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import SearchBar, { SearchParams } from "@/components/SearchBar";
 
 const Home: React.FC = () => {
   const [page, setPage] = useState(1);
-  const [readState, setReadState] = useState<"all" | "read" | "unread">("all");
-  const [tagId, setTagId] = useState<string | undefined>(undefined);
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    readState: "all",
+  });
 
   const {
     loading: feedLoading,
@@ -15,9 +17,13 @@ const Home: React.FC = () => {
     error: feedError,
   } = useLinksFeedQuery({
     page,
-    readState,
-    tagId,
+    ...searchParams,
   });
+
+  const handleSearchParamsChange = (newSearchParams: SearchParams) => {
+    setSearchParams(newSearchParams);
+    setPage(1); // Reset to first page when search parameters change
+  };
 
   const renderContent = () => {
     if (feedLoading) {
@@ -27,7 +33,9 @@ const Home: React.FC = () => {
     }
 
     if (queryResult && queryResult.items.length > 0) {
-      return queryResult.items.map((item) => <LinkCard key={item.id} link={item} />);
+      return queryResult.items.map((item) => (
+        <LinkCard key={item.id} link={item} />
+      ));
     }
 
     if (feedError || !queryResult || queryResult.items.length === 0) {
@@ -50,7 +58,8 @@ const Home: React.FC = () => {
     <>
       <Header />
       <main className="container mx-auto mt-20 p-4">
-        {renderContent()}
+        <SearchBar onSearchParamsChange={handleSearchParamsChange} />
+        <div className="mt-6">{renderContent()}</div>
       </main>
     </>
   );

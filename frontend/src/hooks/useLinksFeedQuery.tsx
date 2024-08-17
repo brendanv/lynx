@@ -10,6 +10,7 @@ type Props = {
   page?: number;
   readState?: "unread" | "read" | "all";
   tagId?: string;
+  searchText?: string;
 };
 
 type QueryResult = {
@@ -59,7 +60,7 @@ export const convertFeedQueryItemToFeedLink = (item: FeedQueryItem): FeedLink =>
 };
 
 const buildFilters = (client: Client, props: Props) => {
-  const { readState, tagId } = props;
+  const { readState, tagId, searchText } = props;
   const filterExprs: string[] = [];
 
   if (readState === "unread") {
@@ -70,6 +71,10 @@ const buildFilters = (client: Client, props: Props) => {
 
   if (tagId) {
     filterExprs.push(client.filter("tags.id ?= {:tagId}", { tagId }));
+  }
+
+  if (searchText) {
+    filterExprs.push(client.filter("(title ~ {:search} || excerpt ~ {:search})", { search: searchText }));
   }
 
   return filterExprs.join(" && ");
@@ -109,7 +114,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
       }
     };
     fetchData();
-  }, [props.page, props.readState, authModel.id]);
+  }, [props.page, props.readState, props.tagId, props.searchText, authModel.id]);
 
   return { result, loading, error };
 };
