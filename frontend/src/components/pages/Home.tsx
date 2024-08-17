@@ -10,6 +10,7 @@ const Home: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     readState: "all",
+    sortBy: "added_to_library",
   });
 
   const {

@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Check, ChevronsUpDown, X, Filter, SortAsc } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { usePocketBase } from "@/hooks/usePocketBase";
 
 export type SearchParams = {
-  searchText?: string;
+  searchText: string;
   readState: "all" | "read" | "unread";
   tagId?: string;
+  sortBy: "added_to_library" | "article_date";
 };
 
 type SearchBarProps = {
@@ -23,10 +23,13 @@ type SearchBarProps = {
 };
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     searchText: "",
     readState: "all",
     tagId: undefined,
+    sortBy: "added_to_library",
   });
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const { pb } = usePocketBase();
@@ -54,23 +57,35 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
     onSearchParamsChange(updatedParams);
   };
 
-  const handleSearch = () => {
-    onSearchParamsChange(searchParams);
-  };
-
   const clearFilters = () => {
     const clearedParams: SearchParams = {
-      searchText: "",
+      searchText: searchParams.searchText,
       readState: "all",
       tagId: undefined,
+      sortBy: "added_to_library",
     };
     setSearchParams(clearedParams);
     onSearchParamsChange(clearedParams);
   };
 
+  const readStates = [
+    { value: "all", label: "All" },
+    { value: "read", label: "Read" },
+    { value: "unread", label: "Unread" },
+  ];
+
+  const sortOptions = [
+    { value: "added_to_library", label: "Date Added" },
+    { value: "article_date", label: "Article Date" },
+  ];
+
+  const activeFiltersCount = 
+    (searchParams.readState !== "all" ? 1 : 0) +
+    (searchParams.tagId ? 1 : 0);
+
   return (
-    <div className="space-y-4">
-      <div className="flex space-x-2">
+    <div className="flex flex-col space-y-2">
+      <div className="flex items-center space-x-2">
         <Input
           type="text"
           placeholder="Search..."
@@ -78,46 +93,91 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
           onChange={(e) => updateSearchParams({ searchText: e.target.value })}
           className="flex-grow"
         />
-        <Button onClick={handleSearch}>Search</Button>
+        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="relative">
+              <Filter className="h-4 w-4" />
+              <span className="ml-2 hidden sm:inline">Filters</span>
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <div className="p-2">
+              <div className="font-semibold mb-2">Read State</div>
+              {readStates.map((state) => (
+                <Button
+                  key={state.value}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => updateSearchParams({ readState: state.value as "all" | "read" | "unread" })}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      searchParams.readState === state.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {state.label}
+                </Button>
+              ))}
+              <div className="font-semibold mb-2 mt-4">Tags</div>
+              {tags.map((tag) => (
+                <Button
+                  key={tag.id}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => updateSearchParams({ tagId: searchParams.tagId === tag.id ? undefined : tag.id })}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      searchParams.tagId === tag.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {tag.name}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <Popover open={sortOpen} onOpenChange={setSortOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline">
+              <SortAsc className="h-4 w-4" />
+              <span className="ml-2 hidden sm:inline">Sort</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <div className="p-2">
+              <div className="font-semibold mb-2">Sort By</div>
+              {sortOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    updateSearchParams({ sortBy: option.value as "added_to_library" | "article_date" });
+                    setSortOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      searchParams.sortBy === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
-      <div className="flex space-x-2">
-        <Select
-          value={searchParams.readState}
-          onValueChange={(value) =>
-            updateSearchParams({
-              readState: value as "all" | "read" | "unread",
-            })
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Read state" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="read">Read</SelectItem>
-            <SelectItem value="unread">Unread</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={searchParams.tagId}
-          onValueChange={(value) =>
-            updateSearchParams({ tagId: value === "all" ? undefined : value })
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select tag" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
-            {tags.map((tag) => (
-              <SelectItem key={tag.id} value={tag.id}>
-                {tag.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex space-x-2">
+      <div className="flex flex-wrap items-center gap-2">
         {searchParams.readState !== "all" && (
           <Badge variant="secondary">
             {searchParams.readState}
@@ -136,9 +196,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
             />
           </Badge>
         )}
-        {(searchParams.readState !== "all" || searchParams.tagId) && (
+        {searchParams.sortBy !== "added_to_library" && (
+          <Badge variant="secondary">
+            Sorted by: {searchParams.sortBy === "article_date" ? "Article Date" : "Date Added"}
+            <X
+              className="ml-1 h-3 w-3 cursor-pointer"
+              onClick={() => updateSearchParams({ sortBy: "added_to_library" })}
+            />
+          </Badge>
+        )}
+        {(activeFiltersCount > 0 || searchParams.sortBy !== "added_to_library") && (
           <Button variant="outline" size="sm" onClick={clearFilters}>
-            Clear Filters
+            Clear Filters & Sort
           </Button>
         )}
       </div>

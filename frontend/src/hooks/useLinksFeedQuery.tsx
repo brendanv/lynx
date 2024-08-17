@@ -11,6 +11,7 @@ type Props = {
   readState?: "unread" | "read" | "all";
   tagId?: string;
   searchText?: string;
+  sortBy: "added_to_library" | "article_date";
 };
 
 type QueryResult = {
@@ -19,8 +20,6 @@ type QueryResult = {
   result: ListResult<FeedLink> | null;
 };
 
-// Represents the raw object returned by Pocketbase. This should be
-// kept in sync with any changes to the fields returned by the query, etc
 export type FeedQueryItem = {
   id: string;
   added_to_library: string;
@@ -101,7 +100,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
           .getList<FeedQueryItem>(props.page || 1, PAGE_SIZE, {
             filter: buildFilters(pb, props),
             expand: "tags",
-            sort: "-added_to_library",
+            sort: `-${props.sortBy}`,
           });
         setResult({
           ...queryResult,
@@ -114,7 +113,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
       }
     };
     fetchData();
-  }, [props.page, props.readState, props.tagId, props.searchText, authModel.id]);
+  }, [props.page, props.readState, props.tagId, props.searchText, props.sortBy, authModel.id]);
 
   return { result, loading, error };
 };
