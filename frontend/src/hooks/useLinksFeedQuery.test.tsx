@@ -32,11 +32,13 @@ describe("useLinksFeedQuery", () => {
     </div>
   );
 
-  it("passes unread state and tag parameters correctly", async () => {
+  it("passes unread state, tag parameters, and search text correctly", async () => {
     const props = {
       page: 2,
       readState: "unread",
       tagId: "tag123",
+      searchText: "test query",
+      sortBy: "added_to_library",
     };
 
     renderHook(() => useLinksFeedQuery(props), { wrapper });
@@ -49,7 +51,7 @@ describe("useLinksFeedQuery", () => {
       2, // page
       15, // PAGE_SIZE
       {
-        filter: "last_viewed_at = null && tags.id ?= {:tagId}",
+        filter: "last_viewed_at = null && tags.id ?= {:tagId} && (title ~ {:search} || excerpt ~ {:search})",
         expand: "tags",
         sort: "-added_to_library",
       },
@@ -58,12 +60,17 @@ describe("useLinksFeedQuery", () => {
     expect(mockPocketBase.filter).toHaveBeenCalledWith("tags.id ?= {:tagId}", {
       tagId: "tag123",
     });
+    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
+      search: "test query",
+    });
   });
 
-  it("passes read state correctly without tag", async () => {
+  it("passes read state correctly without tag and with search", async () => {
     const props = {
       page: 1,
       readState: "read",
+      searchText: "another query",
+      sortBy: "article_date",
     };
 
     renderHook(() => useLinksFeedQuery(props), { wrapper });
@@ -76,18 +83,23 @@ describe("useLinksFeedQuery", () => {
       1, // page
       15, // PAGE_SIZE
       {
-        filter: "last_viewed_at != null",
+        filter: "last_viewed_at != null && (title ~ {:search} || excerpt ~ {:search})",
         expand: "tags",
-        sort: "-added_to_library",
+        sort: "-article_date",
       },
     );
+
+    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
+      search: "another query",
+    });
   });
 
-  it("passes all read state correctly with tag", async () => {
+  it("passes all read state correctly with tag and without search", async () => {
     const props = {
       page: 3,
       readState: "all",
       tagId: "tag456",
+      sortBy: "added_to_library",
     };
 
     renderHook(() => useLinksFeedQuery(props), { wrapper });
@@ -111,9 +123,11 @@ describe("useLinksFeedQuery", () => {
     });
   });
 
-  it("uses default page when not provided", async () => {
+  it("uses default page and sort when not provided", async () => {
     const props = {
       readState: "all",
+      searchText: "default test",
+      sortBy: 'added_to_library'
     };
 
     renderHook(() => useLinksFeedQuery(props), { wrapper });
@@ -126,11 +140,15 @@ describe("useLinksFeedQuery", () => {
       1, // default page
       15, // PAGE_SIZE
       {
-        filter: "",
+        filter: "(title ~ {:search} || excerpt ~ {:search})",
         expand: "tags",
-        sort: "-added_to_library",
+        sort: "-added_to_library", // default sort
       },
     );
+
+    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
+      search: "default test",
+    });
   });
 });
 
