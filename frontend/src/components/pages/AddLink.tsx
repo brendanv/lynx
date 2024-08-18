@@ -24,7 +24,7 @@ const URLParserForm = () => {
   const [createdLink, setCreatedLink] = useState<FeedLink | null>(null);
   const { pb } = usePocketBase();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
     setCreatedLink(null);

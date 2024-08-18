@@ -9,6 +9,7 @@ import Paginator from "@/components/Paginator";
 const Home: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useState<SearchParams>({
+    searchText: "",
     readState: "all",
     sortBy: "added_to_library",
   });

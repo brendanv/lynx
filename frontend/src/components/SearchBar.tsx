@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown, X, Filter, SortAsc } from "lucide-react";
+import { Check, X, Filter, SortAsc } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePocketBase } from "@/hooks/usePocketBase";
 

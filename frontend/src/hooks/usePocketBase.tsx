@@ -12,8 +12,8 @@ const PocketBaseContext = createContext<PocketBaseContextValue | null>(null);
 
 const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL;
 
-export const PocketBaseProvider = ({ children }) => {
-  const [pb, setPb] = useState(new PocketBase(POCKETBASE_URL))
+export const PocketBaseProvider = ({ children }: { children: any }) => {
+  const [pb, _] = useState(new PocketBase(POCKETBASE_URL));
   const [user, setUser] = useState(pb.authStore.model);
 
   useEffect(() => {

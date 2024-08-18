@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { useTheme } from "@/components/ThemeProvider";
@@ -25,7 +25,7 @@ const Login = () => {
   const { pb } = usePocketBase();
   const { theme } = useTheme();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError("");
 
