@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -24,6 +25,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { pb } = usePocketBase();
   const { theme } = useTheme();
+  usePageTitle("Login")
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();

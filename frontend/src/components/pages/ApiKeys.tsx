@@ -40,6 +40,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type ApiKey = {
   id: string;
@@ -58,6 +59,7 @@ const ApiKeys: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [isNewKeyDialogOpen, setIsNewKeyDialogOpen] = useState(false);
+  usePageTitle("API Keys")
 
   useEffect(() => {
     fetchApiKeys();

@@ -5,8 +5,10 @@ import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SearchBar, { SearchParams } from "@/components/SearchBar";
 import Paginator from "@/components/Paginator";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Home: React.FC = () => {
+  usePageTitle("My Feed")
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     searchText: "",

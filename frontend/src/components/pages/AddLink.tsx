@@ -16,6 +16,7 @@ import Header from "@/components/Header";
 import FeedLink from "@/types/FeedLink";
 import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const URLParserForm = () => {
   const [url, setUrl] = useState("");
@@ -23,6 +24,7 @@ const URLParserForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [createdLink, setCreatedLink] = useState<FeedLink | null>(null);
   const { pb } = usePocketBase();
+  usePageTitle("Add Link");
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();

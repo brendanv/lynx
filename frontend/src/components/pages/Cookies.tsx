@@ -39,6 +39,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Cookie = {
   id: string;
@@ -55,6 +56,7 @@ const Cookies: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
+  usePageTitle("Cookies")
 
   useEffect(() => {
     fetchCookies();

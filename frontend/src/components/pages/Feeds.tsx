@@ -38,6 +38,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Feed = {
   id: string;
@@ -56,6 +57,7 @@ const Feeds: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
+  usePageTitle("Feeds")
 
   useEffect(() => {
     fetchFeeds();

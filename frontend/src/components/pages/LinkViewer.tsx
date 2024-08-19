@@ -6,6 +6,7 @@ import { CalendarIcon, ClockIcon, LinkIcon, UserIcon } from "lucide-react";
 import Tag from "@/types/Tag";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const LinkViewer = () => {
   const { id } = useParams();
@@ -20,6 +21,7 @@ const LinkViewer = () => {
   }
 
   const { result, loading, error } = useLinkViewerQuery(id, true);
+  usePageTitle(result?.title || "View Link")
 
   if (result) {
     return (
