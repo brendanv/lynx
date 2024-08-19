@@ -10,7 +10,10 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
+
+	"main/lynx/summarizer"
 )
 
 var parseUrlHandlerFunc = handleParseURL
@@ -71,6 +74,13 @@ func InitializePocketbase(app core.App) {
 			return err
 		}
 
+		return nil
+	})
+
+	app.OnModelAfterCreate("links").Add(func(e *core.ModelEvent) error {
+		routine.FireAndForget(func() {
+			summarizer.MaybeSummarizeLink(app, e.Model.GetId())
+		})
 		return nil
 	})
 }
