@@ -306,3 +306,93 @@ func generateRecordToken(collectionNameOrId string, email string) string {
 
 	return token
 }
+
+func TestSummarizationHook(t *testing.T) {
+	setupTestApp := func(t *testing.T) *tests.TestApp {
+		testApp, err := tests.NewTestApp(testDataDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		InitializePocketbase(testApp)
+
+		return testApp
+	}
+
+	summarizeCalled := false
+	originalSummarizer := CurrentSummarizer
+
+	CurrentSummarizer = &MockSummarizer{
+		MaybeSummarizeLinkFunc: func(app core.App, linkID string) {
+			summarizeCalled = true
+		},
+	}
+
+	t.Cleanup(func() {
+		CurrentSummarizer = originalSummarizer
+	})
+
+	scenarios := []tests.ApiScenario{
+		{
+			Name:   "Create link and trigger summarization hook",
+			Method: http.MethodPost,
+			Url:    "/api/collections/links/records",
+			Body: strings.NewReader(generateValidLinkJSON(t)),
+			RequestHeaders: map[string]string{
+				"Content-Type":  "application/json",
+				"Authorization": generateRecordToken("users", "test@example.com"),
+			},
+			ExpectedStatus: 200,
+			ExpectedEvents: map[string]int{
+				"OnModelBeforeCreate": 1,
+				"OnModelAfterCreate":  1,
+				"OnRecordBeforeCreateRequest": 1,
+				"OnRecordAfterCreateRequest": 1,
+			},
+			ExpectedContent: []string{"example.com"},
+			TestAppFactory: setupTestApp,
+			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				if !summarizeCalled {
+					t.Fatal("MaybeSummarizeLink was not called after link creation")
+				}
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
+
+type MockSummarizer struct {
+	MaybeSummarizeLinkFunc func(app core.App, linkID string)
+}
+
+func (m *MockSummarizer) MaybeSummarizeLink(app core.App, linkID string) {
+	if m.MaybeSummarizeLinkFunc != nil {
+		m.MaybeSummarizeLinkFunc(app, linkID)
+	}
+}
+
+
+func generateValidLinkJSON(t *testing.T) string {
+	link := map[string]interface{}{
+		"title":        "Test Link",
+		"original_url": "https://example.com",
+		"cleaned_url":  "https://example.com",
+		"hostname":     "example.com",
+		"user":         "h4oofx0tx2eupnq", // test@example.com
+		"added_to_library": time.Now().Format(time.RFC3339),
+		"excerpt":          "This is a test excerpt",
+		"raw_text_content": "This is the raw text content of the test link",
+		"read_time_seconds": 60,
+		"read_time_display": "1 min",
+	}
+
+	jsonData, err := json.Marshal(link)
+	if err != nil {
+		t.Fatalf("Failed to marshal link data: %v", err)
+	}
+
+	return string(jsonData)
+}

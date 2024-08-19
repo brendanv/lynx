@@ -18,6 +18,16 @@ import (
 
 var parseUrlHandlerFunc = handleParseURL
 
+// Interfaces for dependency injection for summarization tests
+type Summarizer interface {
+	MaybeSummarizeLink(app core.App, linkID string)
+}
+var CurrentSummarizer Summarizer = &DefaultSummarizer{}
+type DefaultSummarizer struct{}
+func (s *DefaultSummarizer) MaybeSummarizeLink(app core.App, linkID string) {
+	summarizer.MaybeSummarizeLink(app, linkID)
+}
+
 func InitializePocketbase(app core.App) {
 
 	apiKeyAuth := ApiKeyAuthMiddleware(app)
@@ -79,7 +89,7 @@ func InitializePocketbase(app core.App) {
 
 	app.OnModelAfterCreate("links").Add(func(e *core.ModelEvent) error {
 		routine.FireAndForget(func() {
-			summarizer.MaybeSummarizeLink(app, e.Model.GetId())
+			CurrentSummarizer.MaybeSummarizeLink(app, e.Model.GetId())
 		})
 		return nil
 	})
