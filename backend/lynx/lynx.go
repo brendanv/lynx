@@ -14,6 +14,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/security"
 
 	"main/lynx/summarizer"
+	"main/lynx/singlefile"
 )
 
 var parseUrlHandlerFunc = handleParseURL
@@ -90,6 +91,9 @@ func InitializePocketbase(app core.App) {
 	app.OnModelAfterCreate("links").Add(func(e *core.ModelEvent) error {
 		routine.FireAndForget(func() {
 			CurrentSummarizer.MaybeSummarizeLink(app, e.Model.GetId())
+		})
+		routine.FireAndForget(func() {
+			singlefile.MaybeArchiveLink(app, e.Model.GetId())
 		})
 		return nil
 	})
