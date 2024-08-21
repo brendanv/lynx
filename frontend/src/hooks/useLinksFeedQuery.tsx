@@ -18,6 +18,7 @@ type QueryResult = {
   loading: boolean;
   error: Error | null;
   result: ListResult<FeedLink> | null;
+  refetch: (() => Promise<void>) | null;
 };
 
 export type FeedQueryItem = {
@@ -38,7 +39,9 @@ export type FeedQueryItem = {
   user: string;
 };
 
-export const convertFeedQueryItemToFeedLink = (item: FeedQueryItem): FeedLink => {
+export const convertFeedQueryItemToFeedLink = (
+  item: FeedQueryItem,
+): FeedLink => {
   return {
     id: item.id,
     added_to_library: new Date(item.added_to_library),
@@ -50,11 +53,14 @@ export const convertFeedQueryItemToFeedLink = (item: FeedQueryItem): FeedLink =>
     last_viewed_at: item.last_viewed_at ? new Date(item.last_viewed_at) : null,
     read_time_display: item.read_time_display,
     title: item.title,
-    tags: item.expand && item.expand.tags ? item.expand.tags.map(({ id, name, slug }) => ({
-      id,
-      name,
-      slug,
-    })) : [],
+    tags:
+      item.expand && item.expand.tags
+        ? item.expand.tags.map(({ id, name, slug }) => ({
+            id,
+            name,
+            slug,
+          }))
+        : [],
   };
 };
 
@@ -73,7 +79,11 @@ const buildFilters = (client: Client, props: Props) => {
   }
 
   if (searchText) {
-    filterExprs.push(client.filter("(title ~ {:search} || excerpt ~ {:search})", { search: searchText }));
+    filterExprs.push(
+      client.filter("(title ~ {:search} || excerpt ~ {:search})", {
+        search: searchText,
+      }),
+    );
   }
 
   return filterExprs.join(" && ");
@@ -83,39 +93,47 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
   const { pb } = usePocketBase();
   const authModel = pb.authStore.model;
   if (authModel === null) {
-    return { loading: false, error: null, result: null };
+    return { loading: false, error: null, result: null, refetch: null };
   }
 
   const [result, setResult] = useState<ListResult<FeedLink> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const queryResult = await pb
-          .collection("links_feed")
-          .getList<FeedQueryItem>(props.page || 1, PAGE_SIZE, {
-            filter: buildFilters(pb, props),
-            expand: "tags",
-            sort: `-${props.sortBy}`,
-          });
-        setResult({
-          ...queryResult,
-          items: queryResult.items.map(convertFeedQueryItemToFeedLink),
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const queryResult = await pb
+        .collection("links_feed")
+        .getList<FeedQueryItem>(props.page || 1, PAGE_SIZE, {
+          filter: buildFilters(pb, props),
+          expand: "tags",
+          sort: `-${props.sortBy}`,
         });
-      } catch (e: any) {
-        setError(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [props.page, props.readState, props.tagId, props.searchText, props.sortBy, authModel.id]);
+      setResult({
+        ...queryResult,
+        items: queryResult.items.map(convertFeedQueryItemToFeedLink),
+      });
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { result, loading, error };
+  useEffect(() => {
+    fetchData();
+  }, [
+    props.page,
+    props.readState,
+    props.tagId,
+    props.searchText,
+    props.sortBy,
+    authModel.id,
+  ]);
+
+  return { result, loading, error, refetch: fetchData };
 };
 
 export default useLinksFeedQuery;

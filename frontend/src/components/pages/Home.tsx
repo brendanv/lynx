@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SearchBar, { SearchParams } from "@/components/SearchBar";
 import Paginator from "@/components/Paginator";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { Toaster } from "@/components/ui/toaster";
 
 const Home: React.FC = () => {
   usePageTitle("My Feed")
@@ -20,6 +21,7 @@ const Home: React.FC = () => {
     loading: feedLoading,
     result: queryResult,
     error: feedError,
+    refetch,
   } = useLinksFeedQuery({
     page,
     ...searchParams,
@@ -41,7 +43,7 @@ const Home: React.FC = () => {
       return (
         <>
           {queryResult.items.map((item) => (
-            <LinkCard key={item.id} link={item} />
+            <LinkCard key={item.id} link={item} onUpdate={refetch} />
           ))}
           {queryResult.totalPages > 1 && (
             <Paginator
@@ -77,6 +79,7 @@ const Home: React.FC = () => {
         <SearchBar onSearchParamsChange={handleSearchParamsChange} />
         <div className="mt-6">{renderContent()}</div>
       </main>
+      <Toaster />
     </>
   );
 };

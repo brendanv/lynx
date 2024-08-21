@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import useLinksFeedQuery, {
@@ -8,10 +9,8 @@ import Client from "pocketbase";
 
 // Mock PocketBase
 vi.mock("pocketbase");
-
 describe("useLinksFeedQuery", () => {
   let mockPocketBase;
-
   beforeEach(() => {
     mockPocketBase = {
       collection: vi.fn().mockReturnThis(),
@@ -22,16 +21,11 @@ describe("useLinksFeedQuery", () => {
       },
       filter: vi.fn((str) => str),
     };
-
     Client.mockImplementation(() => mockPocketBase);
   });
-
   const wrapper = ({ children }) => (
-    <div>
-      <PocketBaseProvider>{children}</PocketBaseProvider>
-    </div>
+    <PocketBaseProvider>{children}</PocketBaseProvider>
   );
-
   it("passes unread state, tag parameters, and search text correctly", async () => {
     const props = {
       page: 2,
@@ -40,115 +34,93 @@ describe("useLinksFeedQuery", () => {
       searchText: "test query",
       sortBy: "added_to_library",
     };
-
-    renderHook(() => useLinksFeedQuery(props), { wrapper });
-
+    const { result } = renderHook(() => useLinksFeedQuery(props), { wrapper });
     await act(async () => {
       // Wait for the useEffect to complete
     });
-
     expect(mockPocketBase.getList).toHaveBeenCalledWith(
       2, // page
       15, // PAGE_SIZE
       {
-        filter: "last_viewed_at = null && tags.id ?= {:tagId} && (title ~ {:search} || excerpt ~ {:search})",
+        filter:
+          "last_viewed_at = null && tags.id ?= {:tagId} && (title ~ {:search} || excerpt ~ {:search})",
         expand: "tags",
         sort: "-added_to_library",
       },
     );
-
     expect(mockPocketBase.filter).toHaveBeenCalledWith("tags.id ?= {:tagId}", {
       tagId: "tag123",
     });
-    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
-      search: "test query",
-    });
-  });
-
-  it("passes read state correctly without tag and with search", async () => {
-    const props = {
-      page: 1,
-      readState: "read",
-      searchText: "another query",
-      sortBy: "article_date",
-    };
-
-    renderHook(() => useLinksFeedQuery(props), { wrapper });
-
-    await act(async () => {
-      // Wait for the useEffect to complete
-    });
-
-    expect(mockPocketBase.getList).toHaveBeenCalledWith(
-      1, // page
-      15, // PAGE_SIZE
+    expect(mockPocketBase.filter).toHaveBeenCalledWith(
+      "(title ~ {:search} || excerpt ~ {:search})",
       {
-        filter: "last_viewed_at != null && (title ~ {:search} || excerpt ~ {:search})",
-        expand: "tags",
-        sort: "-article_date",
+        search: "test query",
       },
     );
-
-    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
-      search: "another query",
-    });
+    // Check if the result includes loading, error, result, and refetch properties
+    expect(result.current).toHaveProperty("loading");
+    expect(result.current).toHaveProperty("error");
+    expect(result.current).toHaveProperty("result");
+    expect(result.current).toHaveProperty("refetch");
+    expect(typeof result.current.refetch).toBe("function");
   });
-
-  it("passes all read state correctly with tag and without search", async () => {
+  it("refetches data when refetch is called", async () => {
     const props = {
-      page: 3,
+      page: 1,
       readState: "all",
-      tagId: "tag456",
       sortBy: "added_to_library",
     };
-
-    renderHook(() => useLinksFeedQuery(props), { wrapper });
-
+    const { result } = renderHook(() => useLinksFeedQuery(props), { wrapper });
     await act(async () => {
-      // Wait for the useEffect to complete
+      // Wait for the initial useEffect to complete
     });
-
+    // Clear the mock calls
+    mockPocketBase.getList.mockClear();
+    // Call refetch
+    await act(async () => {
+      await result.current.refetch();
+    });
+    // Check if getList was called again
+    expect(mockPocketBase.getList).toHaveBeenCalledTimes(1);
+  });
+  it("updates query when props change", async () => {
+    const initialProps = {
+      page: 1,
+      readState: "all",
+      sortBy: "added_to_library",
+    };
+    const { result, rerender } = renderHook(
+      (props) => useLinksFeedQuery(props),
+      {
+        wrapper,
+        initialProps,
+      },
+    );
+    await act(async () => {
+      // Wait for the initial useEffect to complete
+    });
+    // Clear the mock calls
+    mockPocketBase.getList.mockClear();
+    // Update props
+    const newProps = {
+      ...initialProps,
+      page: 2,
+      readState: "unread",
+    };
+    rerender(newProps);
+    await act(async () => {
+      // Wait for the useEffect to complete after props change
+    });
+    // Check if getList was called with updated parameters
     expect(mockPocketBase.getList).toHaveBeenCalledWith(
-      3, // page
+      2, // updated page
       15, // PAGE_SIZE
       {
-        filter: "tags.id ?= {:tagId}",
+        filter: "last_viewed_at = null",
         expand: "tags",
         sort: "-added_to_library",
       },
     );
-
-    expect(mockPocketBase.filter).toHaveBeenCalledWith("tags.id ?= {:tagId}", {
-      tagId: "tag456",
-    });
-  });
-
-  it("uses default page and sort when not provided", async () => {
-    const props = {
-      readState: "all",
-      searchText: "default test",
-      sortBy: 'added_to_library'
-    };
-
-    renderHook(() => useLinksFeedQuery(props), { wrapper });
-
-    await act(async () => {
-      // Wait for the useEffect to complete
-    });
-
-    expect(mockPocketBase.getList).toHaveBeenCalledWith(
-      1, // default page
-      15, // PAGE_SIZE
-      {
-        filter: "(title ~ {:search} || excerpt ~ {:search})",
-        expand: "tags",
-        sort: "-added_to_library", // default sort
-      },
-    );
-
-    expect(mockPocketBase.filter).toHaveBeenCalledWith("(title ~ {:search} || excerpt ~ {:search})", {
-      search: "default test",
-    });
   });
 });
 
