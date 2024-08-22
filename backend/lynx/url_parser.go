@@ -107,8 +107,12 @@ func handleParseURL(app core.App, c echo.Context) error {
 	record.Set("article_html", article.Content)
 	record.Set("raw_text_content", article.TextContent)
 	record.Set("header_image_url", article.Image)
-	record.Set("article_date", article.PublishedTime)
 	record.Set("full_page_html", string(bodyContent))
+	if article.PublishedTime != nil {
+		record.Set("article_date", article.PublishedTime)
+	} else {
+		record.Set("article_date", time.Now().UTC().Format(time.RFC3339))
+	}
 
 	// Calculate read time, using 285 wpm as read rate
 	words := strings.Fields(article.TextContent)
