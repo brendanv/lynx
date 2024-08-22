@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Trash2, Circle, CircleCheckBig } from "lucide-react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -91,7 +91,10 @@ const LinkCard: React.FC<{
             className="object-cover w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-lg"
           />
           {isUnread && (
-            <div data-testid="unread-indicator" className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
+            <div
+              data-testid="unread-indicator"
+              className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"
+            ></div>
           )}
         </div>
         <div className="flex-grow min-w-0">
@@ -110,6 +113,11 @@ const LinkCard: React.FC<{
               </DropdownMenuTrigger>
               <DropdownMenuContent role="menu">
                 <DropdownMenuItem onClick={handleToggleUnread}>
+                  {isUnread ? (
+                    <CircleCheckBig className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Circle className="mr-2 h-4 w-4" />
+                  )}
                   Mark as {isUnread ? "Read" : "Unread"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -117,6 +125,7 @@ const LinkCard: React.FC<{
                   className="text-red-600 focus:text-red-600"
                   aria-label="Delete link"
                 >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
