@@ -1,5 +1,6 @@
 export default {
   HOME: "/",
+  HOME_WITH_SEARCH_STRING: (search: string) => `/?s=${search}`,
   LOGIN: "/login",
   PROFILE: "/profile",
   FEEDS: "/feeds",

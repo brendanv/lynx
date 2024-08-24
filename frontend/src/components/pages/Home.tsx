@@ -7,15 +7,19 @@ import SearchBar, { SearchParams } from "@/components/SearchBar";
 import Paginator from "@/components/Paginator";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Toaster } from "@/components/ui/toaster";
+import { useSearchParams } from "react-router-dom";
 
 const Home: React.FC = () => {
-  usePageTitle("My Feed")
+  usePageTitle("My Feed");
+  const [urlParams, setUrlParams] = useSearchParams();
   const [page, setPage] = useState(1);
-  const [searchParams, setSearchParams] = useState<SearchParams>({
-    searchText: "",
+  const [searchParams, setSearchParams] = useState<
+    Omit<SearchParams, "searchText">
+  >({
     readState: "all",
     sortBy: "added_to_library",
   });
+  const searchText = urlParams.get("s") || "";
 
   const {
     loading: feedLoading,
@@ -25,10 +29,14 @@ const Home: React.FC = () => {
   } = useLinksFeedQuery({
     page,
     ...searchParams,
+    searchText,
   });
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
+    setUrlParams({
+      s: newSearchParams.searchText,
+    });
     setPage(1);
   };
 
@@ -76,7 +84,10 @@ const Home: React.FC = () => {
     <>
       <Header />
       <main className="container mx-auto mt-20 p-4">
-        <SearchBar onSearchParamsChange={handleSearchParamsChange} />
+        <SearchBar
+          searchParams={{ ...searchParams, searchText }}
+          onSearchParamsChange={handleSearchParamsChange}
+        />
         <div className="mt-6">{renderContent()}</div>
       </main>
       <Toaster />

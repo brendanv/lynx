@@ -19,18 +19,16 @@ export type SearchParams = {
 };
 
 type SearchBarProps = {
+  searchParams: SearchParams;
   onSearchParamsChange: (params: SearchParams) => void;
 };
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  searchParams,
+  onSearchParamsChange,
+}) => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [searchParams, setSearchParams] = useState<SearchParams>({
-    searchText: "",
-    readState: "all",
-    tagId: undefined,
-    sortBy: "added_to_library",
-  });
   const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
   const { pb } = usePocketBase();
 
@@ -53,7 +51,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
 
   const updateSearchParams = (newParams: Partial<SearchParams>) => {
     const updatedParams = { ...searchParams, ...newParams };
-    setSearchParams(updatedParams);
     onSearchParamsChange(updatedParams);
   };
 
@@ -64,7 +61,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
       tagId: undefined,
       sortBy: "added_to_library",
     };
-    setSearchParams(clearedParams);
     onSearchParamsChange(clearedParams);
   };
 
@@ -79,9 +75,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
     { value: "article_date", label: "Article Date" },
   ];
 
-  const activeFiltersCount = 
-    (searchParams.readState !== "all" ? 1 : 0) +
-    (searchParams.tagId ? 1 : 0);
+  const activeFiltersCount =
+    (searchParams.readState !== "all" ? 1 : 0) + (searchParams.tagId ? 1 : 0);
 
   return (
     <div className="flex flex-col space-y-2">
@@ -99,7 +94,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
               <Filter className="h-4 w-4" />
               <span className="ml-2 hidden sm:inline">Filters</span>
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center"
+                >
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -113,12 +111,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
                   key={state.value}
                   variant="ghost"
                   className="w-full justify-start"
-                  onClick={() => updateSearchParams({ readState: state.value as "all" | "read" | "unread" })}
+                  onClick={() =>
+                    updateSearchParams({
+                      readState: state.value as "all" | "read" | "unread",
+                    })
+                  }
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      searchParams.readState === state.value ? "opacity-100" : "opacity-0"
+                      searchParams.readState === state.value
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   {state.label}
@@ -130,12 +134,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
                   key={tag.id}
                   variant="ghost"
                   className="w-full justify-start"
-                  onClick={() => updateSearchParams({ tagId: searchParams.tagId === tag.id ? undefined : tag.id })}
+                  onClick={() =>
+                    updateSearchParams({
+                      tagId: searchParams.tagId === tag.id ? undefined : tag.id,
+                    })
+                  }
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      searchParams.tagId === tag.id ? "opacity-100" : "opacity-0"
+                      searchParams.tagId === tag.id
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   {tag.name}
@@ -160,14 +170,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
                   variant="ghost"
                   className="w-full justify-start"
                   onClick={() => {
-                    updateSearchParams({ sortBy: option.value as "added_to_library" | "article_date" });
+                    updateSearchParams({
+                      sortBy: option.value as
+                        | "added_to_library"
+                        | "article_date",
+                    });
                     setSortOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      searchParams.sortBy === option.value ? "opacity-100" : "opacity-0"
+                      searchParams.sortBy === option.value
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   {option.label}
@@ -198,14 +214,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearchParamsChange }) => {
         )}
         {searchParams.sortBy !== "added_to_library" && (
           <Badge variant="secondary">
-            Sorted by: {searchParams.sortBy === "article_date" ? "Article Date" : "Date Added"}
+            Sorted by:{" "}
+            {searchParams.sortBy === "article_date"
+              ? "Article Date"
+              : "Date Added"}
             <X
               className="ml-1 h-3 w-3 cursor-pointer"
               onClick={() => updateSearchParams({ sortBy: "added_to_library" })}
             />
           </Badge>
         )}
-        {(activeFiltersCount > 0 || searchParams.sortBy !== "added_to_library") && (
+        {(activeFiltersCount > 0 ||
+          searchParams.sortBy !== "added_to_library") && (
           <Button variant="outline" size="sm" onClick={clearFilters}>
             Clear Filters & Sort
           </Button>

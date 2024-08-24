@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandDialog,
@@ -23,6 +23,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
   customCommands,
 }) => {
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
   const runCommand = (command: () => void) => {
     onOpenChange(false);
     command();
@@ -54,7 +55,11 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput
+        value={search}
+        onValueChange={setSearch}
+        placeholder="Type a command or search..."
+      />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         {(customCommands || []).map((group) => (
@@ -74,6 +79,15 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
           <CommandItem onSelect={navigateCookies}>Cookies</CommandItem>
           <CommandItem onSelect={navigateFeeds}>Feeds</CommandItem>
           <CommandItem onSelect={navigateAddLink}>Add Link</CommandItem>
+        </CommandGroup>
+        <CommandGroup heading="Search">
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => navigate(URLS.HOME_WITH_SEARCH_STRING(search)))
+            }
+          >
+            Search for "{search}"
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
