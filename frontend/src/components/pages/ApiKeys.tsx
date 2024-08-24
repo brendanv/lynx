@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
-import Header from "@/components/Header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { MoreHorizontal, ArrowUpDown, Copy } from "lucide-react";
 import {
   ColumnDef,
@@ -41,6 +46,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import PageWithHeader from "@/components/pages/PageWithHeader";
 
 type ApiKey = {
   id: string;
@@ -52,14 +58,14 @@ type ApiKey = {
 const ApiKeys: React.FC = () => {
   const { pb } = usePocketBase();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyName, setNewKeyName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [isNewKeyDialogOpen, setIsNewKeyDialogOpen] = useState(false);
-  usePageTitle("API Keys")
+  usePageTitle("API Keys");
 
   useEffect(() => {
     fetchApiKeys();
@@ -67,14 +73,14 @@ const ApiKeys: React.FC = () => {
 
   const fetchApiKeys = async () => {
     try {
-      const records = await pb.collection('api_keys').getFullList<ApiKey>({
-        sort: '-created',
-        fields: 'id,name,expires_at,last_used_at',
+      const records = await pb.collection("api_keys").getFullList<ApiKey>({
+        sort: "-created",
+        fields: "id,name,expires_at,last_used_at",
       });
       setApiKeys(records);
     } catch (err) {
-      console.error('Error fetching API keys:', err);
-      setError('Failed to fetch API keys. Please try again.');
+      console.error("Error fetching API keys:", err);
+      setError("Failed to fetch API keys. Please try again.");
     }
   };
 
@@ -82,28 +88,31 @@ const ApiKeys: React.FC = () => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      formData.append('name', newKeyName);
-      const response = await pb.send('/lynx/generate_api_key', { method: 'POST', body: formData });
-      setNewKeyName('');
+      formData.append("name", newKeyName);
+      const response = await pb.send("/lynx/generate_api_key", {
+        method: "POST",
+        body: formData,
+      });
+      setNewKeyName("");
       fetchApiKeys();
       setNewApiKey(response.api_key);
       setIsNewKeyDialogOpen(true);
     } catch (err) {
-      console.error('Error adding API key:', err);
-      setError('Failed to add API key. Please try again.');
+      console.error("Error adding API key:", err);
+      setError("Failed to add API key. Please try again.");
     }
   };
 
   const handleDeleteApiKey = async () => {
     if (!actionId) return;
     try {
-      await pb.collection('api_keys').delete(actionId);
+      await pb.collection("api_keys").delete(actionId);
       fetchApiKeys();
       setIsDeleteDialogOpen(false);
       setActionId(null);
     } catch (err) {
-      console.error('Error deleting API key:', err);
-      setError('Failed to delete API key. Please try again.');
+      console.error("Error deleting API key:", err);
+      setError("Failed to delete API key. Please try again.");
     }
   };
 
@@ -112,24 +121,27 @@ const ApiKeys: React.FC = () => {
     try {
       const sixMonthsFromNow = new Date();
       sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-      await pb.collection('api_keys').update(actionId, {
+      await pb.collection("api_keys").update(actionId, {
         expires_at: sixMonthsFromNow.toISOString(),
       });
       fetchApiKeys();
       setActionId(null);
     } catch (err) {
-      console.error('Error extending API key expiration:', err);
-      setError('Failed to extend API key expiration. Please try again.');
+      console.error("Error extending API key expiration:", err);
+      setError("Failed to extend API key expiration. Please try again.");
     }
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // You could add a toast notification here to confirm the copy action
-      console.log('Copied to clipboard');
-    }, (err) => {
-      console.error('Could not copy text: ', err);
-    });
+    navigator.clipboard.writeText(text).then(
+      () => {
+        // You could add a toast notification here to confirm the copy action
+        console.log("Copied to clipboard");
+      },
+      (err) => {
+        console.error("Could not copy text: ", err);
+      },
+    );
   };
 
   const columns: ColumnDef<ApiKey>[] = [
@@ -169,7 +181,10 @@ const ApiKeys: React.FC = () => {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => row.getValue("last_used_at") ? new Date(row.getValue("last_used_at")).toLocaleString() : 'Never',
+      cell: ({ row }) =>
+        row.getValue("last_used_at")
+          ? new Date(row.getValue("last_used_at")).toLocaleString()
+          : "Never",
     },
     {
       id: "actions",
@@ -215,85 +230,91 @@ const ApiKeys: React.FC = () => {
     },
   });
 
-  const keyToDelete = apiKeys.find(key => key.id === actionId);
+  const keyToDelete = apiKeys.find((key) => key.id === actionId);
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto mt-20 p-4">
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Generate New API Key</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAddApiKey} className="space-y-4">
-              <Input
-                placeholder="API Key Name"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                required
-              />
-              <Button type="submit">Generate API Key</Button>
-            </form>
-          </CardContent>
-        </Card>
+    <PageWithHeader>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Generate New API Key</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleAddApiKey} className="space-y-4">
+            <Input
+              placeholder="API Key Name"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              required
+            />
+            <Button type="submit">Generate API Key</Button>
+          </form>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Existing API Keys</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </main>
+      <Card>
+        <CardHeader>
+          <CardTitle>Existing API Keys</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the API key:
+              This action cannot be undone. This will permanently delete the API
+              key:
               <br />
               <strong>Name:</strong> {keyToDelete?.name}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteApiKey}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteApiKey}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -303,16 +324,13 @@ const ApiKeys: React.FC = () => {
           <DialogHeader>
             <DialogTitle>New API Key Generated</DialogTitle>
             <DialogDescription>
-              Please copy your new API key. For security reasons, it won't be displayed again.
+              Please copy your new API key. For security reasons, it won't be
+              displayed again.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center space-x-2">
-            <Input 
-              value={newApiKey || ''} 
-              readOnly 
-              className="flex-grow"
-            />
-            <Button 
+            <Input value={newApiKey || ""} readOnly className="flex-grow" />
+            <Button
               onClick={() => newApiKey && copyToClipboard(newApiKey)}
               className="flex-shrink-0"
             >
@@ -322,7 +340,7 @@ const ApiKeys: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </PageWithHeader>
   );
 };
 

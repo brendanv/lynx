@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/card";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import parseNewLink from "@/utils/parseNewLink";
-import Header from "@/components/Header";
 import FeedLink from "@/types/FeedLink";
 import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import PageWithHeader from "@/components/pages/PageWithHeader";
 
 const URLParserForm = () => {
   const [url, setUrl] = useState("");
@@ -45,52 +45,49 @@ const URLParserForm = () => {
   };
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 mt-20 ">
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Save a Link</CardTitle>
-            <CardDescription>
-              Download, process, and save article content to read later
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {createdLink && (
-              <Alert className="mb-4">
-                <CircleCheckBig className="h-4 w-4" />
-                <AlertTitle>{createdLink.title}</AlertTitle>
-                <AlertDescription>{createdLink.excerpt}</AlertDescription>
-                <Link to={URLS.LINK_VIEWER(createdLink.id)}>
-                  <Button variant="outline" className="mt-2">
-                    Read Now
-                  </Button>
-                </Link>
-              </Alert>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Enter URL"
-                disabled={isLoading}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                Parse {createdLink ? "Another " : ""}URL
-              </Button>
-            </form>
-            {error && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
+    <PageWithHeader>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Save a Link</CardTitle>
+          <CardDescription>
+            Download, process, and save article content to read later
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {createdLink && (
+            <Alert className="mb-4">
+              <CircleCheckBig className="h-4 w-4" />
+              <AlertTitle>{createdLink.title}</AlertTitle>
+              <AlertDescription>{createdLink.excerpt}</AlertDescription>
+              <Link to={URLS.LINK_VIEWER(createdLink.id)}>
+                <Button variant="outline" className="mt-2">
+                  Read Now
+                </Button>
+              </Link>
+            </Alert>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Enter URL"
+              disabled={isLoading}
+            />
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              Parse {createdLink ? "Another " : ""}URL
+            </Button>
+          </form>
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+    </PageWithHeader>
   );
 };
 
