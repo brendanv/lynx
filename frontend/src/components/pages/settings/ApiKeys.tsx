@@ -47,6 +47,7 @@ import {
 } from "@tanstack/react-table";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import PageWithHeader from "@/components/pages/PageWithHeader";
+import SettingsBase from "@/components/pages/settings/SettingsBase";
 
 type ApiKey = {
   id: string;
@@ -234,68 +235,70 @@ const ApiKeys: React.FC = () => {
 
   return (
     <PageWithHeader>
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Generate New API Key</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAddApiKey} className="space-y-4">
-            <Input
-              placeholder="API Key Name"
-              value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
-              required
-            />
-            <Button type="submit">Generate API Key</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <SettingsBase>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Generate New API Key</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddApiKey} className="space-y-4">
+              <Input
+                placeholder="API Key Name"
+                value={newKeyName}
+                onChange={(e) => setNewKeyName(e.target.value)}
+                required
+              />
+              <Button type="submit">Generate API Key</Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing API Keys</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing API Keys</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </SettingsBase>
+      
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

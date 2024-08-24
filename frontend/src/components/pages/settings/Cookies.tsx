@@ -40,6 +40,7 @@ import {
 } from "@tanstack/react-table";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import PageWithHeader from "@/components/pages/PageWithHeader";
+import SettingsBase from "@/components/pages/settings/SettingsBase";
 
 type Cookie = {
   id: string;
@@ -191,85 +192,87 @@ const Cookies: React.FC = () => {
 
   return (
     <PageWithHeader>
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Add New Cookie</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAddCookie} className="space-y-4">
-            <Input
-              placeholder="Domain"
-              value={newCookie.domain}
-              onChange={(e) =>
-                setNewCookie({ ...newCookie, domain: e.target.value })
-              }
-              required
-            />
-            <Input
-              placeholder="Name"
-              value={newCookie.name}
-              onChange={(e) =>
-                setNewCookie({ ...newCookie, name: e.target.value })
-              }
-              required
-            />
-            <Input
-              placeholder="Value"
-              value={newCookie.value}
-              onChange={(e) =>
-                setNewCookie({ ...newCookie, value: e.target.value })
-              }
-              required
-            />
-            <Button type="submit">Add Cookie</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <SettingsBase>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Add New Cookie</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddCookie} className="space-y-4">
+              <Input
+                placeholder="Domain"
+                value={newCookie.domain}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, domain: e.target.value })
+                }
+                required
+              />
+              <Input
+                placeholder="Name"
+                value={newCookie.name}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, name: e.target.value })
+                }
+                required
+              />
+              <Input
+                placeholder="Value"
+                value={newCookie.value}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, value: e.target.value })
+                }
+                required
+              />
+              <Button type="submit">Add Cookie</Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Saved Cookies</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Saved Cookies</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </SettingsBase>
 
       <AlertDialog
         open={isDeleteDialogOpen}
