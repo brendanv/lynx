@@ -1,123 +1,219 @@
-import React, { useCallback } from "react";
-import { usePocketBase } from "@/hooks/usePocketBase";
-import { Link, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import URLS from "@/lib/urls";
+import { useCallback } from "react";
+import { CirclePlus, Menu, Package2, Search } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  CirclePlus,
-} from "lucide-react";
+import { usePocketBase } from "@/hooks/usePocketBase";
+import URLS from "@/lib/urls";
+import { useCommandMenu } from "@/lib/CommandMenuContext";
 
 const Header = () => {
   const { pb, user } = usePocketBase();
+  const { setCommandMenuOpen } = useCommandMenu();
+  const location = useLocation();
   const navigate = useNavigate();
   const handleLogout = useCallback(() => {
     pb.authStore.clear();
     navigate(URLS.LOGIN);
   }, [pb.authStore]);
+  const openCommandMenu = useCallback(() => {
+    setCommandMenuOpen(true);
+  }, [setCommandMenuOpen]);
+
+  const menuBarOtherClassName =
+    "text-muted-foreground transition-colors hover:text-foreground";
+  const menuBarCurrentClassName =
+    "text-foreground transition-colors hover:text-foreground";
+
+  const sideBarOtherClassName = "text-muted-foreground hover:text-foreground";
+  const sideBarCurrentClassName = "text-foreground hover:text-foreground";
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-opacity-80 backdrop-blur-sm shadow-md z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4 md:justify-start md:space-x-10">
-          <div className="flex justify-start lg:w-0 lg:flex-1">
-            <Link to={URLS.HOME} className="text-xl font-bold text-foreground">
-              Lynx
+    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+        <Link
+          to={URLS.HOME}
+          className="flex items-center gap-2 text-lg font-semibold md:text-base"
+        >
+          <Package2 className="h-6 w-6" />
+          <span className="sr-only">Lynx</span>
+        </Link>
+        <Link
+          to={URLS.HOME}
+          className={
+            location.pathname === URLS.HOME
+              ? menuBarCurrentClassName
+              : menuBarOtherClassName
+          }
+        >
+          Home
+        </Link>
+        <Link
+          to={URLS.NOTES}
+          className={
+            location.pathname === URLS.NOTES
+              ? menuBarCurrentClassName
+              : menuBarOtherClassName
+          }
+        >
+          Highlights
+        </Link>
+        <Link
+          to={URLS.TAGS}
+          className={
+            location.pathname === URLS.TAGS
+              ? menuBarCurrentClassName
+              : menuBarOtherClassName
+          }
+        >
+          Tags
+        </Link>
+        <Link
+          to={URLS.FEEDS}
+          className={
+            location.pathname === URLS.FEEDS
+              ? menuBarCurrentClassName
+              : menuBarOtherClassName
+          }
+        >
+          Feeds
+        </Link>
+        <Link
+          to={URLS.PROFILE}
+          className={
+            location.pathname === URLS.PROFILE
+              ? menuBarCurrentClassName
+              : menuBarOtherClassName
+          }
+        >
+          Settings
+        </Link>
+      </nav>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle navigation menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left">
+          <nav className="grid gap-6 text-lg font-medium">
+            <Link
+              to={URLS.HOME}
+              className="flex items-center gap-2 text-lg font-semibold"
+            >
+              <Package2 className="h-6 w-6" />
+              <span className="sr-only">Lynx</span>
             </Link>
+            <Link
+              to={URLS.HOME}
+              className={
+                location.pathname === URLS.HOME
+                  ? sideBarCurrentClassName
+                  : sideBarOtherClassName
+              }
+            >
+              Home
+            </Link>
+            <Link
+              to={URLS.NOTES}
+              className={
+                location.pathname === URLS.NOTES
+                  ? sideBarCurrentClassName
+                  : sideBarOtherClassName
+              }
+            >
+              Highlights
+            </Link>
+            <Link
+              to={URLS.TAGS}
+              className={
+                location.pathname === URLS.TAGS
+                  ? sideBarCurrentClassName
+                  : sideBarOtherClassName
+              }
+            >
+              Tags
+            </Link>
+            <Link
+              to={URLS.FEEDS}
+              className={
+                location.pathname === URLS.FEEDS
+                  ? sideBarCurrentClassName
+                  : sideBarOtherClassName
+              }
+            >
+              Feeds
+            </Link>
+            <Link
+              to={URLS.PROFILE}
+              className={
+                location.pathname === URLS.PROFILE
+                  ? sideBarCurrentClassName
+                  : sideBarOtherClassName
+              }
+            >
+              Settings
+            </Link>
+          </nav>
+        </SheetContent>
+      </Sheet>
+      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+        <form className="ml-auto flex-1 sm:flex-initial">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search Lynx..."
+              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+              onSelect={openCommandMenu}
+            />
+            <kbd className="pointer-events-none absolute h-4 right-2.5 top-3 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+              ⌘K
+            </kbd>
           </div>
-          <div className="flex items-center space-x-1 justify-end md:flex-1 lg:w-0">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>Links</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                      <li className="row-span-3">
-                        <NavigationMenuLink asChild>
-                          <Link
-                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                            to={URLS.ADD_LINK}
-                          >
-                            <CirclePlus className="h-6 w-6" />
-                            <div className="mb-2 mt-4 text-lg font-medium">
-                              Add Link
-                            </div>
-                            <p className="text-sm leading-tight text-muted-foreground">
-                              Save article content to read later
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                      <ListItem href={URLS.FEEDS} title="Feeds">
-                        Manage RSS feed subscriptions
-                      </ListItem>
-                      <ListItem href={URLS.NOTES} title="Notes">
-                        Browse your saved highlights
-                      </ListItem>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>
-                    <Avatar>
-                      <AvatarImage src={user && user.avatar} />
-                      <AvatarFallback>
-                        {user && user.name.substring(0, 1)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                      <ListItem href={URLS.PROFILE} title="Profile">Manage your profile and change your Lynx settings</ListItem>
-                      <ListItem href={URLS.COOKIES} title="Cookies">Save logins from your favorite sites</ListItem>
-                      <ListItem href={URLS.TAGS} title="Tags">Organize and manage your tags</ListItem>
-                      <ListItem href={URLS.IMPORT} title="Import">Import links from other services</ListItem>
-                      <ListItem href={URLS.API_KEYS} title="API Keys">Control access from third party services</ListItem>
-                      <ListItem onClick= {handleLogout} title="Logout">Logout</ListItem>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-        </div>
+        </form>
+        <Link to={URLS.ADD_LINK}>
+          <Button variant="secondary" size="icon" className="rounded-full">
+            <CirclePlus className="h-5 w-5" />
+          </Button>
+        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <Avatar>
+                <AvatarImage src={user && user.avatar} />
+                <AvatarFallback>
+                  {user && user.name.substring(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to={URLS.PROFILE}>Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
 };
-
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <Link
-          to={props.href || ""}
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className,
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
-  );
-});
 
 export default Header;
