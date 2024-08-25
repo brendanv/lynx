@@ -1,6 +1,7 @@
 export default {
   HOME: "/",
   HOME_WITH_SEARCH_STRING: (search: string) => `/?s=${search}`,
+  HOME_WITH_TAGS_SEARCH: (tagId: string) => `/?t=${tagId}`,
   LOGIN: "/login",
   SETTINGS: "/settings",
   FEEDS: "/settings/feeds",

@@ -20,6 +20,7 @@ const Home: React.FC = () => {
     sortBy: "added_to_library",
   });
   const searchText = urlParams.get("s") || "";
+  const tagId = urlParams.get("t") || undefined;
 
   const {
     loading: feedLoading,
@@ -30,13 +31,18 @@ const Home: React.FC = () => {
     page,
     ...searchParams,
     searchText,
+    tagId,
   });
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
-    setUrlParams({
+    const newParams: {[key: string]: string} = {
       s: newSearchParams.searchText,
-    });
+    }
+    if (newSearchParams.tagId) {
+      newParams['t'] = newSearchParams.tagId;
+    }
+    setUrlParams(newParams);
     setPage(1);
   };
 
@@ -83,7 +89,7 @@ const Home: React.FC = () => {
   return (
     <PageWithHeader>
       <SearchBar
-        searchParams={{ ...searchParams, searchText }}
+        searchParams={{ ...searchParams, searchText, tagId }}
         onSearchParamsChange={handleSearchParamsChange}
       />
       <div className="mt-6">{renderContent()}</div>

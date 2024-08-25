@@ -77,6 +77,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const activeFiltersCount =
     (searchParams.readState !== "all" ? 1 : 0) + (searchParams.tagId ? 1 : 0);
+  console.log(searchParams, activeFiltersCount);
 
   return (
     <div className="flex flex-col space-y-2">

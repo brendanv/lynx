@@ -35,6 +35,14 @@ const SettingsBase: React.FC<{ children: React.ReactNode }> = ({
             Feeds
           </Link>
           <Link
+            to={URLS.TAGS}
+            className={
+              location.pathname === URLS.TAGS ? selectedClassName : ""
+            }
+          >
+            Tags
+          </Link>
+          <Link
             to={URLS.COOKIES}
             className={
               location.pathname === URLS.COOKIES ? selectedClassName : ""
