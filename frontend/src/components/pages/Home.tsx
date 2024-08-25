@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Header from "@/components/Header";
 import useLinksFeedQuery from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,6 +7,7 @@ import Paginator from "@/components/Paginator";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Toaster } from "@/components/ui/toaster";
 import { useSearchParams } from "react-router-dom";
+import PageWithHeader from "./PageWithHeader";
 
 const Home: React.FC = () => {
   usePageTitle("My Feed");
@@ -81,17 +81,14 @@ const Home: React.FC = () => {
   };
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto mt-20 p-4">
-        <SearchBar
-          searchParams={{ ...searchParams, searchText }}
-          onSearchParamsChange={handleSearchParamsChange}
-        />
-        <div className="mt-6">{renderContent()}</div>
-      </main>
+    <PageWithHeader>
+      <SearchBar
+        searchParams={{ ...searchParams, searchText }}
+        onSearchParamsChange={handleSearchParamsChange}
+      />
+      <div className="mt-6">{renderContent()}</div>
       <Toaster />
-    </>
+    </PageWithHeader>
   );
 };
 
