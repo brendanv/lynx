@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
-import Header from "@/components/Header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,8 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import PageWithHeader from "@/components/pages/PageWithHeader";
+import SettingsBase from "@/components/pages/settings/SettingsBase";
 
 type Cookie = {
   id: string;
@@ -51,12 +52,16 @@ type Cookie = {
 const Cookies: React.FC = () => {
   const { pb, user } = usePocketBase();
   const [cookies, setCookies] = useState<Cookie[]>([]);
-  const [newCookie, setNewCookie] = useState({ domain: '', name: '', value: ''});
+  const [newCookie, setNewCookie] = useState({
+    domain: "",
+    name: "",
+    value: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
-  usePageTitle("Cookies")
+  usePageTitle("Cookies");
 
   useEffect(() => {
     fetchCookies();
@@ -64,42 +69,42 @@ const Cookies: React.FC = () => {
 
   const fetchCookies = async () => {
     try {
-      const records = await pb.collection('user_cookies').getFullList<Cookie>({
-        sort: '-created',
-        fields: 'id,domain,name,created',
+      const records = await pb.collection("user_cookies").getFullList<Cookie>({
+        sort: "-created",
+        fields: "id,domain,name,created",
       });
       setCookies(records);
     } catch (err) {
-      console.error('Error fetching cookies:', err);
-      setError('Failed to fetch cookies. Please try again.');
+      console.error("Error fetching cookies:", err);
+      setError("Failed to fetch cookies. Please try again.");
     }
   };
 
   const handleAddCookie = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await pb.collection('user_cookies').create({
+      await pb.collection("user_cookies").create({
         ...newCookie,
         user: user?.id,
       });
-      setNewCookie({ domain: '', name: '', value: '' });
+      setNewCookie({ domain: "", name: "", value: "" });
       fetchCookies();
     } catch (err) {
-      console.error('Error adding cookie:', err);
-      setError('Failed to add cookie. Please try again.');
+      console.error("Error adding cookie:", err);
+      setError("Failed to add cookie. Please try again.");
     }
   };
 
   const handleDeleteCookie = async () => {
     if (!deleteId) return;
     try {
-      await pb.collection('user_cookies').delete(deleteId);
+      await pb.collection("user_cookies").delete(deleteId);
       fetchCookies();
       setIsDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (err) {
-      console.error('Error deleting cookie:', err);
-      setError('Failed to delete cookie. Please try again.');
+      console.error("Error deleting cookie:", err);
+      setError("Failed to delete cookie. Please try again.");
     }
   };
 
@@ -115,7 +120,7 @@ const Cookies: React.FC = () => {
             Created
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => new Date(row.getValue("created")).toLocaleString(),
     },
@@ -130,7 +135,7 @@ const Cookies: React.FC = () => {
             Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
@@ -144,7 +149,7 @@ const Cookies: React.FC = () => {
             Domain
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
@@ -183,12 +188,11 @@ const Cookies: React.FC = () => {
     },
   });
 
-  const cookieToDelete = cookies.find(cookie => cookie.id === deleteId);
+  const cookieToDelete = cookies.find((cookie) => cookie.id === deleteId);
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto mt-20 p-4">
+    <PageWithHeader>
+      <SettingsBase>
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Add New Cookie</CardTitle>
@@ -198,19 +202,25 @@ const Cookies: React.FC = () => {
               <Input
                 placeholder="Domain"
                 value={newCookie.domain}
-                onChange={(e) => setNewCookie({ ...newCookie, domain: e.target.value })}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, domain: e.target.value })
+                }
                 required
               />
               <Input
                 placeholder="Name"
                 value={newCookie.name}
-                onChange={(e) => setNewCookie({ ...newCookie, name: e.target.value })}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, name: e.target.value })
+                }
                 required
               />
               <Input
                 placeholder="Value"
                 value={newCookie.value}
-                onChange={(e) => setNewCookie({ ...newCookie, value: e.target.value })}
+                onChange={(e) =>
+                  setNewCookie({ ...newCookie, value: e.target.value })
+                }
                 required
               />
               <Button type="submit">Add Cookie</Button>
@@ -238,7 +248,7 @@ const Cookies: React.FC = () => {
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     ))}
@@ -250,7 +260,10 @@ const Cookies: React.FC = () => {
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -259,14 +272,18 @@ const Cookies: React.FC = () => {
             </Table>
           </CardContent>
         </Card>
-      </main>
+      </SettingsBase>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the cookie:
+              This action cannot be undone. This will permanently delete the
+              cookie:
               <br />
               <strong>Domain:</strong> {cookieToDelete?.domain}
               <br />
@@ -275,11 +292,13 @@ const Cookies: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCookie}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteCookie}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </PageWithHeader>
   );
 };
 

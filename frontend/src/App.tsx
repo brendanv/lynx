@@ -9,9 +9,9 @@ import URLS from "@/lib/urls";
 
 const Login = lazy(() => import("@/components/pages/Login"));
 const AddLink = lazy(() => import("@/components/pages/AddLink"));
-const ApiKeys = lazy(() => import("@/components/pages/ApiKeys"));
-const Cookies = lazy(() => import("@/components/pages/Cookies"));
-const Feeds = lazy(() => import("@/components/pages/Feeds"));
+const ApiKeys = lazy(() => import("@/components/pages/settings/ApiKeys"));
+const Cookies = lazy(() => import("@/components/pages/settings/Cookies"));
+const Feeds = lazy(() => import("@/components/pages/settings/Feeds"));
 
 const App = () => {
   return (

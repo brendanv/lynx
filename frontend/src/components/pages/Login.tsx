@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
-import { useTheme } from "@/components/ThemeProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { pb } = usePocketBase();
-  const { theme } = useTheme();
   usePageTitle("Login");
 
   const handleSubmit = async (e: any) => {

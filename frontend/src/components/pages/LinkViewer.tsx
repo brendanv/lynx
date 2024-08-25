@@ -7,6 +7,7 @@ import Tag from "@/types/Tag";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import PageWithHeader from "@/components/pages/PageWithHeader";
 
 const LinkViewer = () => {
   const { id } = useParams();
@@ -21,13 +22,13 @@ const LinkViewer = () => {
   }
 
   const { result, loading, error } = useLinkViewerQuery(id, true);
-  usePageTitle(result?.title || "View Link")
+  usePageTitle(result?.title || "View Link");
 
   if (result) {
     return (
-      <div className="container mx-auto px-4">
+      <PageWithHeader>
         <ArticleView linkView={result} />
-      </div>
+      </PageWithHeader>
     );
   }
 
