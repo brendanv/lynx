@@ -80,15 +80,17 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
           <CommandItem onSelect={navigateFeeds}>Feeds</CommandItem>
           <CommandItem onSelect={navigateAddLink}>Add Link</CommandItem>
         </CommandGroup>
-        <CommandGroup heading="Search">
-          <CommandItem
-            onSelect={() =>
-              runCommand(() => navigate(URLS.HOME_WITH_SEARCH_STRING(search)))
-            }
-          >
-            Search for "{search}"
-          </CommandItem>
-        </CommandGroup>
+        {search !== "" && (
+          <CommandGroup heading="Search">
+            <CommandItem
+              onSelect={() =>
+                runCommand(() => navigate(URLS.HOME_WITH_SEARCH_STRING(search)))
+              }
+            >
+              Search for "{search}"
+            </CommandItem>
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
