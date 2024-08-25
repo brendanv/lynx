@@ -32,8 +32,8 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
     () => runCommand(() => navigate(URLS.HOME)),
     [navigate],
   );
-  const navigateProfile = useCallback(
-    () => runCommand(() => navigate(URLS.PROFILE)),
+  const navigateSettings = useCallback(
+    () => runCommand(() => navigate(URLS.SETTINGS)),
     [navigate],
   );
   const navigateFeeds = useCallback(
@@ -74,7 +74,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
         ))}
         <CommandGroup heading="Pages">
           <CommandItem onSelect={navigateHome}>Home</CommandItem>
-          <CommandItem onSelect={navigateProfile}>Profile</CommandItem>
+          <CommandItem onSelect={navigateSettings}>Settings</CommandItem>
           <CommandItem onSelect={navigateApiKeys}>API Keys</CommandItem>
           <CommandItem onSelect={navigateCookies}>Cookies</CommandItem>
           <CommandItem onSelect={navigateFeeds}>Feeds</CommandItem>

@@ -90,9 +90,9 @@ const Header = () => {
           Feeds
         </Link>
         <Link
-          to={URLS.PROFILE}
+          to={URLS.SETTINGS}
           className={
-            location.pathname === URLS.PROFILE
+            location.pathname === URLS.SETTINGS
               ? menuBarCurrentClassName
               : menuBarOtherClassName
           }
@@ -157,9 +157,9 @@ const Header = () => {
               Feeds
             </Link>
             <Link
-              to={URLS.PROFILE}
+              to={URLS.SETTINGS}
               className={
-                location.pathname === URLS.PROFILE
+                location.pathname === URLS.SETTINGS
                   ? sideBarCurrentClassName
                   : sideBarOtherClassName
               }
@@ -205,7 +205,7 @@ const Header = () => {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to={URLS.PROFILE}>Settings</Link>
+              <Link to={URLS.SETTINGS}>Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>

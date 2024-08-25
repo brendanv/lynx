@@ -19,9 +19,9 @@ const SettingsBase: React.FC<{ children: React.ReactNode }> = ({
           x-chunk="dashboard-04-chunk-0"
         >
           <Link
-            to={URLS.PROFILE}
+            to={URLS.SETTINGS}
             className={
-              location.pathname === URLS.PROFILE ? selectedClassName : ""
+              location.pathname === URLS.SETTINGS ? selectedClassName : ""
             }
           >
             General

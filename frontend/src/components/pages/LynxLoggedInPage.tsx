@@ -5,6 +5,7 @@ import {
   CommandMenuProvider,
   useCommandMenu,
 } from "@/lib/CommandMenuContext";
+import {Toaster} from "@/components/ui/toaster";
 const CommandMenu = lazy(() => import("@/components/CommandMenu"));
 
 // This component is a simple wrapper for all Lynx pages that
@@ -38,6 +39,7 @@ const LoggedInPageContent = () => {
           customCommands={customCommands}
         />
       )}
+      <Toaster />
     </>
   );
 };
