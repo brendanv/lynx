@@ -29,7 +29,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, PlusCircle, Settings } from "lucide-react";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
 import {
   ColumnDef,
   flexRender,

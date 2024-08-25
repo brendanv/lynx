@@ -1,4 +1,4 @@
-import { useCallback, useEffect, lazy } from "react";
+import { lazy } from "react";
 import { useRequireAuth } from "@/hooks/usePocketBase";
 import { Outlet, Navigate } from "react-router-dom";
 import {
@@ -31,7 +31,7 @@ const LoggedInPageContent = () => {
   return (
     <>
       <Outlet />
-      {open && (
+      {isOpen && (
         <CommandMenu
           open={isOpen}
           onOpenChange={setCommandMenuOpen}
