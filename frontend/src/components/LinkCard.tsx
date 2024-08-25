@@ -62,6 +62,7 @@ const LinkCard: React.FC<{
       });
     }
   };
+
   const handleDelete = async () => {
     try {
       await pb.collection("links").delete(link.id);
@@ -81,6 +82,7 @@ const LinkCard: React.FC<{
       });
     }
   };
+
   return (
     <>
       <Card className="flex items-start p-4 gap-4 mb-4">
@@ -99,10 +101,10 @@ const LinkCard: React.FC<{
         </div>
         <div className="flex-grow min-w-0">
           <div className="flex justify-between items-start">
-            <Link to={URLS.LINK_VIEWER(link.id)}>
+            <Link to={URLS.LINK_VIEWER(link.id)} className="min-w-0 flex-grow">
               <CardHeader className="p-0">
-                <CardTitle className="flex items-center justify-between">
-                  <span className="truncate">{link.title}</span>
+                <CardTitle className="flex items-center justify-between line-clamp-2 sm:line-clamp-1">
+                  {link.title}
                 </CardTitle>
                 <CardDescription>{link.hostname}</CardDescription>
               </CardHeader>
