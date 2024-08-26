@@ -12,7 +12,6 @@ import PageWithHeader from "./PageWithHeader";
 const Home: React.FC = () => {
   usePageTitle("My Feed");
   const [urlParams, setUrlParams] = useSearchParams();
-  const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useState<
     Omit<SearchParams, "searchText">
   >({
@@ -21,6 +20,10 @@ const Home: React.FC = () => {
   });
   const searchText = urlParams.get("s") || "";
   const tagId = urlParams.get("t") || undefined;
+  const page = parseInt(urlParams.get("p") || "1");
+  const setPage = (p: number) => {
+    setUrlParams({ ...urlParams, p: p.toString() });
+  };
 
   const {
     loading: feedLoading,
@@ -36,14 +39,14 @@ const Home: React.FC = () => {
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
-    const newParams: {[key: string]: string} = {
+    const newParams: { [key: string]: string } = {
       s: newSearchParams.searchText,
-    }
+      p: "1",
+    };
     if (newSearchParams.tagId) {
-      newParams['t'] = newSearchParams.tagId;
+      newParams["t"] = newSearchParams.tagId;
     }
     setUrlParams(newParams);
-    setPage(1);
   };
 
   const renderContent = () => {
