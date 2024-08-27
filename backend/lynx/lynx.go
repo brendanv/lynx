@@ -13,12 +13,14 @@ import (
 	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
 
+	"main/lynx/feeds"
 	"main/lynx/singlefile"
 	"main/lynx/summarizer"
 	"main/lynx/url_parser"
 )
 
 var parseUrlHandlerFunc = url_parser.HandleParseURL
+var parseFeedHandlerFunc = feeds.SaveNewFeed
 
 // Interfaces for dependency injection for summarization tests
 type Summarizer interface {
@@ -71,6 +73,19 @@ func InitializePocketbase(app core.App) {
 			},
 			Middlewares: []echo.MiddlewareFunc{
 				apis.ActivityLogger(app),
+				apis.RequireAdminOrRecordAuth(),
+			},
+		})
+
+		e.Router.AddRoute(echo.Route{
+			Method: http.MethodPost,
+			Path:   "/lynx/parse_feed",
+			Handler: func(c echo.Context) error {
+				return parseFeedHandlerFunc(app, c)
+			},
+			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
+				apiKeyAuth,
 				apis.RequireAdminOrRecordAuth(),
 			},
 		})
