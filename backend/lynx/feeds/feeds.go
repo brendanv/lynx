@@ -1,6 +1,7 @@
 package feeds
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -87,6 +88,42 @@ func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId strin
 			}
 		}
 	}
+	return nil
+}
+
+func FetchNewFeedItems(app core.App, feedId string) error {
+	feed, err := app.Dao().FindRecordById("feeds", feedId)
+	if err != nil {
+		return fmt.Errorf("failed to find feed: %w", err)
+	}
+
+	feedURL := feed.GetString("feed_url")
+	etag := feed.GetString("etag")
+	lastModified := feed.GetString("modified")
+	lastModifiedTime, _ := time.Parse(http.TimeFormat, lastModified)
+
+	feedResult, err := LoadFeedFromURL(feedURL, etag, lastModifiedTime)
+	if err != nil {
+		return fmt.Errorf("failed to load feed from URL: %w", err)
+	}
+
+	if feedResult.Feed == nil {
+		return nil
+	}
+
+	feed.Set("etag", feedResult.ETag)
+	feed.Set("modified", feedResult.LastModified)
+	previousFetchTime := feed.GetDateTime("last_fetched_at").Time()
+	lastFetchedAt := time.Now().UTC()
+	feed.Set("last_fetched_at", lastFetchedAt.Format(time.RFC3339))
+	if err := app.Dao().SaveRecord(feed); err != nil {
+		return fmt.Errorf("failed to update feed record: %w", err)
+	}
+
+	if err := SaveNewFeedItems(app, feedResult.Feed, feed.GetString("user"), feedId, previousFetchTime); err != nil {
+		return fmt.Errorf("failed to save new feed items: %w", err)
+	}
+
 	return nil
 }
 
