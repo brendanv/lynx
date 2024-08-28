@@ -13,18 +13,22 @@ import (
 	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
 
-	"main/lynx/summarizer"
 	"main/lynx/singlefile"
+	"main/lynx/summarizer"
+	"main/lynx/url_parser"
 )
 
-var parseUrlHandlerFunc = handleParseURL
+var parseUrlHandlerFunc = url_parser.HandleParseURL
 
 // Interfaces for dependency injection for summarization tests
 type Summarizer interface {
 	MaybeSummarizeLink(app core.App, linkID string)
 }
+
 var CurrentSummarizer Summarizer = &DefaultSummarizer{}
+
 type DefaultSummarizer struct{}
+
 func (s *DefaultSummarizer) MaybeSummarizeLink(app core.App, linkID string) {
 	summarizer.MaybeSummarizeLink(app, linkID)
 }
@@ -44,7 +48,13 @@ func InitializePocketbase(app core.App) {
 			Method: http.MethodPost,
 			Path:   "/lynx/parse_link",
 			Handler: func(c echo.Context) error {
-				return parseUrlHandlerFunc(app, c)
+				record, err := parseUrlHandlerFunc(app, c)
+				if err != nil {
+					return err
+				}
+				return c.JSON(http.StatusOK, map[string]interface{}{
+					"id": record.Id,
+				})
 			},
 			Middlewares: []echo.MiddlewareFunc{
 				apis.ActivityLogger(app),

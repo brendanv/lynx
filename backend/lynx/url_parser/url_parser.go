@@ -1,4 +1,4 @@
-package lynx
+package url_parser
 
 import (
 	"fmt"
@@ -20,21 +20,21 @@ import (
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func handleParseURL(app core.App, c echo.Context) error {
+func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 	urlParam := c.FormValue("url")
 	if urlParam == "" {
-		return apis.NewBadRequestError("Missing 'url' parameter", nil)
+		return nil, apis.NewBadRequestError("Missing 'url' parameter", nil)
 	}
 
 	parsedURL, err := url.Parse(urlParam)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to parse URL", err)
+		return nil, apis.NewBadRequestError("Failed to parse URL", err)
 	}
 
 	// Get the authenticated user
 	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 	if authRecord == nil {
-		return apis.NewForbiddenError("Not authenticated", nil)
+		return nil, apis.NewForbiddenError("Not authenticated", nil)
 	}
 
 	// Load user cookies
@@ -47,7 +47,7 @@ func handleParseURL(app core.App, c echo.Context) error {
 		dbx.Params{"user": authRecord.Id, "url": parsedURL.Hostname()},
 	)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to fetch cookies", err)
+		return nil, apis.NewBadRequestError("Failed to fetch cookies", err)
 	}
 
 	// Prepare cookies for the request
@@ -63,7 +63,7 @@ func handleParseURL(app core.App, c echo.Context) error {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", urlParam, nil)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to create request", err)
+		return nil, apis.NewBadRequestError("Failed to create request", err)
 	}
 	for _, cookie := range cookies {
 		req.AddCookie(cookie)
@@ -72,27 +72,40 @@ func handleParseURL(app core.App, c echo.Context) error {
 	// Send
 	resp, err := client.Do(req)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to send request", err)
+		return nil, apis.NewBadRequestError("Failed to send request", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			switch {
+			case resp.StatusCode == 404:
+					return nil, apis.NewNotFoundError("The requested URL was not found", nil)
+			case resp.StatusCode >= 400 && resp.StatusCode < 500:
+					return nil, apis.NewBadRequestError(fmt.Sprintf("Client error: %s", resp.Status), nil)
+			case resp.StatusCode >= 500:
+					return nil, apis.NewApiError(500, fmt.Sprintf("Server error: %s", resp.Status), nil)
+			default:
+					return nil, apis.NewApiError(resp.StatusCode, fmt.Sprintf("Unexpected status code: %s", resp.Status), nil)
+			}
+	}
 
 	// resp.Body can only be read once, so store it locally here.
 	bodyContent, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to read response body", err)
+		return nil, apis.NewBadRequestError("Failed to read response body", err)
 	}
 
 	// Use go-readability to parse the webpage
 	bodyReader := strings.NewReader(string(bodyContent))
 	article, err := readability.FromReader(bodyReader, parsedURL)
 	if err != nil {
-		return apis.NewBadRequestError("Failed to parse webpage content", err)
+		return nil, apis.NewBadRequestError("Failed to parse webpage content", err)
 	}
 
 	// Create a new record in the links collection
 	collection, err := app.Dao().FindCollectionByNameOrId("links")
 	if err != nil {
-		return apis.NewBadRequestError("Failed to find links collection", err)
+		return nil, apis.NewBadRequestError("Failed to find links collection", err)
 	}
 
 	record := models.NewRecord(collection)
@@ -123,10 +136,8 @@ func handleParseURL(app core.App, c echo.Context) error {
 	record.Set("read_time_display", fmt.Sprintf("%d min", int(math.Round(readTime.Minutes()))))
 
 	if err := app.Dao().SaveRecord(record); err != nil {
-		return apis.NewBadRequestError("Failed to save link", err)
+		return nil, apis.NewBadRequestError("Failed to save link", err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"id": record.Id,
-	})
+	return record, nil
 }

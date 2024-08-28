@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tests"
 	"github.com/pocketbase/pocketbase/tokens"
 )
@@ -26,11 +27,11 @@ func TestHandleParseURL(t *testing.T) {
 		}
 
 		// Stub!
-		parseUrlHandlerFunc = func(app core.App, c echo.Context) error {
-			// If authenticated, return a success response
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"id": "mock_id_12345",
-			})
+		parseUrlHandlerFunc = func(app core.App, c echo.Context) (*models.Record, error) {
+			// Create a mock record
+			mockRecord := &models.Record{}
+			mockRecord.SetId("mock_id_12345")
+			return mockRecord, nil
 		}
 
 		InitializePocketbase(testApp)
@@ -218,7 +219,7 @@ func TestHandleGenerateAPIKey(t *testing.T) {
 				"OnModelAfterCreate":  1,
 			},
 			ExpectedContent: []string{`"name":"Test API Key"`},
-			TestAppFactory: setupTestApp,
+			TestAppFactory:  setupTestApp,
 			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
 				var result map[string]interface{}
 				if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
@@ -337,20 +338,20 @@ func TestSummarizationHook(t *testing.T) {
 			Name:   "Create link and trigger summarization hook",
 			Method: http.MethodPost,
 			Url:    "/api/collections/links/records",
-			Body: strings.NewReader(generateValidLinkJSON(t)),
+			Body:   strings.NewReader(generateValidLinkJSON(t)),
 			RequestHeaders: map[string]string{
 				"Content-Type":  "application/json",
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
 			ExpectedStatus: 200,
 			ExpectedEvents: map[string]int{
-				"OnModelBeforeCreate": 1,
-				"OnModelAfterCreate":  1,
+				"OnModelBeforeCreate":         1,
+				"OnModelAfterCreate":          1,
 				"OnRecordBeforeCreateRequest": 1,
-				"OnRecordAfterCreateRequest": 1,
+				"OnRecordAfterCreateRequest":  1,
 			},
 			ExpectedContent: []string{"example.com"},
-			TestAppFactory: setupTestApp,
+			TestAppFactory:  setupTestApp,
 			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
 				if !summarizeCalled {
 					t.Fatal("MaybeSummarizeLink was not called after link creation")
@@ -374,17 +375,16 @@ func (m *MockSummarizer) MaybeSummarizeLink(app core.App, linkID string) {
 	}
 }
 
-
 func generateValidLinkJSON(t *testing.T) string {
 	link := map[string]interface{}{
-		"title":        "Test Link",
-		"original_url": "https://example.com",
-		"cleaned_url":  "https://example.com",
-		"hostname":     "example.com",
-		"user":         "h4oofx0tx2eupnq", // test@example.com
-		"added_to_library": time.Now().Format(time.RFC3339),
-		"excerpt":          "This is a test excerpt",
-		"raw_text_content": "This is the raw text content of the test link",
+		"title":             "Test Link",
+		"original_url":      "https://example.com",
+		"cleaned_url":       "https://example.com",
+		"hostname":          "example.com",
+		"user":              "h4oofx0tx2eupnq", // test@example.com
+		"added_to_library":  time.Now().Format(time.RFC3339),
+		"excerpt":           "This is a test excerpt",
+		"raw_text_content":  "This is the raw text content of the test link",
 		"read_time_seconds": 60,
 		"read_time_display": "1 min",
 	}
