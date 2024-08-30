@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -15,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import URLS from "@/lib/urls";
 
 type FeedCardProps = {
   feed: any;
@@ -66,6 +68,11 @@ const FeedCard: React.FC<FeedCardProps> = ({
         <p className="text-sm text-gray-500 mt-2">
           Last fetched: {new Date(feed.last_fetched_at).toLocaleString()}
         </p>
+        <Link to={URLS.FEED_ITEMS(feed.id)}>
+          <Button variant="outline" className="mt-2">
+            View Feed Items
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
