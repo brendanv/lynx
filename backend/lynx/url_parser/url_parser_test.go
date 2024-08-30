@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tests"
 	"github.com/stretchr/testify/assert"
@@ -26,16 +27,34 @@ func TestHandleParseURL(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	feed, err := createTestFeed(testApp, user.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if feed == nil {
+		t.Fatal("failed to create test feed")
+	}
+
+	feed_item, err := createTestFeedItem(testApp, feed.Id, user.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if feed_item == nil {
+		t.Fatal("failed to create test feed item")
+	}
+
 	tests := []struct {
 		name            string
 		url             string
+		feedItemId      string
 		setupMockServer func() *httptest.Server
 		expectError     bool
 		expectedTitle   string
 	}{
 		{
-			name: "Successful parsing",
-			url:  "https://example.com",
+			name:       "Successful parsing",
+			url:        "https://example.com",
+			feedItemId: "",
 			setupMockServer: func() *httptest.Server {
 				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "text/html")
@@ -46,8 +65,9 @@ func TestHandleParseURL(t *testing.T) {
 			expectedTitle: "Test Article",
 		},
 		{
-			name: "Cookie passing",
-			url:  "https://example.com",
+			name:       "Cookie passing",
+			url:        "https://example.com",
+			feedItemId: "",
 			setupMockServer: func() *httptest.Server {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					cookie := r.Header.Get("Cookie")
@@ -68,16 +88,44 @@ func TestHandleParseURL(t *testing.T) {
 		{
 			name:            "Invalid URL",
 			url:             "invalid-url",
+			feedItemId:      "",
 			setupMockServer: func() *httptest.Server { return nil },
 			expectError:     true,
 			expectedTitle:   "",
 		},
 		{
-			name: "Server error",
-			url:  "https://example.com",
+			name:       "Server error",
+			url:        "https://example.com",
+			feedItemId: "",
 			setupMockServer: func() *httptest.Server {
 				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-          w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusInternalServerError)
+				}))
+			},
+			expectError:   true,
+			expectedTitle: "",
+		},
+		{
+			name:       "Successful parsing with feed item",
+			url:        "https://example.com",
+			feedItemId: feed_item.Id,
+			setupMockServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "text/html")
+					w.Write([]byte(`<html><head><title>Test Article</title></head><body><h1>Test Article</h1><p>Content</p></body></html>`))
+				}))
+			},
+			expectError:   false,
+			expectedTitle: "Test Article",
+		},
+		{
+			name:       "Successful parsing with invalid feed item",
+			url:        "https://example.com",
+			feedItemId: "invalid feed id",
+			setupMockServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "text/html")
+					w.Write([]byte(`<html><head><title>Test Article</title></head><body><h1>Test Article</h1><p>Content</p></body></html>`))
 				}))
 			},
 			expectError:   true,
@@ -96,11 +144,14 @@ func TestHandleParseURL(t *testing.T) {
 			e := echo.New()
 			form := url.Values{}
 			form.Set("url", tc.url)
+			if tc.feedItemId != "" {
+				form.Set("feed_item", tc.feedItemId)
+			}
 
 			req := httptest.NewRequest(http.MethodPost, "/lynx/parse_url", strings.NewReader(form.Encode()))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 			rec := httptest.NewRecorder()
-      
+
 			c := e.NewContext(req, rec)
 			c.Set(apis.ContextAuthRecordKey, user)
 
@@ -115,6 +166,16 @@ func TestHandleParseURL(t *testing.T) {
 				assert.Equal(t, tc.expectedTitle, record.Get("title"))
 				assert.Equal(t, tc.url, record.Get("original_url"))
 				assert.Equal(t, user.Id, record.Get("user"))
+				if tc.feedItemId != "" {
+					assert.Equal(t, feed.Id, record.Get("created_from_feed"))
+					updateFeedItem, err := testApp.Dao().FindRecordById("feed_items", tc.feedItemId)
+					if err != nil {
+						t.Fatal(err)
+					}
+					assert.Equal(t, record.Id, updateFeedItem.Get("saved_as_link"))
+				} else {
+					assert.Equal(t, "", record.Get("created_from_feed"))
+				}
 			}
 		})
 	}
@@ -128,7 +189,7 @@ func createTestUser(app *tests.TestApp) (*models.Record, error) {
 
 	user := models.NewRecord(collection)
 	user.Set("email", "testurlparser@example.com")
-  user.Set("username", "testurlparser")
+	user.Set("username", "testurlparser")
 	user.Set("password", "password123")
 
 	if err := app.Dao().SaveRecord(user); err != nil {
@@ -160,4 +221,35 @@ func createTestCookies(app *tests.TestApp, userId string, serverURL string) erro
 	}
 
 	return nil
+}
+
+func createTestFeed(app core.App, userID string) (*models.Record, error) {
+	collection, err := app.Dao().FindCollectionByNameOrId("feeds")
+	if err != nil {
+		return nil, err
+	}
+	feed := models.NewRecord(collection)
+	feed.Set("user", userID)
+	feed.Set("feed_url", "https://example.com/feed")
+	feed.Set("name", "Test Feed")
+	if err := app.Dao().SaveRecord(feed); err != nil {
+		return nil, err
+	}
+	return feed, nil
+}
+
+func createTestFeedItem(app core.App, feedID string, userID string) (*models.Record, error) {
+	collection, err := app.Dao().FindCollectionByNameOrId("feed_items")
+	if err != nil {
+		return nil, err
+	}
+	feedItem := models.NewRecord(collection)
+	feedItem.Set("feed", feedID)
+	feedItem.Set("user", userID)
+	feedItem.Set("title", "Test Feed Item")
+	feedItem.Set("url", "https://example.com/item")
+	if err := app.Dao().SaveRecord(feedItem); err != nil {
+		return nil, err
+	}
+	return feedItem, nil
 }
