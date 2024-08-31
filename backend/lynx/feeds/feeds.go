@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/mmcdole/gofeed"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
@@ -88,6 +89,35 @@ func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId strin
 			}
 		}
 	}
+	return nil
+}
+
+func FetchAllFeeds(app core.App) error {
+	feeds, err := app.Dao().FindRecordsByFilter(
+		"feeds",
+		"last_fetched_at < {:oneHourAgo}",
+		"-last_fetched_at",
+		100,
+		0,
+		dbx.Params{
+			"oneHourAgo": time.Now().Add(-1 * time.Hour).Format(time.RFC3339),
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to find feeds: %w", err)
+	}
+
+	app.Logger().Info("Refreshing feeds...", "count", len(feeds))
+	for _, feed := range feeds {
+		err := FetchNewFeedItems(app, feed.Id)
+		if err != nil {
+			app.Logger().Error("Failed to fetch new feed items for feed", "feed", feed.Id, "error", err)
+			// Continue with other feeds even if one fails
+			continue
+		}
+	}
+
 	return nil
 }
 

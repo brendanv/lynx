@@ -10,6 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/tools/cron"
 	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
 
@@ -40,6 +41,7 @@ func InitializePocketbase(app core.App) {
 	apiKeyAuth := ApiKeyAuthMiddleware(app)
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		scheduler := cron.New()
 
 		e.Router.GET(
 			"/*",
@@ -89,6 +91,12 @@ func InitializePocketbase(app core.App) {
 				apis.RequireAdminOrRecordAuth(),
 			},
 		})
+
+		scheduler.MustAdd("FetchFeeds", "0 0 * * *", func() {
+			feeds.FetchAllFeeds(app)
+		})
+
+		scheduler.Start()
 
 		return nil
 	})

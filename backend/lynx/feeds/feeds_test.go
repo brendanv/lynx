@@ -1,6 +1,7 @@
 package feeds
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -167,5 +168,89 @@ func TestFetchNewFeedItems(t *testing.T) {
 	}
 	if len(newFeedItems) != 1 {
 		t.Errorf("Expected 1 feed item after second fetch, got %d", len(feedItems))
+	}
+}
+
+func TestFetchAllFeeds(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("ETag", "new-etag")
+		w.Header().Set("Last-Modified", time.Now().UTC().Format(time.RFC1123))
+		w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss version="2.0">
+		<channel>
+			<title>Test Feed</title>
+			<description>A test feed</description>
+			<item>
+				<title>New Item</title>
+				<link>http://example.com/new-item</link>
+				<guid>http://example.com/new-item</guid>
+				<pubDate>` + time.Now().UTC().Format(time.RFC1123) + `</pubDate>
+				<description>This is a new item</description>
+			</item>
+		</channel>
+		</rss>`))
+	}))
+	defer server.Close()
+
+	testApp, err := tests.NewTestApp(testDataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testApp.Cleanup()
+
+	feedCollection, err := testApp.Dao().FindCollectionByNameOrId("feeds")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 3; i++ {
+		feed := models.NewRecord(feedCollection)
+		feed.Set("feed_url", server.URL)
+		feed.Set("etag", "old-etag")
+		feed.Set("modified", time.Now().Add(-2*time.Hour).UTC().Format(time.RFC3339))
+		feed.Set("last_fetched_at", time.Now().Add(-2*time.Hour).UTC().Format(time.RFC3339))
+		feed.Set("user", "test-user-"+fmt.Sprint(i))
+		if err := testApp.Dao().SaveRecord(feed); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	err = FetchAllFeeds(testApp)
+	if err != nil {
+		t.Fatalf("FetchAllFeeds failed: %v", err)
+	}
+
+	updatedFeeds, err := testApp.Dao().FindRecordsByFilter("feeds", "1 = 1", "-created", 100, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(updatedFeeds) != 3 {
+		t.Errorf("Expected 3 updated feeds, got %d", len(updatedFeeds))
+	}
+
+	for _, feed := range updatedFeeds {
+		if feed.GetString("etag") != "new-etag" {
+			t.Errorf("Expected etag to be 'new-etag', got '%s'", feed.GetString("etag"))
+		}
+
+		lastFetchedAt, err := time.Parse("2006-01-02 15:04:05.000Z", feed.GetString("last_fetched_at"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if time.Since(lastFetchedAt) > 5*time.Second {
+			t.Errorf("Expected last_fetched_at to be recent, got '%s'", lastFetchedAt)
+		}
+
+		feedItems, err := testApp.Dao().FindRecordsByFilter("feed_items", "feed = {:feed}", "", 100, 0, dbx.Params{"feed": feed.Id})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(feedItems) != 1 {
+			t.Errorf("Expected 1 feed item, got %d", len(feedItems))
+		}
+		if feedItems[0].GetString("title") != "New Item" {
+			t.Errorf("Expected feed item title to be 'New Item', got '%s'", feedItems[0].GetString("title"))
+		}
 	}
 }
