@@ -10,15 +10,19 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
+	"github.com/pocketbase/pocketbase/tools/cron"
 	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
 
+	"main/lynx/feeds"
 	"main/lynx/singlefile"
 	"main/lynx/summarizer"
 	"main/lynx/url_parser"
 )
 
-var parseUrlHandlerFunc = url_parser.HandleParseURL
+var parseUrlHandlerFunc = url_parser.HandleParseURLRequest
+var parseFeedHandlerFunc = feeds.SaveNewFeed
+var convertFeedItemToLinkFunc = feeds.MaybeConvertFeedItemToLink
 
 // Interfaces for dependency injection for summarization tests
 type Summarizer interface {
@@ -38,6 +42,7 @@ func InitializePocketbase(app core.App) {
 	apiKeyAuth := ApiKeyAuthMiddleware(app)
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		scheduler := cron.New()
 
 		e.Router.GET(
 			"/*",
@@ -75,6 +80,25 @@ func InitializePocketbase(app core.App) {
 			},
 		})
 
+		e.Router.AddRoute(echo.Route{
+			Method: http.MethodPost,
+			Path:   "/lynx/parse_feed",
+			Handler: func(c echo.Context) error {
+				return parseFeedHandlerFunc(app, c)
+			},
+			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
+				apiKeyAuth,
+				apis.RequireAdminOrRecordAuth(),
+			},
+		})
+
+		scheduler.MustAdd("FetchFeeds", "0 0 * * *", func() {
+			feeds.FetchAllFeeds(app)
+		})
+
+		scheduler.Start()
+
 		return nil
 	})
 
@@ -104,6 +128,13 @@ func InitializePocketbase(app core.App) {
 		})
 		routine.FireAndForget(func() {
 			singlefile.MaybeArchiveLink(app, e.Model.GetId())
+		})
+		return nil
+	})
+
+	app.OnModelAfterCreate("feed_items").Add(func(e *core.ModelEvent) error {
+		routine.FireAndForget(func() {
+			convertFeedItemToLinkFunc(app, e.Model.GetId())
 		})
 		return nil
 	})

@@ -16,6 +16,7 @@ const GeneralSettings = lazy(
   () => import("@/components/pages/settings/General"),
 );
 const Tags = lazy(() => import("@/components/pages/settings/Tags"));
+const FeedItems = lazy(() => import("@/components/pages/FeedItems"));
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
                 <Route path={URLS.COOKIES} element={<Cookies />} />
                 <Route path={URLS.API_KEYS} element={<ApiKeys />} />
                 <Route path={URLS.FEEDS} element={<Feeds />} />
+                <Route path={URLS.FEED_ITEMS_TEMPLATE} element={<FeedItems />} />
                 <Route path={URLS.SETTINGS} element={<GeneralSettings />} />
                 <Route path={URLS.TAGS} element={<Tags />} />
               </Route>

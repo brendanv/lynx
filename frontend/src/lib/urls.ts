@@ -14,4 +14,7 @@ export default {
 
   LINK_VIEWER_TEMPLATE: "/link/:id/view",
   LINK_VIEWER: (id: string) => `/link/${id}/view`,
+
+  FEED_ITEMS_TEMPLATE: "/feed/:id/items",
+  FEED_ITEMS: (id: string) => `/feed/${id}/items`,
 };

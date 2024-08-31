@@ -20,7 +20,13 @@ import (
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
+func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error) {
+	// Get the authenticated user
+	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+	if authRecord == nil {
+		return nil, apis.NewForbiddenError("Not authenticated", nil)
+	}
+
 	urlParam := c.FormValue("url")
 	if urlParam == "" {
 		return nil, apis.NewBadRequestError("Missing 'url' parameter", nil)
@@ -31,11 +37,21 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 		return nil, apis.NewBadRequestError("Failed to parse URL", err)
 	}
 
-	// Get the authenticated user
-	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
-	if authRecord == nil {
-		return nil, apis.NewForbiddenError("Not authenticated", nil)
+	feedItemID := c.FormValue("feed_item")
+	var feedItem *models.Record
+	if feedItemID != "" {
+		feedItem, err = app.Dao().FindRecordById("feed_items", feedItemID)
+		if err != nil {
+			return nil, apis.NewBadRequestError("Failed to find feed item", err)
+		}
+		if feedItem.GetString("user") != authRecord.Id {
+			return nil, apis.NewForbiddenError("Invalid feed item", nil)
+		}
 	}
+	return HandleParseURLViaParams(app, authRecord.Id, parsedURL, feedItem)
+}
+	
+func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem *models.Record) (*models.Record, error) {
 
 	// Load user cookies
 	cookieRecords, err := app.Dao().FindRecordsByFilter(
@@ -44,7 +60,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 		"-created",
 		10,
 		0,
-		dbx.Params{"user": authRecord.Id, "url": parsedURL.Hostname()},
+		dbx.Params{"user": userId, "url": url.Hostname()},
 	)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to fetch cookies", err)
@@ -61,7 +77,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	// Build request & add cookies
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", urlParam, nil)
+	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to create request", err)
 	}
@@ -77,16 +93,16 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			switch {
-			case resp.StatusCode == 404:
-					return nil, apis.NewNotFoundError("The requested URL was not found", nil)
-			case resp.StatusCode >= 400 && resp.StatusCode < 500:
-					return nil, apis.NewBadRequestError(fmt.Sprintf("Client error: %s", resp.Status), nil)
-			case resp.StatusCode >= 500:
-					return nil, apis.NewApiError(500, fmt.Sprintf("Server error: %s", resp.Status), nil)
-			default:
-					return nil, apis.NewApiError(resp.StatusCode, fmt.Sprintf("Unexpected status code: %s", resp.Status), nil)
-			}
+		switch {
+		case resp.StatusCode == 404:
+			return nil, apis.NewNotFoundError("The requested URL was not found", nil)
+		case resp.StatusCode >= 400 && resp.StatusCode < 500:
+			return nil, apis.NewBadRequestError(fmt.Sprintf("Client error: %s", resp.Status), nil)
+		case resp.StatusCode >= 500:
+			return nil, apis.NewApiError(500, fmt.Sprintf("Server error: %s", resp.Status), nil)
+		default:
+			return nil, apis.NewApiError(resp.StatusCode, fmt.Sprintf("Unexpected status code: %s", resp.Status), nil)
+		}
 	}
 
 	// resp.Body can only be read once, so store it locally here.
@@ -97,7 +113,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	// Use go-readability to parse the webpage
 	bodyReader := strings.NewReader(string(bodyContent))
-	article, err := readability.FromReader(bodyReader, parsedURL)
+	article, err := readability.FromReader(bodyReader, url)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to parse webpage content", err)
 	}
@@ -110,11 +126,11 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	record := models.NewRecord(collection)
 	record.Set("added_to_library", time.Now().Format(time.RFC3339))
-	record.Set("original_url", urlParam)
+	record.Set("original_url", url.String())
 	record.Set("cleaned_url", resp.Request.URL.String())
 	record.Set("title", article.Title)
 	record.Set("hostname", resp.Request.URL.Hostname())
-	record.Set("user", authRecord.Id)
+	record.Set("user", userId)
 	record.Set("excerpt", article.Excerpt)
 	record.Set("author", article.Byline)
 	record.Set("article_html", article.Content)
@@ -125,6 +141,9 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 		record.Set("article_date", article.PublishedTime)
 	} else {
 		record.Set("article_date", time.Now().UTC().Format(time.RFC3339))
+	}
+	if feedItem != nil {
+		record.Set("created_from_feed", feedItem.GetString("feed"))
 	}
 
 	// Calculate read time, using 285 wpm as read rate
@@ -137,6 +156,14 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	if err := app.Dao().SaveRecord(record); err != nil {
 		return nil, apis.NewBadRequestError("Failed to save link", err)
+	}
+
+	if feedItem != nil {
+		feedItem.Set("saved_as_link", record.Id)
+		if err := app.Dao().SaveRecord(feedItem); err != nil {
+			// Log the error but don't fail the request
+			app.Logger().Error("Failed to update feed item", "error", err, "feed_item", feedItem.Id, "link", record.Id)
+		}
 	}
 
 	return record, nil
