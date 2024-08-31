@@ -20,8 +20,9 @@ import (
 	"main/lynx/url_parser"
 )
 
-var parseUrlHandlerFunc = url_parser.HandleParseURL
+var parseUrlHandlerFunc = url_parser.HandleParseURLRequest
 var parseFeedHandlerFunc = feeds.SaveNewFeed
+var convertFeedItemToLinkFunc = feeds.MaybeConvertFeedItemToLink
 
 // Interfaces for dependency injection for summarization tests
 type Summarizer interface {
@@ -127,6 +128,13 @@ func InitializePocketbase(app core.App) {
 		})
 		routine.FireAndForget(func() {
 			singlefile.MaybeArchiveLink(app, e.Model.GetId())
+		})
+		return nil
+	})
+
+	app.OnModelAfterCreate("feed_items").Add(func(e *core.ModelEvent) error {
+		routine.FireAndForget(func() {
+			convertFeedItemToLinkFunc(app, e.Model.GetId())
 		})
 		return nil
 	})

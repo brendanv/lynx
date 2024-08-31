@@ -398,98 +398,168 @@ func generateValidLinkJSON(t *testing.T) string {
 }
 
 func TestHandleParseFeed(t *testing.T) {
-		originalParseFeedHandler := parseFeedHandlerFunc
+	originalParseFeedHandler := parseFeedHandlerFunc
 
-		setupTestApp := func(t *testing.T) *tests.TestApp {
-				testApp, err := tests.NewTestApp(testDataDir)
+	setupTestApp := func(t *testing.T) *tests.TestApp {
+		testApp, err := tests.NewTestApp(testDataDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Mock the feed parsing function
+		parseFeedHandlerFunc = func(app core.App, c echo.Context) error {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"id": "mock_feed_id_12345",
+			})
+		}
+
+		InitializePocketbase(testApp)
+
+		return testApp
+	}
+
+	t.Cleanup(func() {
+		parseFeedHandlerFunc = originalParseFeedHandler
+	})
+
+	scenarios := []tests.ApiScenario{
+		{
+			Name:            "Unauthenticated request",
+			Method:          http.MethodPost,
+			Url:             "/lynx/parse_feed",
+			Body:            strings.NewReader("url=https://example.com/feed"),
+			ExpectedStatus:  401,
+			ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:   "Authenticated request with user token",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_feed",
+			Body:   strings.NewReader("url=https://example.com/feed"),
+			RequestHeaders: map[string]string{
+				"Authorization": generateRecordToken("users", "test@example.com"),
+			},
+			ExpectedStatus:  200,
+			ExpectedContent: []string{`"id":"mock_feed_id_12345"`},
+			TestAppFactory:  setupTestApp,
+		},
+		{
+			Name:   "Authenticated request with API key",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_feed",
+			Body:   strings.NewReader("url=https://example.com/feed"),
+			RequestHeaders: map[string]string{
+				"X-API-KEY": "this_is_a_test_api_key",
+			},
+			ExpectedStatus:  200,
+			ExpectedContent: []string{`"id":"mock_feed_id_12345"`},
+			ExpectedEvents: map[string]int{
+				"OnModelBeforeUpdate": 1,
+				"OnModelAfterUpdate":  1,
+			},
+			TestAppFactory: setupTestApp,
+			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				// Check if the API key was updated in the database
+				apiKey, err := app.Dao().FindRecordById("api_keys", "qvwy0nqws813o4s")
 				if err != nil {
-						t.Fatal(err)
+					t.Fatal("Failed to find the existing API key in the database")
 				}
 
-				// Mock the feed parsing function
-				parseFeedHandlerFunc = func(app core.App, c echo.Context) error {
-						return c.JSON(http.StatusOK, map[string]interface{}{
-								"id": "mock_feed_id_12345",
-						})
+				lastUsedAt := apiKey.GetDateTime("last_used_at")
+				if lastUsedAt.IsZero() {
+					t.Fatal("last_used_at was not updated")
 				}
+				if time.Since(lastUsedAt.Time()) > time.Minute {
+					t.Fatal("last_used_at was not updated recently")
+				}
+			},
+		},
+		{
+			Name:   "Request with invalid API key",
+			Method: http.MethodPost,
+			Url:    "/lynx/parse_feed",
+			Body:   strings.NewReader("url=https://example.com/feed"),
+			RequestHeaders: map[string]string{
+				"X-API-KEY": "INVALID_API_KEY",
+			},
+			ExpectedStatus:  401,
+			ExpectedContent: []string{`"message":"Invalid or expired API key."`},
+			TestAppFactory:  setupTestApp,
+		},
+	}
 
-				InitializePocketbase(testApp)
+	for _, scenario := range scenarios {
+		scenario.Test(t)
+	}
+}
 
-				return testApp
+func createTestFeedItem(app core.App, feedID string, userID string) (*models.Record, error) {
+	collection, err := app.Dao().FindCollectionByNameOrId("feed_items")
+	if err != nil {
+		return nil, err
+	}
+	feedItem := models.NewRecord(collection)
+	feedItem.Set("feed", feedID)
+	feedItem.Set("user", userID)
+	feedItem.Set("title", "Test Feed Item")
+	feedItem.Set("url", "https://example.com/item")
+	if err := app.Dao().SaveRecord(feedItem); err != nil {
+		return nil, err
+	}
+	return feedItem, nil
+}
+
+func TestOnModelAfterCreateFeedItems(t *testing.T) {
+	setupTestApp := func(t *testing.T) *tests.TestApp {
+		testApp, err := tests.NewTestApp(testDataDir)
+		if err != nil {
+			t.Fatal(err)
 		}
 
-		t.Cleanup(func() {
-				parseFeedHandlerFunc = originalParseFeedHandler
-		})
+		InitializePocketbase(testApp)
 
-		scenarios := []tests.ApiScenario{
-				{
-						Name:            "Unauthenticated request",
-						Method:          http.MethodPost,
-						Url:             "/lynx/parse_feed",
-						Body:            strings.NewReader("url=https://example.com/feed"),
-						ExpectedStatus:  401,
-						ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
-						TestAppFactory:  setupTestApp,
-				},
-				{
-						Name:   "Authenticated request with user token",
-						Method: http.MethodPost,
-						Url:    "/lynx/parse_feed",
-						Body:   strings.NewReader("url=https://example.com/feed"),
-						RequestHeaders: map[string]string{
-								"Authorization": generateRecordToken("users", "test@example.com"),
-						},
-						ExpectedStatus:  200,
-						ExpectedContent: []string{`"id":"mock_feed_id_12345"`},
-						TestAppFactory:  setupTestApp,
-				},
-				{
-						Name:   "Authenticated request with API key",
-						Method: http.MethodPost,
-						Url:    "/lynx/parse_feed",
-						Body:   strings.NewReader("url=https://example.com/feed"),
-						RequestHeaders: map[string]string{
-								"X-API-KEY": "this_is_a_test_api_key",
-						},
-						ExpectedStatus:  200,
-						ExpectedContent: []string{`"id":"mock_feed_id_12345"`},
-						ExpectedEvents: map[string]int{
-								"OnModelBeforeUpdate": 1,
-								"OnModelAfterUpdate":  1,
-						},
-						TestAppFactory: setupTestApp,
-						AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
-								// Check if the API key was updated in the database
-								apiKey, err := app.Dao().FindRecordById("api_keys", "qvwy0nqws813o4s")
-								if err != nil {
-										t.Fatal("Failed to find the existing API key in the database")
-								}
+		return testApp
+	}
 
-								lastUsedAt := apiKey.GetDateTime("last_used_at")
-								if lastUsedAt.IsZero() {
-										t.Fatal("last_used_at was not updated")
-								}
-								if time.Since(lastUsedAt.Time()) > time.Minute {
-										t.Fatal("last_used_at was not updated recently")
-								}
-						},
-				},
-				{
-						Name:   "Request with invalid API key",
-						Method: http.MethodPost,
-						Url:    "/lynx/parse_feed",
-						Body:   strings.NewReader("url=https://example.com/feed"),
-						RequestHeaders: map[string]string{
-								"X-API-KEY": "INVALID_API_KEY",
-						},
-						ExpectedStatus:  401,
-						ExpectedContent: []string{`"message":"Invalid or expired API key."`},
-						TestAppFactory:  setupTestApp,
-				},
-		}
+	testApp := setupTestApp(t)
+	defer testApp.Cleanup()
 
-		for _, scenario := range scenarios {
-				scenario.Test(t)
-		}
+	convertCalled := false
+	originalConvertFunc := convertFeedItemToLinkFunc
+	convertFeedItemToLinkFunc = func(app core.App, feedItemID string) {
+		convertCalled = true
+	}
+	t.Cleanup(func() {
+		convertFeedItemToLinkFunc = originalConvertFunc
+	})
+
+	// Create a test feed
+	feedCollection, err := testApp.Dao().FindCollectionByNameOrId("feeds")
+	if err != nil {
+		t.Fatal(err)
+	}
+	feed := models.NewRecord(feedCollection)
+	feed.Set("feed_url", "https://example.com/feed")
+	feed.Set("user", "test-user")
+	if err := testApp.Dao().SaveRecord(feed); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a test feed item
+	feedItem, err := createTestFeedItem(testApp, feed.Id, "test-user")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if feedItem == nil {
+		t.Fatal("Expected non-nil feed item")
+	}
+
+	// Wait a short time for the goroutine to execute
+	time.Sleep(100 * time.Millisecond)
+
+	// Check if convertFeedItemToLinkFunc was called
+	if !convertCalled {
+		t.Error("convertFeedItemToLinkFunc was not called after feed item creation")
+	}
 }

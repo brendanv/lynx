@@ -3,7 +3,10 @@ package feeds
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
+
+	"main/lynx/url_parser"
 
 	"github.com/labstack/echo/v5"
 	"github.com/mmcdole/gofeed"
@@ -205,4 +208,38 @@ func SaveNewFeed(app core.App, c echo.Context) error {
 	return c.JSON(200, map[string]interface{}{
 		"id": record.Id,
 	})
+}
+
+func MaybeConvertFeedItemToLink(app core.App, feedItemId string) {
+	logger := app.Logger().With("action", "convertFeedItemToLink", "feedItemID", feedItemId)
+	feedItem, err := app.Dao().FindRecordById("feed_items", feedItemId)
+	if err != nil {
+		logger.Error("Failed to find feed item", "error", err)
+		return
+	}
+
+	feed, err := app.Dao().FindRecordById("feeds", feedItem.GetString("feed"))
+	if err != nil {
+		logger.Error("Unable to load feed", "error", err)
+		return
+	}
+
+	if !feed.GetBool("auto_add_feed_items_to_library") {
+		logger.Info("Skipping feed item - auto_add_feed_items_to_library is false")
+		return
+	}
+
+	urlObj, err := url.Parse(feedItem.GetString("url"))
+	if err != nil {
+		logger.Error("Unable to parse feed item URL", "error", err)
+		return
+	}
+
+	link, err := url_parser.HandleParseURLViaParams(app, feedItem.GetString("user"), urlObj, feedItem)
+	if err != nil {
+		logger.Error("Unable to convert feed item to link", "error", err)
+		return
+	} else {
+		logger.Info("Converted feed item to link", "link", link.Id)
+	}
 }

@@ -155,7 +155,7 @@ func TestHandleParseURL(t *testing.T) {
 			c := e.NewContext(req, rec)
 			c.Set(apis.ContextAuthRecordKey, user)
 
-			record, err := HandleParseURL(testApp, c)
+			record, err := HandleParseURLRequest(testApp, c)
 
 			if tc.expectError {
 				assert.Error(t, err)

@@ -20,7 +20,7 @@ import (
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
+func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error) {
 	// Get the authenticated user
 	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
 	if authRecord == nil {
@@ -48,6 +48,10 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 			return nil, apis.NewForbiddenError("Invalid feed item", nil)
 		}
 	}
+	return HandleParseURLViaParams(app, authRecord.Id, parsedURL, feedItem)
+}
+	
+func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem *models.Record) (*models.Record, error) {
 
 	// Load user cookies
 	cookieRecords, err := app.Dao().FindRecordsByFilter(
@@ -56,7 +60,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 		"-created",
 		10,
 		0,
-		dbx.Params{"user": authRecord.Id, "url": parsedURL.Hostname()},
+		dbx.Params{"user": userId, "url": url.Hostname()},
 	)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to fetch cookies", err)
@@ -73,7 +77,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	// Build request & add cookies
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", urlParam, nil)
+	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to create request", err)
 	}
@@ -109,7 +113,7 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	// Use go-readability to parse the webpage
 	bodyReader := strings.NewReader(string(bodyContent))
-	article, err := readability.FromReader(bodyReader, parsedURL)
+	article, err := readability.FromReader(bodyReader, url)
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to parse webpage content", err)
 	}
@@ -122,11 +126,11 @@ func HandleParseURL(app core.App, c echo.Context) (*models.Record, error) {
 
 	record := models.NewRecord(collection)
 	record.Set("added_to_library", time.Now().Format(time.RFC3339))
-	record.Set("original_url", urlParam)
+	record.Set("original_url", url.String())
 	record.Set("cleaned_url", resp.Request.URL.String())
 	record.Set("title", article.Title)
 	record.Set("hostname", resp.Request.URL.Hostname())
-	record.Set("user", authRecord.Id)
+	record.Set("user", userId)
 	record.Set("excerpt", article.Excerpt)
 	record.Set("author", article.Byline)
 	record.Set("article_html", article.Content)
