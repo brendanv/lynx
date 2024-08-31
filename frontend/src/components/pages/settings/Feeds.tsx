@@ -17,6 +17,7 @@ import { PlusCircle } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import SettingsBase from "@/components/pages/settings/SettingsBase";
 import FeedCard from "@/components/FeedCard";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Feed = {
   id: string;
@@ -31,7 +32,7 @@ type Feed = {
 const Feeds: React.FC = () => {
   const { pb } = usePocketBase();
   const [feeds, setFeeds] = useState<Feed[]>([]);
-  const [newFeed, setNewFeed] = useState({ feed_url: "" });
+  const [newFeed, setNewFeed] = useState({ feed_url: "", auto_add_items: false });
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -61,8 +62,9 @@ const Feeds: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("url", newFeed.feed_url);
+      formData.append("auto_add_items", newFeed.auto_add_items.toString());
       await pb.send("/lynx/parse_feed", { method: "POST", body: formData });
-      setNewFeed({ feed_url: "" });
+      setNewFeed({ feed_url: "", auto_add_items: false });
       fetchFeeds();
       setIsAddDialogOpen(false);
     } catch (err) {
@@ -127,10 +129,25 @@ const Feeds: React.FC = () => {
                         id="url"
                         value={newFeed.feed_url}
                         onChange={(e) =>
-                          setNewFeed({ feed_url: e.target.value })
+                          setNewFeed({ ...newFeed, feed_url: e.target.value })
                         }
                         className="col-span-3"
                       />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="auto_add_items"
+                        checked={newFeed.auto_add_items}
+                        onCheckedChange={(checked) =>
+                          setNewFeed({ ...newFeed, auto_add_items: checked as boolean })
+                        }
+                      />
+                      <label
+                        htmlFor="auto_add_items"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Automatically add new items to library
+                      </label>
                     </div>
                   </div>
                   <DialogFooter>

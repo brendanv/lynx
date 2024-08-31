@@ -173,6 +173,7 @@ func SaveNewFeed(app core.App, c echo.Context) error {
 	if url == "" {
 		return apis.NewBadRequestError("URL is required", nil)
 	}
+	autoAddItems := c.FormValue("auto_add_items") == "true"
 
 	feedResult, err := LoadFeedFromURL(url, "", time.Time{})
 	if err != nil {
@@ -195,7 +196,7 @@ func SaveNewFeed(app core.App, c echo.Context) error {
 	record.Set("etag", feedResult.ETag)
 	record.Set("modified", feedResult.LastModified)
 	record.Set("last_fetched_at", time.Now().UTC().Format(time.RFC3339))
-	record.Set("auto_add_feed_items_to_library", false)
+	record.Set("auto_add_feed_items_to_library", autoAddItems)
 
 	if err := app.Dao().SaveRecord(record); err != nil {
 		return apis.NewBadRequestError("Failed to save feed", err)
