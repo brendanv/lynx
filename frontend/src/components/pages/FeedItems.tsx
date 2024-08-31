@@ -70,6 +70,9 @@ const FeedItems: React.FC = () => {
   };
 
   const fetchFeedName = async () => {
+    if (feedId === undefined) {
+      return;
+    }
     try {
       const feed = await pb.collection("feeds").getOne(feedId);
       setFeedName(feed.name);
