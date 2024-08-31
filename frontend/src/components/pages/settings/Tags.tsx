@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
+import useAllUserTags from "@/hooks/useAllUserTags";
 import PageWithHeader from "@/components/pages/PageWithHeader";
 import SettingsBase from "@/components/pages/settings/SettingsBase";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
@@ -33,39 +34,18 @@ import URLS from "@/lib/urls";
 const Tags: React.FC = () => {
   const { pb, user } = usePocketBase();
   const { toast } = useToast();
-  const [tags, setTags] = useState<any[]>([]);
+  const {
+    tags,
+    loading: isLoading,
+    error,
+    refetch: fetchTags,
+  } = useAllUserTags();
   const [newTagName, setNewTagName] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<any>(null);
   usePageTitle("Tags");
-
-  useEffect(() => {
-    fetchTags();
-  }, [pb, user, sortField, sortDirection]);
-
-  const fetchTags = async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const records = await pb.collection("tags_metadata").getFullList({
-        sort: `${sortDirection === "desc" ? "-" : ""}${sortField}`,
-        filter: `user="${user.id}"`,
-      });
-      setTags(records);
-    } catch (error) {
-      console.error("Error fetching tags:", error);
-      setError("Failed to load tags. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const generateSlug = (name: string) => {
     return name
@@ -76,7 +56,6 @@ const Tags: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     try {
       const slug = generateSlug(newTagName);
       await pb.collection("tags").create({
@@ -89,7 +68,10 @@ const Tags: React.FC = () => {
       fetchTags();
     } catch (error) {
       console.error("Error creating tag:", error);
-      setError("Failed to create tag. Please try again.");
+      toast({
+        description: "Failed to create tag. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -107,7 +89,10 @@ const Tags: React.FC = () => {
       fetchTags();
     } catch (error) {
       console.error("Error deleting tag:", error);
-      setError("Failed to delete tag. Please try again.");
+      toast({
+        description: "Failed to delete tag. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsDeleteDialogOpen(false);
       setTagToDelete(null);
@@ -123,8 +108,20 @@ const Tags: React.FC = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!user) return <div>Please log in to view tags.</div>;
+  const sortedTags = useMemo(() => {
+    return [...tags].sort((a, b) => {
+      if (sortField === "name") {
+        return sortDirection === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else if (sortField === "link_count") {
+        return sortDirection === "asc"
+          ? a.link_count - b.link_count
+          : b.link_count - a.link_count;
+      }
+      return 0;
+    });
+  }, [tags, sortField, sortDirection]);
 
   return (
     <PageWithHeader>
@@ -134,9 +131,14 @@ const Tags: React.FC = () => {
             <CardTitle>Tags</CardTitle>
           </CardHeader>
           <CardContent>
+            {!user && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>Please log in to view tags.</AlertDescription>
+              </Alert>
+            )}
             {error && (
               <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>Error: {error}</AlertDescription>
               </Alert>
             )}
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
@@ -148,85 +150,102 @@ const Tags: React.FC = () => {
               />
               <Button type="submit">Create Tag</Button>
             </form>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead onClick={() => handleSort("name")} className="cursor-pointer">
-                    Name <ArrowUpDown className="inline-block ml-1 h-4 w-4" />
-                  </TableHead>
-                  <TableHead onClick={() => handleSort("link_count")} className="cursor-pointer">
-                    Link Count <ArrowUpDown className="inline-block ml-1 h-4 w-4" />
-                  </TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tags.map((tag) => (
-                  <TableRow key={tag.id}>
-                    <TableCell>{tag.name}</TableCell>
-                    <TableCell>{tag.link_count}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-start space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="hidden sm:inline-flex"
-                        >
-                          <Link to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            View Links
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="sm:hidden"
-                        >
-                          <Link to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}>
-                            <ExternalLink className="h-4 w-4" />
-                            <span className="sr-only">View Links</span>
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteClick(tag)}
-                          className="hidden sm:inline-flex"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteClick(tag)}
-                          className="sm:hidden"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </TableCell>
+            {isLoading ? (
+              <div className="text-center py-4">Loading...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead
+                      onClick={() => handleSort("name")}
+                      className="cursor-pointer"
+                    >
+                      Name <ArrowUpDown className="inline-block ml-1 h-4 w-4" />
+                    </TableHead>
+                    <TableHead
+                      onClick={() => handleSort("link_count")}
+                      className="cursor-pointer"
+                    >
+                      Link Count{" "}
+                      <ArrowUpDown className="inline-block ml-1 h-4 w-4" />
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {sortedTags.map((tag) => (
+                    <TableRow key={tag.id}>
+                      <TableCell>{tag.name}</TableCell>
+                      <TableCell>{tag.link_count}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-start space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="hidden sm:inline-flex"
+                          >
+                            <Link to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}>
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              View Links
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="sm:hidden"
+                          >
+                            <Link to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}>
+                              <ExternalLink className="h-4 w-4" />
+                              <span className="sr-only">View Links</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteClick(tag)}
+                            className="hidden sm:inline-flex"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteClick(tag)}
+                            className="sm:hidden"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </SettingsBase>
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the tag "{tagToDelete?.name}" from {tagToDelete?.link_count} links.
+              This will remove the tag "{tagToDelete?.name}" from{" "}
+              {tagToDelete?.link_count} links.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteConfirm}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

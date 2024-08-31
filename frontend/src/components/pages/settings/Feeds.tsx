@@ -51,6 +51,7 @@ const Feeds: React.FC = () => {
         sort: "-created",
       });
       setFeeds(records);
+      setError(null);
     } catch (err) {
       console.error("Error fetching feeds:", err);
       setError("Failed to fetch feeds. Please try again.");

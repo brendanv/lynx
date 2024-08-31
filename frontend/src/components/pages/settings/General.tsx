@@ -50,6 +50,7 @@ const General: React.FC = () => {
           summarization_model: record.summarization_model || "",
           id: record.id,
         });
+        setError(null);
       } catch (error: any) {
         if (error.status === 404) {
           // Settings don't exist, create new ones

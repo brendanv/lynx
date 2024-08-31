@@ -79,6 +79,7 @@ const ApiKeys: React.FC = () => {
         fields: "id,name,expires_at,last_used_at",
       });
       setApiKeys(records);
+      setError(null);
     } catch (err) {
       console.error("Error fetching API keys:", err);
       setError("Failed to fetch API keys. Please try again.");

@@ -74,6 +74,7 @@ const Cookies: React.FC = () => {
         fields: "id,domain,name,created",
       });
       setCookies(records);
+      setError(null);
     } catch (err) {
       console.error("Error fetching cookies:", err);
       setError("Failed to fetch cookies. Please try again.");

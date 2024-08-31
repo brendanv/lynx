@@ -115,6 +115,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
         ...queryResult,
         items: queryResult.items.map(convertFeedQueryItemToFeedLink),
       });
+      setError(null);
     } catch (e: any) {
       setError(e);
     } finally {

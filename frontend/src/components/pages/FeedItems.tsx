@@ -61,6 +61,7 @@ const FeedItems: React.FC = () => {
         });
       setFeedItems(records.items);
       setTotalPages(Math.ceil(records.totalItems / ITEMS_PER_PAGE));
+      setError(null);
     } catch (err) {
       console.error("Error fetching feed items:", err);
       setError("Failed to fetch feed items. Please try again.");
