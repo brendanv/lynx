@@ -137,6 +137,7 @@ func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem
 	record.Set("raw_text_content", article.TextContent)
 	record.Set("header_image_url", article.Image)
 	record.Set("full_page_html", string(bodyContent))
+	record.Set("reading_progress", 0)
 	if article.PublishedTime != nil {
 		record.Set("article_date", article.PublishedTime)
 	} else {
