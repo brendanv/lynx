@@ -29,13 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { MoreHorizontal, ArrowUpDown, Copy } from "lucide-react";
 import {
   ColumnDef,
@@ -48,6 +41,7 @@ import {
 import { usePageTitle } from "@/hooks/usePageTitle";
 import PageWithHeader from "@/components/pages/PageWithHeader";
 import SettingsBase from "@/components/pages/settings/SettingsBase";
+import DrawerDialog from "@/components/DrawerDialog";
 
 type ApiKey = {
   id: string;
@@ -299,7 +293,7 @@ const ApiKeys: React.FC = () => {
           </CardContent>
         </Card>
       </SettingsBase>
-      
+
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -323,27 +317,25 @@ const ApiKeys: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isNewKeyDialogOpen} onOpenChange={setIsNewKeyDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>New API Key Generated</DialogTitle>
-            <DialogDescription>
-              Please copy your new API key. For security reasons, it won't be
-              displayed again.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center space-x-2">
-            <Input value={newApiKey || ""} readOnly className="flex-grow" />
-            <Button
-              onClick={() => newApiKey && copyToClipboard(newApiKey)}
-              className="flex-shrink-0"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Copy
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DrawerDialog
+        title="New API Key Generated"
+        open={isNewKeyDialogOpen}
+        description={
+          "Please copy your new API key. For security reasons, it won't be displayed again."
+        }
+        handleOpenChange={setIsNewKeyDialogOpen}
+      >
+        <div className="flex items-center space-x-2">
+          <Input value={newApiKey || ""} readOnly className="flex-grow" />
+          <Button
+            onClick={() => newApiKey && copyToClipboard(newApiKey)}
+            className="flex-shrink-0"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copy
+          </Button>
+        </div>
+      </DrawerDialog>
     </PageWithHeader>
   );
 };

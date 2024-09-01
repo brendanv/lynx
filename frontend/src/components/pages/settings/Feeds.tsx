@@ -10,14 +10,25 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { PlusCircle } from "lucide-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import SettingsBase from "@/components/pages/settings/SettingsBase";
 import FeedCard from "@/components/FeedCard";
-import { Checkbox } from "@/components/ui/checkbox";
+import DrawerDialog from "@/components/DrawerDialog";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Switch } from "@/components/ui/switch";
 
 type Feed = {
   id: string;
@@ -29,10 +40,16 @@ type Feed = {
   last_fetched_at: string;
 };
 
+const addFeedFormSchema = z.object({
+  feedUrl: z.string().min(3, {
+    message: "URL is required",
+  }),
+  autoAdd: z.boolean(),
+});
+
 const Feeds: React.FC = () => {
   const { pb } = usePocketBase();
   const [feeds, setFeeds] = useState<Feed[]>([]);
-  const [newFeed, setNewFeed] = useState({ feed_url: "", auto_add_items: false });
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -40,6 +57,13 @@ const Feeds: React.FC = () => {
     feedId: string | null;
   }>({ isOpen: false, feedId: null });
   usePageTitle("Feeds");
+  const form = useForm<z.infer<typeof addFeedFormSchema>>({
+    resolver: zodResolver(addFeedFormSchema),
+    defaultValues: {
+      feedUrl: "",
+      autoAdd: false,
+    },
+  });
 
   useEffect(() => {
     fetchFeeds();
@@ -58,14 +82,12 @@ const Feeds: React.FC = () => {
     }
   };
 
-  const handleAddFeed = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddFeed = async (values: z.infer<typeof addFeedFormSchema>) => {
     try {
       const formData = new FormData();
-      formData.append("url", newFeed.feed_url);
-      formData.append("auto_add_items", newFeed.auto_add_items.toString());
+      formData.append("url", values.feedUrl);
+      formData.append("auto_add_items", values.autoAdd.toString());
       await pb.send("/lynx/parse_feed", { method: "POST", body: formData });
-      setNewFeed({ feed_url: "", auto_add_items: false });
       fetchFeeds();
       setIsAddDialogOpen(false);
     } catch (err) {
@@ -109,54 +131,64 @@ const Feeds: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl font-bold">RSS Feeds</CardTitle>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
+            <DrawerDialog
+              open={isAddDialogOpen}
+              handleOpenChange={setIsAddDialogOpen}
+              footer={
+                <Button
+                  type="submit"
+                  onClick={form.handleSubmit(handleAddFeed)}
+                >
+                  Add Feed
+                </Button>
+              }
+              title="Add New RSS Feed"
+              trigger={
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Feed
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New RSS Feed</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddFeed}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <label htmlFor="url" className="text-right">
-                        Feed URL
-                      </label>
-                      <Input
-                        id="url"
-                        value={newFeed.feed_url}
-                        onChange={(e) =>
-                          setNewFeed({ ...newFeed, feed_url: e.target.value })
-                        }
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="auto_add_items"
-                        checked={newFeed.auto_add_items}
-                        onCheckedChange={(checked) =>
-                          setNewFeed({ ...newFeed, auto_add_items: checked as boolean })
-                        }
-                      />
-                      <label
-                        htmlFor="auto_add_items"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Automatically add new items to library
-                      </label>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit">Add Feed</Button>
-                  </DialogFooter>
+              }
+            >
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleAddFeed)}
+                  className="space-y-8"
+                >
+                  <FormField
+                    control={form.control}
+                    name="feedUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Feed URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="example.com/feed" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="autoAdd"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg">
+                        <FormLabel>
+                          Automatically add new feed items to library?
+                        </FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </form>
-              </DialogContent>
-            </Dialog>
+              </Form>
+            </DrawerDialog>
           </CardHeader>
           <CardContent>
             {error && (
