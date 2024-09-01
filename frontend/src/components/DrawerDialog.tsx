@@ -3,6 +3,7 @@ import { useMediaQuery } from "react-responsive";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -11,6 +12,7 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -18,9 +20,10 @@ import {
 } from "@/components/ui/drawer";
 
 interface ResponsiveDialogProps {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   footer?: React.ReactNode;
   title: string;
+  description?: string;
   open: boolean;
   handleOpenChange: (open: boolean) => void;
   children: React.ReactNode;
@@ -30,6 +33,7 @@ const DrawerDialog: React.FC<ResponsiveDialogProps> = ({
   trigger,
   footer,
   title,
+  description,
   open,
   handleOpenChange,
   children,
@@ -43,6 +47,9 @@ const DrawerDialog: React.FC<ResponsiveDialogProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
           {children}
           {footer && <DialogFooter>{footer}</DialogFooter>}
@@ -57,6 +64,7 @@ const DrawerDialog: React.FC<ResponsiveDialogProps> = ({
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
+          {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         <div className="p-4">{children}</div>
         {footer && <DrawerFooter>{footer}</DrawerFooter>}
