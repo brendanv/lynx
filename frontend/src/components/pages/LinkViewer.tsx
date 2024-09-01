@@ -1,13 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import useLinkViewerQuery, { LinkView } from "@/hooks/useLinkViewerQuery";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ClockIcon, LinkIcon, UserIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import PageWithHeader from "@/components/pages/PageWithHeader";
+import { FullBleedPageWithHeader } from "@/components/pages/PageWithHeader";
 import React from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 
@@ -37,9 +36,9 @@ const LinkViewer: React.FC = () => {
 
   if (result) {
     return (
-      <PageWithHeader>
+      <FullBleedPageWithHeader>
         <ArticleView linkView={result} />
-      </PageWithHeader>
+      </FullBleedPageWithHeader>
     );
   }
 
@@ -63,11 +62,11 @@ const LinkViewer: React.FC = () => {
 };
 
 const LoadingView = () => (
-  <Card className="w-full max-w-4xl mx-auto overflow-hidden border-none">
+  <div className="w-full max-w-4xl mx-auto">
     <div className="relative h-64">
       <Skeleton className="absolute inset-0" />
     </div>
-    <CardHeader className="relative z-10">
+    <div className="mt-6">
       <Skeleton className="h-9 w-3/4 mb-4" />
       <div className="flex flex-wrap items-center gap-4">
         {[...Array(4)].map((_, index) => (
@@ -79,8 +78,8 @@ const LoadingView = () => (
           <Skeleton key={index} className="h-6 w-16 rounded-full" />
         ))}
       </div>
-    </CardHeader>
-    <CardContent className="mt-6">
+    </div>
+    <div className="mt-6">
       <Skeleton className="h-4 w-full mb-2" />
       <Skeleton className="h-4 w-5/6 mb-2" />
       <Skeleton className="h-4 w-4/5 mb-6" />
@@ -90,8 +89,8 @@ const LoadingView = () => (
       <Skeleton className="h-4 w-full mb-2" />
       <Skeleton className="h-4 w-5/6 mb-2" />
       <Skeleton className="h-4 w-4/5 mb-6" />
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 );
 
 const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
@@ -114,7 +113,7 @@ const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
       console.error("Error updating reading progress:", error);
     }
   }, [pb, linkView.id, progress]);
-  
+
   useEffect(() => {
     // Scroll to the saved reading progress on load
     if (linkView.reading_progress) {
@@ -136,9 +135,9 @@ const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
   return (
     <>
       <ProgressIndicator progress={progress} />
-      <Card className="w-full max-w-4xl mx-auto overflow-hidden">
-        <div
-          className="relative bg-cover bg-center h-64"
+      <article>
+        <header
+          className="relative bg-cover bg-center h-64 w-full mb-6"
           style={{
             backgroundImage: linkView.header_image_url
               ? `url(${linkView.header_image_url})`
@@ -146,65 +145,65 @@ const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
           }}
         >
           <div className="absolute inset-0 bg-black bg-opacity-50" />
-          <CardHeader className="relative z-10 text-white">
-            <CardTitle className="text-3xl font-bold mb-4">
-              {linkView.title}
-            </CardTitle>
-            <div className="flex flex-wrap items-center gap-4 text-sm">
-              {linkView.author && (
-                <div className="flex items-center gap-1">
-                  <UserIcon size={16} />
-                  <span>{linkView.author}</span>
-                </div>
-              )}
-              {linkView.article_date && (
-                <div className="flex items-center gap-1">
-                  <CalendarIcon size={16} />
-                  <span>
-                    {new Date(linkView.article_date).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-              {linkView.read_time_display && (
-                <div className="flex items-center gap-1">
-                  <ClockIcon size={16} />
-                  <span>{linkView.read_time_display}</span>
-                </div>
-              )}
-              {linkView.hostname && (
-                <div className="flex items-center gap-1">
-                  <LinkIcon size={16} />
-                  <span>{linkView.hostname}</span>
+          <div className="relative z-10 h-full max-w-4xl mx-auto px-4">
+            <div className="flex flex-col justify-end h-full text-white py-6">
+              <h1 className="text-3xl font-bold mb-4">{linkView.title}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                {linkView.author && (
+                  <div className="flex items-center gap-1">
+                    <UserIcon size={16} />
+                    <span>{linkView.author}</span>
+                  </div>
+                )}
+                {linkView.article_date && (
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon size={16} />
+                    <span>
+                      {new Date(linkView.article_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {linkView.read_time_display && (
+                  <div className="flex items-center gap-1">
+                    <ClockIcon size={16} />
+                    <span>{linkView.read_time_display}</span>
+                  </div>
+                )}
+                {linkView.hostname && (
+                  <div className="flex items-center gap-1">
+                    <LinkIcon size={16} />
+                    <span>{linkView.hostname}</span>
+                  </div>
+                )}
+              </div>
+              {linkView.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {linkView.tags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="secondary"
+                      className="bg-white bg-opacity-20"
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
-            {linkView.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {linkView.tags.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="secondary"
-                    className="bg-white bg-opacity-20"
-                  >
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </CardHeader>
-        </div>
-        <CardContent className="mt-6">
+          </div>
+        </header>
+        <div className="max-w-4xl mx-auto px-8">
           {linkView.excerpt && (
             <p className="text-gray-600 italic mb-4">{linkView.excerpt}</p>
           )}
           {linkView.article_html && (
             <div
-              className="prose lg:prose-xl dark:prose-invert"
+              className="prose prose-lg lg:prose-xl dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: linkView.article_html }}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </article>
     </>
   );
 };
