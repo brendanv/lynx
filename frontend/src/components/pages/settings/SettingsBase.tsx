@@ -9,59 +9,36 @@ const SettingsBase: React.FC<{ children: React.ReactNode }> = ({
   const selectedClassName = "font-semibold text-primary";
 
   return (
-    <>
-      <div className="mx-auto grid w-full max-w-6xl gap-2">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="mb-6">
         <h1 className="text-3xl font-semibold">Settings</h1>
       </div>
-      <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
-        <nav
-          className="grid gap-4 text-sm text-muted-foreground"
-          x-chunk="dashboard-04-chunk-0"
-        >
-          <Link
-            to={URLS.SETTINGS}
-            className={
-              location.pathname === URLS.SETTINGS ? selectedClassName : ""
-            }
-          >
-            General
-          </Link>
-          <Link
-            to={URLS.FEEDS}
-            className={
-              location.pathname === URLS.FEEDS ? selectedClassName : ""
-            }
-          >
-            Feeds
-          </Link>
-          <Link
-            to={URLS.TAGS}
-            className={
-              location.pathname === URLS.TAGS ? selectedClassName : ""
-            }
-          >
-            Tags
-          </Link>
-          <Link
-            to={URLS.COOKIES}
-            className={
-              location.pathname === URLS.COOKIES ? selectedClassName : ""
-            }
-          >
-            Cookies
-          </Link>
-          <Link
-            to={URLS.API_KEYS}
-            className={
-              location.pathname === URLS.API_KEYS ? selectedClassName : ""
-            }
-          >
-            API Keys
-          </Link>
+      <div className="flex flex-col md:flex-row gap-6">
+        <nav className="w-full md:w-48 lg:w-64 flex-shrink-0">
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            {[
+              { url: URLS.SETTINGS, label: "General" },
+              { url: URLS.FEEDS, label: "Feeds" },
+              { url: URLS.TAGS, label: "Tags" },
+              { url: URLS.COOKIES, label: "Cookies" },
+              { url: URLS.API_KEYS, label: "API Keys" },
+            ].map((item) => (
+              <li key={item.url}>
+                <Link
+                  to={item.url}
+                  className={
+                    location.pathname === item.url ? selectedClassName : ""
+                  }
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
-        <div className="grid gap-6">{children}</div>
+        <div className="flex-grow">{children}</div>
       </div>
-    </>
+    </div>
   );
 };
 
