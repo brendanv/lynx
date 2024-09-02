@@ -40,7 +40,7 @@ const FeedItems: React.FC = () => {
   const [savingItems, setSavingItems] = useState<{ [key: string]: boolean }>(
     {},
   );
-  usePageTitle("Feed Items");
+  usePageTitle(`Feed: ${feedName}`);
 
   useEffect(() => {
     fetchFeedItems();
@@ -97,77 +97,69 @@ const FeedItems: React.FC = () => {
 
   return (
     <PageWithHeader>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Feed Items: {feedName}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {feedItems.map((item) => (
-                <Card key={item.id} className="flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="text-lg line-clamp-2">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-gray-500 mb-2">
-                      {new Date(item.pub_date).toLocaleString()}
-                    </p>
-                    <p className="line-clamp-3">{item.description}</p>
-                  </CardContent>
-                  <CardFooter>
-                    {item.saved_as_link ? (
-                      <Link
-                        to={URLS.LINK_VIEWER(item.saved_as_link)}
-                        className="w-full"
-                      >
-                        <Button variant="outline" className="w-full">
-                          View In Library
-                        </Button>
-                      </Link>
+      <h1 className="text-2xl font-bold mb-4">Feed: {feedName}</h1>
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {feedItems.map((item) => (
+            <Card key={item.id} className="flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-lg line-clamp-2">
+                  {item.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-sm text-gray-500 mb-2">
+                  {new Date(item.pub_date).toLocaleString()}
+                </p>
+                <p className="line-clamp-3">{item.description}</p>
+              </CardContent>
+              <CardFooter>
+                {item.saved_as_link ? (
+                  <Link
+                    to={URLS.LINK_VIEWER(item.saved_as_link)}
+                    className="w-full"
+                  >
+                    <Button variant="outline" className="w-full">
+                      View In Library
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => handleSaveToLibrary(item)}
+                    disabled={savingItems[item.id]}
+                    className="w-full"
+                  >
+                    {savingItems[item.id] ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        Saving...
+                      </>
                     ) : (
-                      <Button
-                        onClick={() => handleSaveToLibrary(item)}
-                        disabled={savingItems[item.id]}
-                        className="w-full"
-                      >
-                        {savingItems[item.id] ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                            Saving...
-                          </>
-                        ) : (
-                          "Save to Library"
-                        )}
-                      </Button>
+                      "Save to Library"
                     )}
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-          <div className="flex justify-center mt-8">
-            <Paginator
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
-          </div>
-        </CardContent>
-      </Card>
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+      <div className="flex justify-center mt-8">
+        <Paginator
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      </div>
     </PageWithHeader>
   );
 };
