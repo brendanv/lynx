@@ -50,7 +50,7 @@ func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error)
 	}
 	return HandleParseURLViaParams(app, authRecord.Id, parsedURL, feedItem)
 }
-	
+
 func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem *models.Record) (*models.Record, error) {
 
 	// Load user cookies
