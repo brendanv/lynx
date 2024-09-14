@@ -1,8 +1,8 @@
 package singlefile
 
-// If the environment variable SINGLEFILE_URL is set, 
-// this will send a request to that url to create an 
-// archive. The resulting html will be saved as a 
+// If the environment variable SINGLEFILE_URL is set,
+// this will send a request to that url to create an
+// archive. The resulting html will be saved as a
 // file attachment to the link.
 
 import (
@@ -41,6 +41,11 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	link, err := app.Dao().FindRecordById("links", linkID)
 	if err != nil {
 		logger.Error("Failed to find link", "error", err)
+		return
+	}
+
+	if link.GetString("archive") != "" {
+		logger.Info("Link already archived, skipping")
 		return
 	}
 
@@ -106,10 +111,10 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-  if len(body) == 0 {
-    logger.Error("Received empty response from singlefile service")
-    return
-  }
+	if len(body) == 0 {
+		logger.Error("Received empty response from singlefile service")
+		return
+	}
 
 	fsFile, err := filesystem.NewFileFromBytes(body, fileName)
 	if err != nil {
