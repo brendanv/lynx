@@ -314,25 +314,11 @@ func TestSummarizationHook(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
 		InitializePocketbase(testApp)
-
 		return testApp
 	}
-
 	summarizeCalled := false
 	originalSummarizer := CurrentSummarizer
-
-	CurrentSummarizer = &MockSummarizer{
-		MaybeSummarizeLinkFunc: func(app core.App, linkID string) {
-			summarizeCalled = true
-		},
-	}
-
-	t.Cleanup(func() {
-		CurrentSummarizer = originalSummarizer
-	})
-
 	scenarios := []tests.ApiScenario{
 		{
 			Name:   "Create link and trigger summarization hook",
@@ -352,17 +338,28 @@ func TestSummarizationHook(t *testing.T) {
 			},
 			ExpectedContent: []string{"example.com"},
 			TestAppFactory:  setupTestApp,
+			BeforeTestFunc: func(t *testing.T, app *tests.TestApp, e *echo.Echo) {
+				CurrentSummarizer = &MockSummarizer{
+					MaybeSummarizeLinkFunc: func(app core.App, linkID string) {
+						t.Log("MaybeSummarizeLink called with linkID:", linkID)
+						summarizeCalled = true
+					},
+				}
+			},
 			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+				time.Sleep(100 * time.Millisecond)
+
 				if !summarizeCalled {
 					t.Fatal("MaybeSummarizeLink was not called after link creation")
 				}
 			},
 		},
 	}
-
 	for _, scenario := range scenarios {
 		scenario.Test(t)
 	}
+	// Reset the original summarizer
+	CurrentSummarizer = originalSummarizer
 }
 
 type MockSummarizer struct {
