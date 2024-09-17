@@ -9,7 +9,7 @@ export default {
   ADD_LINK: "/links/add",
   TAGS: "/settings/tags",
   COOKIES: "/settings/cookies",
-  IMPORT: "/import",
+  IMPORT: "/settings/import",
   API_KEYS: "/settings/api_keys",
 
   LINK_VIEWER_TEMPLATE: "/link/:id/view",

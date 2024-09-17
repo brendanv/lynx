@@ -22,6 +22,7 @@ const SettingsBase: React.FC<{ children: React.ReactNode }> = ({
               { url: URLS.TAGS, label: "Tags" },
               { url: URLS.COOKIES, label: "Cookies" },
               { url: URLS.API_KEYS, label: "API Keys" },
+              { url: URLS.IMPORT, label: "Import" },
             ].map((item) => (
               <li key={item.url}>
                 <Link
