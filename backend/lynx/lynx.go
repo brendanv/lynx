@@ -93,6 +93,18 @@ func InitializePocketbase(app core.App) {
 			},
 		})
 
+		e.Router.AddRoute(echo.Route{
+			Method: http.MethodPost,
+			Path:   "/lynx/link/:id/archive",
+			Handler: func(c echo.Context) error {
+				return handleArchiveLink(app, c)
+			},
+			Middlewares: []echo.MiddlewareFunc{
+				apis.ActivityLogger(app),
+				apis.RequireAdminOrRecordAuth(),
+			},
+		})
+
 		scheduler.MustAdd("FetchFeeds", "0 0 * * *", func() {
 			feeds.FetchAllFeeds(app)
 		})
@@ -176,5 +188,34 @@ func handleGenerateAPIKey(app core.App, c echo.Context) error {
 		"api_key":    apiKey,
 		"expires_at": expiresAt.Format(time.RFC3339),
 		"id":         record.Id,
+	})
+}
+
+func handleArchiveLink(app core.App, c echo.Context) error {
+	linkID := c.PathParam("id")
+	if linkID == "" {
+		return apis.NewNotFoundError("Link ID is required", nil)
+	}
+
+	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+	if authRecord == nil {
+		return apis.NewForbiddenError("Not authenticated", nil)
+	}
+
+	link, err := app.Dao().FindRecordById("links", linkID)
+	if err != nil {
+		return apis.NewNotFoundError("Link not found", err)
+	}
+
+	if link.GetString("user") != authRecord.Id {
+		return apis.NewForbiddenError("You don't have permission to archive this link", nil)
+	}
+
+	go func() {
+		singlefile.MaybeArchiveLink(app, linkID)
+	}()
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Archive process started",
 	})
 }
