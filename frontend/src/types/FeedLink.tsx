@@ -1,4 +1,4 @@
-import type Tag from './Tag';
+import type Tag from "./Tag";
 
 type FeedLink = {
   id: string;
@@ -12,5 +12,6 @@ type FeedLink = {
   read_time_display: string | null;
   tags: Tag[];
   title: string | null;
+  archive: string | null;
 };
 export default FeedLink;
