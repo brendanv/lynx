@@ -95,7 +95,7 @@ func InitializePocketbase(app core.App) {
 
 		e.Router.AddRoute(echo.Route{
 			Method: http.MethodPost,
-			Path:   "/lynx/link/:id/archive",
+			Path:   "/lynx/link/:id/create_archive",
 			Handler: func(c echo.Context) error {
 				return handleArchiveLink(app, c)
 			},
