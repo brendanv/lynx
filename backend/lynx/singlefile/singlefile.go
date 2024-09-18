@@ -93,7 +93,10 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	if cookiesJSON != "" {
 		formData.Set("cookies", cookiesJSON)
 	}
-	resp, err := http.PostForm(singlefileURL, formData)
+	client := &http.Client{
+		Timeout: 60 * time.Second,
+	}
+	resp, err := client.PostForm(singlefileURL, formData)
 	if err != nil {
 		logger.Error("Failed to send request to singlefile service", "error", err)
 		return
