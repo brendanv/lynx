@@ -105,7 +105,7 @@ func InitializePocketbase(app core.App) {
 			},
 		})
 
-		scheduler.MustAdd("FetchFeeds", "0 0 * * *", func() {
+		scheduler.MustAdd("FetchFeeds", "0 */6 * * *", func() {
 			feeds.FetchAllFeeds(app)
 		})
 
