@@ -27,7 +27,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical, Trash2, Circle, CircleCheckBig } from "lucide-react";
+import {
+  Archive,
+  HardDriveDownloadIcon,
+  MoreVertical,
+  Trash2,
+  Circle,
+  CircleCheckBig,
+} from "lucide-react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { useToast } from "@/components/ui/use-toast";
 const SWIPE_THRESHOLD = 100;
@@ -83,6 +90,24 @@ const LinkCard: React.FC<{
       });
     }
   };
+  const handleCreateArchive = async () => {
+    try {
+      await pb.send(`/lynx/link/${link.id}/create_archive`, {
+        method: "POST",
+      });
+      toast({
+        description: "Attempting to create archive...",
+      });
+    } catch (error) {
+      console.error("Error creating archive:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create archive",
+        variant: "destructive",
+      });
+    }
+  };
+
   const resetSwipe = () => {
     setSwipeOffset(0);
     if (resetTimerRef.current) {
@@ -201,6 +226,21 @@ const LinkCard: React.FC<{
                     )}
                     Mark as {isUnread ? "Read" : "Unread"}
                   </DropdownMenuItem>
+                  {link.archive ? (
+                    <DropdownMenuItem asChild>
+                      <span>
+                        <Archive className="mr-2 h-4 w-4" />
+                        <Link to={URLS.LINK_ARCHIVE(link.id)}>
+                          View Archive
+                        </Link>
+                      </span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={handleCreateArchive}>
+                      <HardDriveDownloadIcon className="mr-2 h-4 w-4" />
+                      Create archive
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={() => setIsDeleteDialogOpen(true)}
                     className="text-red-600 focus:text-red-600"
@@ -232,7 +272,12 @@ const LinkCard: React.FC<{
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction data-testid="delete-confirm-button" onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              data-testid="delete-confirm-button"
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

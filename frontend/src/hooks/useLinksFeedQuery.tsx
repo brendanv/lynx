@@ -37,6 +37,7 @@ export type FeedQueryItem = {
   tags: string[];
   title: string | null;
   user: string;
+  archive: string | null;
 };
 
 export const convertFeedQueryItemToFeedLink = (
@@ -61,6 +62,7 @@ export const convertFeedQueryItemToFeedLink = (
             slug,
           }))
         : [],
+    archive: item.archive,
   };
 };
 

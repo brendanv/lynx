@@ -17,4 +17,7 @@ export default {
 
   FEED_ITEMS_TEMPLATE: "/feed/:id/items",
   FEED_ITEMS: (id: string) => `/feed/${id}/items`,
+
+  LINK_ARCHIVE_TEMPLATE: "/link/:id/archive",
+  LINK_ARCHIVE: (id: string) => `/link/${id}/archive`,
 };
