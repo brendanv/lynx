@@ -11,6 +11,7 @@ type Props = {
   readState?: "unread" | "read" | "all";
   tagId?: string;
   searchText?: string;
+  feedId?: string;
   sortBy: "added_to_library" | "article_date";
 };
 
@@ -67,7 +68,7 @@ export const convertFeedQueryItemToFeedLink = (
 };
 
 const buildFilters = (client: Client, props: Props) => {
-  const { readState, tagId, searchText } = props;
+  const { readState, tagId, searchText, feedId } = props;
   const filterExprs: string[] = [];
 
   if (readState === "unread") {
@@ -85,6 +86,12 @@ const buildFilters = (client: Client, props: Props) => {
       client.filter("(title ~ {:search} || excerpt ~ {:search})", {
         search: searchText,
       }),
+    );
+  }
+
+  if (feedId) {
+    filterExprs.push(
+      client.filter("created_from_feed.id ?= {:feedId}", { feedId }),
     );
   }
 
@@ -133,6 +140,7 @@ const useLinksFeedQuery = (props: Props): QueryResult => {
     props.tagId,
     props.searchText,
     props.sortBy,
+    props.feedId,
     authModel.id,
   ]);
 

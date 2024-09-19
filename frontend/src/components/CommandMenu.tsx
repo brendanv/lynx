@@ -11,6 +11,7 @@ import {
 import type { LynxCommandGroup } from "@/lib/CommandMenuContext";
 import URLS from "@/lib/urls";
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
+import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 import {
   CirclePlus,
   Cookie,
@@ -40,6 +41,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
     loading: tagsLoading,
     error: tagsError,
   } = useAllUserTagsWithoutMetadata();
+  const { feeds, loading: feedsLoading, error: feedsError } = useAllUserFeeds();
   const runCommand = (command: () => void) => {
     onOpenChange(false);
     command();
@@ -122,6 +124,26 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
                 key={tag.id}
               >
                 <Tag className="mr-2 h-4 w-4" /> {tag.name}
+              </CommandItem>
+            ))
+          )}
+        </CommandGroup>
+        <CommandGroup heading="View Feed Items">
+          {feedsLoading ? (
+            <CommandItem>Loading...</CommandItem>
+          ) : feedsError ? (
+            <CommandItem>Error: {feedsError}</CommandItem>
+          ) : (
+            feeds.map((feed) => (
+              <CommandItem
+                onSelect={() =>
+                  runCommand(() =>
+                    navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
+                  )
+                }
+                key={feed.id}
+              >
+                <Rss className="mr-2 h-4 w-4" /> {feed.name}
               </CommandItem>
             ))
           )}

@@ -21,6 +21,7 @@ const Home: React.FC = () => {
   const searchText = urlParams.get("s") || "";
   const tagId = urlParams.get("t") || undefined;
   const page = parseInt(urlParams.get("p") || "1");
+  const feedId = urlParams.get("f") || undefined;
   const setPage = (p: number) => {
     setUrlParams({ ...urlParams, p: p.toString() });
   };
@@ -35,6 +36,7 @@ const Home: React.FC = () => {
     ...searchParams,
     searchText,
     tagId,
+    feedId,
   });
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
@@ -45,6 +47,9 @@ const Home: React.FC = () => {
     };
     if (newSearchParams.tagId) {
       newParams["t"] = newSearchParams.tagId;
+    }
+    if (newSearchParams.feedId) {
+      newParams["f"] = newSearchParams.feedId;
     }
     setUrlParams(newParams);
   };
@@ -92,7 +97,7 @@ const Home: React.FC = () => {
   return (
     <PageWithHeader>
       <SearchBar
-        searchParams={{ ...searchParams, searchText, tagId }}
+        searchParams={{ ...searchParams, searchText, tagId, feedId }}
         onSearchParamsChange={handleSearchParamsChange}
       />
       <div className="mt-6">{renderContent()}</div>
