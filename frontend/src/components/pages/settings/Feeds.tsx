@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import PageWithHeader from "@/components/pages/PageWithHeader";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
+import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 
 type Feed = {
   id: string;
@@ -115,8 +116,8 @@ const FeedCard: React.FC<{
 
 const Feeds: React.FC = () => {
   const { pb } = usePocketBase();
-  const [feeds, setFeeds] = useState<Feed[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { feeds, error, refetch } = useAllUserFeeds();
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -131,34 +132,18 @@ const Feeds: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    fetchFeeds();
-  }, []);
-
-  const fetchFeeds = async () => {
-    try {
-      const records = await pb.collection("feeds").getFullList<Feed>({
-        sort: "-created",
-      });
-      setFeeds(records);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching feeds:", err);
-      setError("Failed to fetch feeds. Please try again.");
-    }
-  };
-
   const handleAddFeed = async (values: z.infer<typeof addFeedFormSchema>) => {
     try {
+      setActionError(null);
       const formData = new FormData();
       formData.append("url", values.feedUrl);
       formData.append("auto_add_items", values.autoAdd.toString());
       await pb.send("/lynx/parse_feed", { method: "POST", body: formData });
-      fetchFeeds();
+      await refetch();
       setIsAddDialogOpen(false);
     } catch (err) {
       console.error("Error adding feed:", err);
-      setError("Failed to add feed. Please try again.");
+      setActionError("Failed to add feed. Please try again.");
     }
   };
 
@@ -169,25 +154,27 @@ const Feeds: React.FC = () => {
   const handleDeleteFeed = async () => {
     if (deleteConfirmation.feedId) {
       try {
+        setActionError(null);
         await pb.collection("feeds").delete(deleteConfirmation.feedId);
-        fetchFeeds();
+        await refetch();
         setDeleteConfirmation({ isOpen: false, feedId: null });
       } catch (err) {
         console.error("Error deleting feed:", err);
-        setError("Failed to delete feed. Please try again.");
+        setActionError("Failed to delete feed. Please try again.");
       }
     }
   };
 
   const handleToggleAutoAdd = async (id: string, currentValue: boolean) => {
     try {
+      setActionError(null);
       await pb.collection("feeds").update(id, {
         auto_add_feed_items_to_library: !currentValue,
       });
-      fetchFeeds();
+      await refetch();
     } catch (err) {
       console.error("Error updating feed:", err);
-      setError("Failed to update feed. Please try again.");
+      setActionError("Failed to update feed. Please try again.");
     }
   };
 
@@ -252,9 +239,9 @@ const Feeds: React.FC = () => {
             </Form>
           </DrawerDialog>
         </div>
-        {error && (
+        {(error || actionError) && (
           <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{error || actionError}</AlertDescription>
           </Alert>
         )}
         <div className="space-y-4">

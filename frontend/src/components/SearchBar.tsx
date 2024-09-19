@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,14 +7,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Filter, SortAsc } from "lucide-react";
+import { Check, X, Filter, Rss, SortAsc } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePocketBase } from "@/hooks/usePocketBase";
+import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
+import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 
 export type SearchParams = {
   searchText: string;
   readState: "all" | "read" | "unread";
   tagId?: string;
+  feedId?: string;
   sortBy: "added_to_library" | "article_date";
 };
 
@@ -29,25 +31,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [tags, setTags] = useState<{ id: string; name: string }[]>([]);
-  const { pb } = usePocketBase();
-
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const records = await pb
-          .collection("tags")
-          .getFullList<{ id: string; name: string }>({
-            sort: "name",
-          });
-        setTags(records);
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-      }
-    };
-
-    fetchTags();
-  }, [pb]);
+  const [feedOpen, setFeedOpen] = useState(false);
+  const { tags } = useAllUserTagsWithoutMetadata();
+  const { feeds } = useAllUserFeeds();
 
   const updateSearchParams = (newParams: Partial<SearchParams>) => {
     const updatedParams = { ...searchParams, ...newParams };
@@ -59,6 +45,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       searchText: searchParams.searchText,
       readState: "all",
       tagId: undefined,
+      feedId: undefined,
       sortBy: "added_to_library",
     };
     onSearchParamsChange(clearedParams);
@@ -154,6 +141,45 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           </PopoverContent>
         </Popover>
+        <Popover open={feedOpen} onOpenChange={setFeedOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="relative">
+              <Rss className="h-4 w-4" />
+              <span className="ml-2 hidden sm:inline">Feeds</span>
+              {searchParams.feedId && (
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center"
+                >
+                  1
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <div className="p-2">
+              <div className="font-semibold mb-2">Select Feed</div>
+              {feeds.map((feed) => (
+                <Button
+                  key={feed.id}
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    updateSearchParams({
+                      feedId:
+                        searchParams.feedId === feed.id ? undefined : feed.id,
+                    });
+                  }}
+                >
+                  {searchParams.feedId === feed.id ? (
+                    <Check className="mr-2 h-4 w-4" />
+                  ) : null}
+                  {feed.name}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
         <Popover open={sortOpen} onOpenChange={setSortOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline">
@@ -209,6 +235,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
             <X
               className="ml-1 h-3 w-3 cursor-pointer"
               onClick={() => updateSearchParams({ tagId: undefined })}
+            />
+          </Badge>
+        )}
+        {searchParams.feedId && (
+          <Badge variant="secondary">
+            {feeds.find((feed) => feed.id === searchParams.feedId)?.name}
+            <X
+              className="ml-1 h-3 w-3 cursor-pointer"
+              onClick={() => updateSearchParams({ feedId: undefined })}
             />
           </Badge>
         )}

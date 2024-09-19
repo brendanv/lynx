@@ -10,6 +10,18 @@ import {
 } from "@/components/ui/command";
 import type { LynxCommandGroup } from "@/lib/CommandMenuContext";
 import URLS from "@/lib/urls";
+import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
+import useAllUserFeeds from "@/hooks/useAllUserFeeds";
+import {
+  CirclePlus,
+  Cookie,
+  House,
+  KeyRound,
+  Rss,
+  Search,
+  Settings,
+  Tag,
+} from "lucide-react";
 
 interface CommandMenuProps {
   open: boolean;
@@ -24,6 +36,12 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
 }) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const {
+    tags,
+    loading: tagsLoading,
+    error: tagsError,
+  } = useAllUserTagsWithoutMetadata();
+  const { feeds, loading: feedsLoading, error: feedsError } = useAllUserFeeds();
   const runCommand = (command: () => void) => {
     onOpenChange(false);
     command();
@@ -73,12 +91,62 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
           </CommandGroup>
         ))}
         <CommandGroup heading="Pages">
-          <CommandItem onSelect={navigateHome}>Home</CommandItem>
-          <CommandItem onSelect={navigateSettings}>Settings</CommandItem>
-          <CommandItem onSelect={navigateApiKeys}>API Keys</CommandItem>
-          <CommandItem onSelect={navigateCookies}>Cookies</CommandItem>
-          <CommandItem onSelect={navigateFeeds}>Feeds</CommandItem>
-          <CommandItem onSelect={navigateAddLink}>Add Link</CommandItem>
+          <CommandItem onSelect={navigateHome}>
+            <House className="mr-2 h-4 w-4" /> Home
+          </CommandItem>
+          <CommandItem onSelect={navigateSettings}>
+            <Settings className="mr-2 h-4 w-4" /> Settings
+          </CommandItem>
+          <CommandItem onSelect={navigateApiKeys}>
+            <KeyRound className="mr-2 h-4 w-4" /> API Keys
+          </CommandItem>
+          <CommandItem onSelect={navigateCookies}>
+            <Cookie className="mr-2 h-4 w-4" /> Cookies
+          </CommandItem>
+          <CommandItem onSelect={navigateFeeds}>
+            <Rss className="mr-2 h-4 w-4" /> Feeds
+          </CommandItem>
+          <CommandItem onSelect={navigateAddLink}>
+            <CirclePlus className="mr-2 h-4 w-4" /> Add Link
+          </CommandItem>
+        </CommandGroup>
+        <CommandGroup heading="View Tagged Links">
+          {tagsLoading ? (
+            <CommandItem>Loading...</CommandItem>
+          ) : tagsError ? (
+            <CommandItem>Error: {tagsError}</CommandItem>
+          ) : (
+            tags.map((tag) => (
+              <CommandItem
+                onSelect={() =>
+                  runCommand(() => navigate(URLS.HOME_WITH_TAGS_SEARCH(tag.id)))
+                }
+                key={tag.id}
+              >
+                <Tag className="mr-2 h-4 w-4" /> {tag.name}
+              </CommandItem>
+            ))
+          )}
+        </CommandGroup>
+        <CommandGroup heading="View Feed Items">
+          {feedsLoading ? (
+            <CommandItem>Loading...</CommandItem>
+          ) : feedsError ? (
+            <CommandItem>Error: {feedsError}</CommandItem>
+          ) : (
+            feeds.map((feed) => (
+              <CommandItem
+                onSelect={() =>
+                  runCommand(() =>
+                    navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
+                  )
+                }
+                key={feed.id}
+              >
+                <Rss className="mr-2 h-4 w-4" /> {feed.name}
+              </CommandItem>
+            ))
+          )}
         </CommandGroup>
         {search !== "" && (
           <CommandGroup heading="Search">
@@ -87,7 +155,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({
                 runCommand(() => navigate(URLS.HOME_WITH_SEARCH_STRING(search)))
               }
             >
-              Search for "{search}"
+              <Search className="mr-2 h-4 w-4" /> Search for "{search}"
             </CommandItem>
           </CommandGroup>
         )}
