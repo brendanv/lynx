@@ -3,6 +3,7 @@ package summarizer
 import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/daos"
 )
 
 func MaybeSummarizeLink(app core.App, linkID string) {
@@ -74,9 +75,21 @@ func MaybeSummarizeLink(app core.App, linkID string) {
 		return
 	}
 
-	link.Set("summary", summary)
-	if err := app.Dao().SaveRecord(link); err != nil {
-		logger.Error("Summarization failed, failed to save updated link", "error", err)
+	err = app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+		updatedLink, err := txDao.FindRecordById("links", linkID)
+		if err != nil {
+			return err
+		}
+
+		updatedLink.Set("summary", summary)
+		if err := txDao.SaveRecord(updatedLink); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		logger.Error("Summarization failed, failed to update link", "error", err)
 		return
 	}
 

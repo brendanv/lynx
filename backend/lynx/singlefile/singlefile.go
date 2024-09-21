@@ -17,6 +17,7 @@ import (
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
@@ -131,8 +132,20 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-	link.Set("archive", fileKey)
-	if err := app.Dao().SaveRecord(link); err != nil {
+	err = app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+		updatedLink, err := txDao.FindRecordById("links", linkID)
+		if err != nil {
+			return err
+		}
+		updatedLink.Set("archive", fileKey)
+		if err := txDao.SaveRecord(updatedLink); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		logger.Error("Failed to update link with archive information", "error", err)
 		return
 	}
