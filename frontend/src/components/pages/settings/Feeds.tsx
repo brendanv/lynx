@@ -61,12 +61,14 @@ const FeedCard: React.FC<{
           <img
             src={feed.image_url || "/img/lynx_placeholder.png"}
             alt={feed.name}
-            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 mr-4 rounded-lg"
+            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 mr-4 rounded-lg flex-shrink-0"
           />
-          <div>
-            <h3 className="text-lg font-semibold">{feed.name}</h3>
-            <p className="text-sm text-gray-600 mb-2">{feed.feed_url}</p>
-            <p className="text-sm mb-2">{feed.description}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-semibold truncate">{feed.name}</h3>
+            <div className="max-h-16 overflow-y-auto mb-2">
+              <p className="text-sm text-gray-600 break-all">{feed.feed_url}</p>
+            </div>
+            <p className="text-sm mb-2 break-words">{feed.description}</p>
             <p className="text-xs text-gray-500">
               Last fetched: {new Date(feed.last_fetched_at).toLocaleString()}
             </p>

@@ -179,11 +179,7 @@ const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
               {linkView.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                   {linkView.tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="secondary"
-                      className="bg-white bg-opacity-20"
-                    >
+                    <Badge key={tag.id} variant="secondary">
                       {tag.name}
                     </Badge>
                   ))}
