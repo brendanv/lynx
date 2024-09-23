@@ -9,6 +9,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { FullBleedPageWithHeader } from "@/components/pages/PageWithHeader";
 import React from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
+import TagsMultiSelect from "@/components/TagsMultiSelect";
 
 const ProgressIndicator: React.FC<{ progress: number }> = ({ progress }) => (
   <div className="w-full h-1 bg-gray-200 fixed bottom-0 left-0 z-50">
@@ -31,13 +32,13 @@ const LinkViewer: React.FC = () => {
     );
   }
 
-  const { result, loading, error } = useLinkViewerQuery(id, true);
+  const { result, loading, error, refetch } = useLinkViewerQuery(id, true);
   usePageTitle(result?.title || "View Link");
 
   if (result) {
     return (
       <FullBleedPageWithHeader>
-        <ArticleView linkView={result} />
+        <ArticleView linkView={result} refetch={refetch} />
       </FullBleedPageWithHeader>
     );
   }
@@ -93,7 +94,10 @@ const LoadingView = () => (
   </div>
 );
 
-const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
+const ArticleView: React.FC<{
+  linkView: LinkView;
+  refetch: (() => Promise<void>) | null;
+}> = ({ linkView, refetch }) => {
   const [progress, setProgress] = useState(linkView.reading_progress || 0);
   const { pb } = usePocketBase();
   const handleScroll = useCallback(() => {
@@ -175,6 +179,7 @@ const ArticleView: React.FC<{ linkView: LinkView }> = ({ linkView }) => {
                     <span>{linkView.hostname}</span>
                   </div>
                 )}
+                <TagsMultiSelect link={linkView} refetch={refetch} asDialog />
               </div>
               {linkView.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
