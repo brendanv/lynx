@@ -19,6 +19,7 @@ const Import = lazy(() => import("@/components/pages/settings/Import"));
 const Tags = lazy(() => import("@/components/pages/settings/Tags"));
 const FeedItems = lazy(() => import("@/components/pages/FeedItems"));
 const ArchiveViewer = lazy(() => import("@/components/pages/ArchiveViewer"));
+const EditLink = lazy(() => import("@/components/pages/EditLink"));
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
                   path={URLS.LINK_VIEWER_TEMPLATE}
                   element={<LinkViewer />}
                 />
+                <Route path={URLS.EDIT_LINK_TEMPLATE} element={<EditLink />} />
                 <Route path={URLS.COOKIES} element={<Cookies />} />
                 <Route path={URLS.API_KEYS} element={<ApiKeys />} />
                 <Route path={URLS.FEEDS} element={<Feeds />} />

@@ -31,6 +31,7 @@ import {
   Archive,
   HardDriveDownloadIcon,
   MoreVertical,
+  Pencil,
   Trash2,
   Circle,
   CircleCheckBig,
@@ -218,6 +219,12 @@ const LinkCard: React.FC<{
                   <MoreVertical className="h-5 w-5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent role="menu">
+                  <DropdownMenuItem asChild>
+                    <Link to={URLS.EDIT_LINK(link.id)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleToggleUnread}>
                     {isUnread ? (
                       <CircleCheckBig className="mr-2 h-4 w-4" />
