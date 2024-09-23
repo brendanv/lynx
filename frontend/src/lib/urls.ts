@@ -16,6 +16,9 @@ export default {
   LINK_VIEWER_TEMPLATE: "/link/:id/view",
   LINK_VIEWER: (id: string) => `/link/${id}/view`,
 
+  EDIT_LINK_TEMPLATE: "/link/:id/edit",
+  EDIT_LINK: (id: string) => `/link/${id}/edit`,
+
   FEED_ITEMS_TEMPLATE: "/feed/:id/items",
   FEED_ITEMS: (id: string) => `/feed/${id}/items`,
 

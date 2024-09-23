@@ -7,6 +7,7 @@ type QueryResult = {
   loading: boolean;
   error: Error | null;
   result: LinkView | null;
+  refetch: (() => Promise<void>) | null;
 };
 
 export type LinkView = {
@@ -32,30 +33,30 @@ const useLinkViewerQuery = (
   const { pb } = usePocketBase();
   const authModel = pb.authStore.model;
   if (authModel === null) {
-    return { loading: false, error: null, result: null };
+    return { loading: false, error: null, result: null, refetch: null };
   }
 
   const [link, setLink] = useState<LinkView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const linkResult = await runQuery(id, pb, updateLastViewedAt);
+      setLink(linkResult);
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const linkResult = await runQuery(id, pb, updateLastViewedAt);
-        setLink(linkResult);
-      } catch (e: any) {
-        setError(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [id, authModel.id]);
 
-  return { result: link, loading, error };
+  return { result: link, loading, error, refetch: fetchData };
 };
 
 const runQuery = async (
