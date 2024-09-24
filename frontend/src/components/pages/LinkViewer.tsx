@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import useLinkViewerQuery, { LinkView } from "@/hooks/useLinkViewerQuery";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +99,10 @@ const ArticleView: React.FC<{
   refetch: (() => Promise<void>) | null;
 }> = ({ linkView, refetch }) => {
   const [progress, setProgress] = useState(linkView.reading_progress || 0);
+  const [lastSentProgress, setLastSentProgress] = useState(
+    linkView.reading_progress || 0,
+  );
+
   const { pb } = usePocketBase();
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -108,15 +112,33 @@ const ArticleView: React.FC<{
     const newProgress = scrollTop / scrollHeight;
     setProgress(newProgress);
   }, [setProgress]);
+
+  // Hacky use of refs to be able to access the current state without
+  // creating a new updateReadingProgress callback. If we use the
+  // state values directly we need to include them in the deps array,
+  // which ultimately causes us to reset our interval every time the
+  // state changes...
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+  const lastSentRef = useRef(lastSentProgress);
+  useEffect(() => {
+    lastSentRef.current = lastSentProgress;
+  }, [lastSentProgress]);
+
   const updateReadingProgress = useCallback(async () => {
     try {
-      await pb
-        .collection("links")
-        .update(linkView.id, { reading_progress: progress });
+      if (Math.abs(progressRef.current - lastSentRef.current) > 0.01) {
+        await pb
+          .collection("links")
+          .update(linkView.id, { reading_progress: progressRef.current });
+        setLastSentProgress(progressRef.current);
+      }
     } catch (error) {
       console.error("Error updating reading progress:", error);
     }
-  }, [pb, linkView.id, progress]);
+  }, [pb, linkView.id]);
 
   useEffect(() => {
     // Scroll to the saved reading progress on load
@@ -132,8 +154,11 @@ const ArticleView: React.FC<{
     return () => window.removeEventListener("scroll", handleScroll);
   }, [linkView.reading_progress, handleScroll]);
   useEffect(() => {
-    const interval = setInterval(updateReadingProgress, 5000);
-    return () => clearInterval(interval);
+    const interval = setInterval(updateReadingProgress, 10000);
+    return () => {
+      clearInterval(interval);
+      updateReadingProgress();
+    };
   }, [updateReadingProgress]);
 
   return (
