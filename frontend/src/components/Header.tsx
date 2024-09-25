@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { CirclePlus, CircleUser, Menu, Package2, Search } from "lucide-react";
+import { CirclePlus, CircleUser, Menu, Search } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { usePocketBase } from "@/hooks/usePocketBase";
 import URLS from "@/lib/urls";
 import { useCommandMenu } from "@/lib/CommandMenuContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Header = () => {
   const { pb } = usePocketBase();
@@ -30,6 +31,7 @@ const Header = () => {
   const openCommandMenu = useCallback(() => {
     setCommandMenuOpen(true);
   }, [setCommandMenuOpen]);
+  const { appliedTheme } = useTheme();
 
   const menuBarOtherClassName =
     "text-muted-foreground transition-colors hover:text-foreground";
@@ -46,7 +48,13 @@ const Header = () => {
           to={URLS.HOME}
           className="flex items-center gap-2 text-lg font-semibold md:text-base"
         >
-          <Package2 className="h-6 w-6" />
+          <div className="h-12 w-12">
+            {appliedTheme == "dark" ? (
+              <img src="/img/lynx_light.svg" />
+            ) : (
+              <img src="/img/lynx_dark.svg" />
+            )}
+          </div>
           <span className="sr-only">Lynx</span>
         </Link>
         <Link
@@ -113,7 +121,13 @@ const Header = () => {
               to={URLS.HOME}
               className="flex items-center gap-2 text-lg font-semibold"
             >
-              <Package2 className="h-6 w-6" />
+              <div className="h-36 w-36">
+                {appliedTheme == "dark" ? (
+                  <img src="/img/lynx_light.svg" />
+                ) : (
+                  <img src="/img/lynx_dark.svg" />
+                )}
+              </div>
               <span className="sr-only">Lynx</span>
             </Link>
             <Link
