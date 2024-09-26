@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import URLS from "@/lib/urls";
 import { useCommandMenu } from "@/lib/CommandMenuContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Header = () => {
   const { pb, user } = usePocketBase();
@@ -166,6 +167,7 @@ const Header = () => {
             >
               Settings
             </Link>
+            <ThemeToggle />
           </nav>
         </SheetContent>
       </Sheet>
@@ -211,6 +213,9 @@ const Header = () => {
             <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <span className="hidden md:flex">
+          <ThemeToggle />
+        </span>
       </div>
     </header>
   );
