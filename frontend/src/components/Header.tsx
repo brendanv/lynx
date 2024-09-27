@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { CirclePlus, Menu, Package2, Search } from "lucide-react";
+import { CirclePlus, CircleUser, Menu, Package2, Search } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import URLS from "@/lib/urls";
 import { useCommandMenu } from "@/lib/CommandMenuContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Header = () => {
-  const { pb, user } = usePocketBase();
+  const { pb } = usePocketBase();
   const { setCommandMenuOpen } = useCommandMenu();
   const location = useLocation();
   const navigate = useNavigate();
@@ -187,20 +186,14 @@ const Header = () => {
           </div>
         </form>
         <Link to={URLS.ADD_LINK}>
-          <Button variant="secondary" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full">
             <CirclePlus className="h-5 w-5" />
           </Button>
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <Avatar>
-                <AvatarImage src={user && user.avatar} />
-                <AvatarFallback>
-                  {user && user.name.substring(0, 1)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="sr-only">Toggle user menu</span>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <CircleUser className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
