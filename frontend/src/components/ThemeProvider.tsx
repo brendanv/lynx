@@ -53,6 +53,18 @@ export function ThemeProvider({
     setAppliedTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (theme === "dark") {
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", "#23262A");
+    } else {
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", "#F2F2F2");
+    }
+  }, [appliedTheme]);
+
   const value = {
     theme,
     appliedTheme,
