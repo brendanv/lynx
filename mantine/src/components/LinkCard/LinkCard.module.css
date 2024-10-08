@@ -1,0 +1,52 @@
+.card {
+  background-color: var(--mantine-color-body);
+}
+
+.flexContainer > :first-child {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+}
+
+.flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-md);
+}
+
+.flexContainer > :nth-child(2) {
+  flex-grow: 1;
+}
+
+.title {
+  font-weight: bold;
+  font-size: var(--mantine-font-size-lg);
+  font-family:
+    Greycliff CF,
+    var(--mantine-font-family);
+  line-height: 1.2;
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+.metadata {
+  margin-top: var(--mantine-spacing-xs);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.hostname {
+  text-transform: uppercase;
+}
+
+/* .dropdownIcon {
+  width: 1rem;
+  height: 1rem;
+} */
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

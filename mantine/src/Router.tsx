@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { HomePage } from "./pages/Home.page";
+import { HomePage } from "@/pages/Home";
 import URLS from "@/lib/urls";
 import LynxLoggedInPage from "@/pages/LynxLoggedInPage";
 
