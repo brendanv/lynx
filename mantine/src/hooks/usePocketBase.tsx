@@ -1,4 +1,10 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import {
+  useCallback,
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+} from "react";
 import PocketBase from "pocketbase";
 import type { AuthModel } from "pocketbase";
 import { useNavigate } from "react-router-dom";
@@ -7,13 +13,13 @@ import URLS from "@/lib/urls";
 type PocketBaseContextValue = {
   pb: PocketBase;
   user: AuthModel;
+  logout: () => void;
 };
 const PocketBaseContext = createContext<PocketBaseContextValue | null>(null);
 
 const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL;
 
 export const PocketBaseProvider = ({ children }: { children: any }) => {
-  console.log(URLS);
   const [pb, _] = useState(new PocketBase(POCKETBASE_URL));
   const [user, setUser] = useState(pb.authStore.model);
 
@@ -26,8 +32,10 @@ export const PocketBaseProvider = ({ children }: { children: any }) => {
     return unsubscribe;
   }, [pb.authStore]);
 
+  const logout = useCallback(() => pb.authStore.clear(), [pb.authStore]);
+
   return (
-    <PocketBaseContext.Provider value={{ pb, user }}>
+    <PocketBaseContext.Provider value={{ pb, user, logout }}>
       {children}
     </PocketBaseContext.Provider>
   );

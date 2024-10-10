@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import {
+  Avatar,
   Autocomplete,
   AppShell,
   Burger,
@@ -13,6 +14,7 @@ import { useDisclosure, useHeadroom } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import {
   IconHome,
+  IconLogout,
   IconTags,
   IconRss,
   IconSearch,
@@ -21,6 +23,7 @@ import {
 import LynxLogo from "@/components/LynxLogo";
 import URLS from "@/lib/urls";
 import classes from "./LynxShell.module.css";
+import { usePocketBase } from "@/hooks/usePocketBase";
 
 const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
@@ -86,6 +89,7 @@ export const FullBleedLynxShell = ({
 };
 
 const LynxShell = ({ children }: LynxShellProps) => {
+  const { user, logout } = usePocketBase();
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const location = useLocation();
@@ -119,16 +123,33 @@ const LynxShell = ({ children }: LynxShellProps) => {
         }
       />
       <AppShell.Navbar p="md">
-        {links.map((item) => (
+        <AppShell.Section grow>
+          {links.map((item) => (
+            <NavLink
+              key={item.label}
+              component={Link}
+              to={item.link}
+              label={item.label}
+              leftSection={<item.icon size={24} stroke={1} />}
+              active={location.pathname === item.link}
+            />
+          ))}
+        </AppShell.Section>
+        <AppShell.Section>
           <NavLink
-            key={item.label}
             component={Link}
-            to={item.link}
-            label={item.label}
-            leftSection={<item.icon size="1rem" stroke={1.5} />}
-            active={location.pathname === item.link}
+            to={URLS.SETTINGS}
+            label={user?.username}
+            leftSection={
+              <Avatar m={0} size={24} name={user?.name} color="initials" src={user?.avatar} />
+            }
           />
-        ))}
+          <NavLink 
+            onClick={logout}
+            label="Logout"
+            leftSection={<IconLogout size={24} stroke={1} />}
+            />
+        </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
