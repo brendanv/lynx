@@ -1,14 +1,13 @@
 import React, { ReactNode } from "react";
 import {
+  Anchor,
   Avatar,
-  Autocomplete,
   AppShell,
   Burger,
   Group,
   NavLink,
   rem,
   Kbd,
-  Text,
 } from "@mantine/core";
 import { useDisclosure, useHeadroom } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
@@ -24,6 +23,7 @@ import LynxLogo from "@/components/LynxLogo";
 import URLS from "@/lib/urls";
 import classes from "./LynxShell.module.css";
 import { usePocketBase } from "@/hooks/usePocketBase";
+import { useCommandMenu } from "@/lib/CommandMenuContext";
 
 const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
@@ -36,39 +36,28 @@ interface LynxShellProps {
   children: ReactNode;
 }
 
-const TopMenu = ({
-  burger,
-  title,
-}: {
-  burger?: React.ReactElement;
-  title?: string;
-}) => {
+const TopMenu = ({ burger }: { burger?: React.ReactElement }) => {
+  const { openMenu } = useCommandMenu();
   return (
-    <AppShell.Header>
+    <AppShell.Header zIndex={300}>
       <div className={classes.inner}>
-        <Group h="100%" px="md">
+        <Group wrap="nowrap" h="100%" px="md">
           {burger ? burger : null}
           <Link to={URLS.HOME}>
             <LynxLogo />
           </Link>
-          {title ? (
-            <Text fw={500} truncate="end" size="lg">
-              {title}
-            </Text>
-          ) : null}
         </Group>
         <Group h="100%" px="md">
-          <Autocomplete
-            placeholder="Search Lynx"
-            leftSection={
-              <IconSearch
-                style={{ width: rem(16), height: rem(16) }}
-                stroke={1.5}
-              />
-            }
-            rightSection={<Kbd>⌘K</Kbd>}
-            data={[]}
-          />
+          <Anchor c="dimmed" underline="never" onClick={openMenu}>
+            <Group gap="xs">
+              <IconSearch size="1.2rem" />
+              Search Lynx
+              <Group gap={0}>
+                <Kbd>⌘</Kbd>
+                <Kbd>K</Kbd>
+              </Group>
+            </Group>
+          </Anchor>
         </Group>
       </div>
     </AppShell.Header>
@@ -77,12 +66,11 @@ const TopMenu = ({
 
 export const FullBleedLynxShell = ({
   children,
-  title,
 }: LynxShellProps & { title?: string }) => {
   const pinned = useHeadroom({ fixedAt: 120 });
   return (
     <AppShell header={{ height: 60, collapsed: !pinned, offset: false }}>
-      <TopMenu title={title} />
+      <TopMenu />
       <AppShell.Main pt={`calc(${rem(60)}`}>{children}</AppShell.Main>
     </AppShell>
   );
@@ -122,7 +110,7 @@ const LynxShell = ({ children }: LynxShellProps) => {
           </>
         }
       />
-      <AppShell.Navbar p="md">
+      <AppShell.Navbar p="md" zIndex={300}>
         <AppShell.Section grow>
           {links.map((item) => (
             <NavLink
@@ -141,14 +129,20 @@ const LynxShell = ({ children }: LynxShellProps) => {
             to={URLS.SETTINGS}
             label={user?.username}
             leftSection={
-              <Avatar m={0} size={24} name={user?.name} color="initials" src={user?.avatar} />
+              <Avatar
+                m={0}
+                size={24}
+                name={user?.name}
+                color="initials"
+                src={user?.avatar}
+              />
             }
           />
-          <NavLink 
+          <NavLink
             onClick={logout}
             label="Logout"
             leftSection={<IconLogout size={24} stroke={1} />}
-            />
+          />
         </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>

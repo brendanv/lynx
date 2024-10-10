@@ -204,7 +204,7 @@ const ArticleView = ({
   }, [updateReadingProgress]);
 
   return (
-    <FullBleedLynxShell title={linkView.title || undefined}>
+    <FullBleedLynxShell>
       <NavigationProgress />
       <ArticleHeader linkView={linkView} refetch={refetch} />
       <Container size="md">

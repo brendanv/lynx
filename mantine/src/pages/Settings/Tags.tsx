@@ -173,56 +173,59 @@ const Tags: React.FC = () => {
           <Loader />
         </Center>
       ) : (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th
-                onClick={() => handleSort("name")}
-                style={{ cursor: "pointer" }}
-              >
-                Name{" "}
-                {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
-              </Table.Th>
-              <Table.Th
-                onClick={() => handleSort("link_count")}
-                style={{ cursor: "pointer" }}
-              >
-                Link Count{" "}
-                {sortField === "link_count" &&
-                  (sortDirection === "asc" ? "▲" : "▼")}
-              </Table.Th>
-              <Table.Th></Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {sortedTags.map((tag) => (
-              <Table.Tr key={tag.id}>
-                <Table.Td>{tag.name}</Table.Td>
-                <Table.Td>{tag.link_count}</Table.Td>
-                <Table.Td>
-                  <Anchor
-                    component={Link}
-                    to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
-                  >
-                    View Links
-                  </Anchor>
-                </Table.Td>
-                <Table.Td>
-                  <Button
-                    variant="outline"
-                    color="red"
-                    size="xs"
-                    onClick={() => handleDeleteClick(tag)}
-                    leftSection={<IconTrash size="1rem" />}
-                  >
-                    Delete
-                  </Button>
-                </Table.Td>
+        <Table.ScrollContainer minWidth={500}>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th
+                  onClick={() => handleSort("name")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Name{" "}
+                  {sortField === "name" &&
+                    (sortDirection === "asc" ? "▲" : "▼")}
+                </Table.Th>
+                <Table.Th
+                  onClick={() => handleSort("link_count")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Link Count{" "}
+                  {sortField === "link_count" &&
+                    (sortDirection === "asc" ? "▲" : "▼")}
+                </Table.Th>
+                <Table.Th></Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {sortedTags.map((tag) => (
+                <Table.Tr key={tag.id}>
+                  <Table.Td>{tag.name}</Table.Td>
+                  <Table.Td>{tag.link_count}</Table.Td>
+                  <Table.Td>
+                    <Anchor
+                      component={Link}
+                      to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
+                    >
+                      View Links
+                    </Anchor>
+                  </Table.Td>
+                  <Table.Td>
+                    <Button
+                      variant="outline"
+                      color="red"
+                      size="xs"
+                      onClick={() => handleDeleteClick(tag)}
+                      leftSection={<IconTrash size="1rem" />}
+                    >
+                      Delete
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
 
       <DrawerDialog

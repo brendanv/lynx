@@ -156,57 +156,59 @@ const APIKeys: React.FC = () => {
         />
       </form>
 
-      <Table>
-        <Table.Caption>{`${apiKeys.length} API Key${apiKeys.length !== 1 ? 's' : ''}`}</Table.Caption>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Expires At</Table.Th>
-            <Table.Th>Last Used</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {apiKeys.map((key) => (
-            <Table.Tr key={key.id}>
-              <Table.Td>{key.name}</Table.Td>
-              <Table.Td>{new Date(key.expires_at).toLocaleString()}</Table.Td>
-              <Table.Td>
-                {key.last_used_at
-                  ? new Date(key.last_used_at).toLocaleString()
-                  : "Never"}
-              </Table.Td>
-              <Table.Td>
-                <Menu>
-                  <Menu.Target>
-                    <ActionIcon>
-                      <IconDots size={16} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={<IconRefresh size={14} />}
-                      onClick={() => handleExtendExpiration(key.id)}
-                    >
-                      Extend Expiration
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={<IconTrash size={14} />}
-                      onClick={() => {
-                        setSelectedKeyId(key.id);
-                        openDelete();
-                      }}
-                      color="red"
-                    >
-                      Delete
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Table.Td>
+      <Table.ScrollContainer minWidth={400}>
+        <Table>
+          <Table.Caption>{`${apiKeys.length} API Key${apiKeys.length !== 1 ? "s" : ""}`}</Table.Caption>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Expires At</Table.Th>
+              <Table.Th>Last Used</Table.Th>
+              <Table.Th>Actions</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {apiKeys.map((key) => (
+              <Table.Tr key={key.id}>
+                <Table.Td>{key.name}</Table.Td>
+                <Table.Td>{new Date(key.expires_at).toLocaleString()}</Table.Td>
+                <Table.Td>
+                  {key.last_used_at
+                    ? new Date(key.last_used_at).toLocaleString()
+                    : "Never"}
+                </Table.Td>
+                <Table.Td>
+                  <Menu>
+                    <Menu.Target>
+                      <ActionIcon>
+                        <IconDots size={16} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<IconRefresh size={14} />}
+                        onClick={() => handleExtendExpiration(key.id)}
+                      >
+                        Extend Expiration
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconTrash size={14} />}
+                        onClick={() => {
+                          setSelectedKeyId(key.id);
+                          openDelete();
+                        }}
+                        color="red"
+                      >
+                        Delete
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
 
       <DrawerDialog
         open={deleteOpened}
