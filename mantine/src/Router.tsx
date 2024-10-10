@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { HomePage } from "@/pages/Home";
 import URLS from "@/lib/urls";
 import LynxLoggedInPage from "@/pages/LynxLoggedInPage";
+import LinkViewer from "@/pages/LinkViewer";
 
 const Login = lazy(() => import("@/pages/Login"));
 
@@ -13,6 +14,7 @@ const Router = () => {
         <Route path={URLS.LOGIN} element={<Login />} />
         <Route element={<LynxLoggedInPage />}>
           <Route path={URLS.HOME} element={<HomePage />} />
+          <Route path={URLS.LINK_VIEWER_TEMPLATE} element={<LinkViewer />} />
         </Route>
       </Routes>
     </BrowserRouter>

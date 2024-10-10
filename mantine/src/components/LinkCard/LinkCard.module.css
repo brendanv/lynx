@@ -40,11 +40,6 @@
   text-transform: uppercase;
 }
 
-/* .dropdownIcon {
-  width: 1rem;
-  height: 1rem;
-} */
-
 .skeletons {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import {
   Autocomplete,
   AppShell,
@@ -7,8 +7,9 @@ import {
   NavLink,
   rem,
   Kbd,
+  Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useHeadroom } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import {
   IconHome,
@@ -32,6 +33,58 @@ interface LynxShellProps {
   children: ReactNode;
 }
 
+const TopMenu = ({
+  burger,
+  title,
+}: {
+  burger?: React.ReactElement;
+  title?: string;
+}) => {
+  return (
+    <AppShell.Header>
+      <div className={classes.inner}>
+        <Group h="100%" px="md">
+          {burger ? burger : null}
+          <Link to={URLS.HOME}>
+            <LynxLogo />
+          </Link>
+          {title ? (
+            <Text fw={500} truncate="end" size="lg">
+              {title}
+            </Text>
+          ) : null}
+        </Group>
+        <Group h="100%" px="md">
+          <Autocomplete
+            placeholder="Search Lynx"
+            leftSection={
+              <IconSearch
+                style={{ width: rem(16), height: rem(16) }}
+                stroke={1.5}
+              />
+            }
+            rightSection={<Kbd>⌘K</Kbd>}
+            data={[]}
+          />
+        </Group>
+      </div>
+    </AppShell.Header>
+  );
+};
+
+export const FullBleedLynxShell = ({
+  children,
+  title,
+}: LynxShellProps & { title?: string }) => {
+  const pinned = useHeadroom({ fixedAt: 120 });
+  return (
+    <AppShell header={{ height: 60, collapsed: !pinned, offset: false }}>
+      <TopMenu title={title} />
+      <AppShell.Main pt={`calc(${rem(60)}`}>{children}</AppShell.Main>
+    </AppShell>
+  );
+};
+
 const LynxShell = ({ children }: LynxShellProps) => {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
@@ -47,9 +100,9 @@ const LynxShell = ({ children }: LynxShellProps) => {
       }}
       padding="md"
     >
-      <AppShell.Header>
-        <div className={classes.inner}>
-          <Group h="100%" px="md">
+      <TopMenu
+        burger={
+          <>
             <Burger
               opened={mobileOpened}
               onClick={toggleMobile}
@@ -62,25 +115,9 @@ const LynxShell = ({ children }: LynxShellProps) => {
               visibleFrom="sm"
               size="sm"
             />
-            <Link to={URLS.HOME}>
-              <LynxLogo />
-            </Link>
-          </Group>
-          <Group h="100%" px="md">
-            <Autocomplete
-              placeholder="Search Lynx"
-              leftSection={
-                <IconSearch
-                  style={{ width: rem(16), height: rem(16) }}
-                  stroke={1.5}
-                />
-              }
-              rightSection={<Kbd>⌘K</Kbd>}
-              data={[]}
-            />
-          </Group>
-        </div>
-      </AppShell.Header>
+          </>
+        }
+      />
       <AppShell.Navbar p="md">
         {links.map((item) => (
           <NavLink

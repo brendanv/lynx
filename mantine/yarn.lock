@@ -337,6 +337,13 @@
     "@mantine/store" "7.13.2"
     react-transition-group "4.4.5"
 
+"@mantine/nprogress@^7.13.2":
+  version "7.13.2"
+  resolved "https://registry.npmjs.org/@mantine/nprogress/-/nprogress-7.13.2.tgz"
+  integrity sha512-GiseMDc1K42vZa2nHS19rvvtOZX+o2vmwhVhOFRZJ8NxIaR/pk2DcRjeq2cbRFgz9/KtUZNoehOwDqHY+ZYw/A==
+  dependencies:
+    "@mantine/store" "7.13.2"
+
 "@mantine/spotlight@^7.13.2":
   version "7.13.2"
   resolved "https://registry.npmjs.org/@mantine/spotlight/-/spotlight-7.13.2.tgz"

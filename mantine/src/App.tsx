@@ -1,6 +1,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/notifications/styles.css";
+import '@mantine/nprogress/styles.css';
 
 import { MantineProvider } from "@mantine/core";
 import Router from "@/Router";
