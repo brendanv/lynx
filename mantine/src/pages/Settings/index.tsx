@@ -4,6 +4,7 @@ import { Tabs, Title } from "@mantine/core";
 import LynxShell from "@/pages/LynxShell";
 
 const APIKeys = lazy(() => import("./APIKeys"));
+const Tags = lazy(() => import("./Tags"));
 
 const TabsToTitles: {[key: string]: string} = {
   api_keys: "Settings - Manage API Keys",
@@ -35,7 +36,7 @@ const Settings = () => {
         <Tabs.Panel value="api_keys">
           <APIKeys />
         </Tabs.Panel>
-        <Tabs.Panel value="tags">Tags</Tabs.Panel>
+        <Tabs.Panel value="tags"><Tags /></Tabs.Panel>
       </Tabs>
     </LynxShell>
   );
