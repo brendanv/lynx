@@ -5,13 +5,16 @@ import LynxShell from "@/pages/LynxShell";
 
 const APIKeys = lazy(() => import("./APIKeys"));
 const Tags = lazy(() => import("./Tags"));
+const Cookies = lazy(() => import("./Cookies"));
+const General = lazy(() => import("./General"));
+const Feeds = lazy(() => import("./Feeds"));
 
-const TabsToTitles: {[key: string]: string} = {
-  api_keys: "Settings - Manage API Keys",
-  cookies: "Settings - Manage Cookies",
-  tags: "Settings - Manage Tags",
-  import: "Settings - Import",
-  general: "Settings"
+const TabsToTitles: { [key: string]: string } = {
+  api_keys: "Manage API Keys",
+  cookies: "Manage Cookies",
+  tags: "Manage Tags",
+  import: "Import",
+  general: "Settings",
 };
 
 const Settings = () => {
@@ -20,23 +23,35 @@ const Settings = () => {
 
   return (
     <LynxShell>
-      <Title mb="lg">
-        {TabsToTitles[(tabValue || "")] || "User Settings"}
-      </Title>
+      <Title mb="lg">{TabsToTitles[tabValue || ""] || "User Settings"}</Title>
       <Tabs
         value={tabValue}
         onChange={(value) => navigate(`/settings/${value}`)}
         keepMounted={false}
       >
         <Tabs.List>
-          <Tabs.Tab value="api_keys">API Keys</Tabs.Tab>
+          <Tabs.Tab value="general">Settings</Tabs.Tab>
           <Tabs.Tab value="tags">Tags</Tabs.Tab>
+          <Tabs.Tab value="feeds">Feeds</Tabs.Tab>
+          <Tabs.Tab value="cookies">Cookies</Tabs.Tab>
+          <Tabs.Tab value="api_keys">API Keys</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="api_keys">
           <APIKeys />
         </Tabs.Panel>
-        <Tabs.Panel value="tags"><Tags /></Tabs.Panel>
+        <Tabs.Panel value="tags">
+          <Tags />
+        </Tabs.Panel>
+        <Tabs.Panel value="cookies">
+          <Cookies />
+        </Tabs.Panel>
+        <Tabs.Panel value="general">
+          <General />
+        </Tabs.Panel>
+        <Tabs.Panel value="feeds">
+          <Feeds />
+        </Tabs.Panel>
       </Tabs>
     </LynxShell>
   );

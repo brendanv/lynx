@@ -154,7 +154,7 @@ const Tags: React.FC = () => {
           radius="xl"
           size="md"
           mb="lg"
-          placeholder="Enter tag name"
+          placeholder="Add tag"
           {...form.getInputProps("tagName")}
           rightSectionWidth={42}
           rightSection={
@@ -175,6 +175,7 @@ const Tags: React.FC = () => {
       ) : (
         <Table.ScrollContainer minWidth={500}>
           <Table>
+            <Table.Caption>{`${tags.length} Tag${tags.length !== 1 ? "s" : ""}`}</Table.Caption>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th
