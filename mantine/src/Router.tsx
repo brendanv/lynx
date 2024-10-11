@@ -6,9 +6,10 @@ import LynxLoggedInPage from "@/pages/LynxLoggedInPage";
 import LinkViewer from "@/pages/LinkViewer";
 
 const Login = lazy(() => import("@/pages/Login"));
-const Settings = lazy(() => import("@/pages/Settings"))
-const AddLink = lazy(() => import("@/pages/AddLink"))
-const FeedItems = lazy(() => import("@/pages/FeedItems"))
+const Settings = lazy(() => import("@/pages/Settings"));
+const AddLink = lazy(() => import("@/pages/AddLink"));
+const FeedItems = lazy(() => import("@/pages/FeedItems"));
+const EditLink = lazy(() => import("@/pages/EditLink"));
 
 const Router = () => {
   return (
@@ -21,6 +22,7 @@ const Router = () => {
           <Route path={URLS.SETTINGS_TEMPLATE} element={<Settings />} />
           <Route path={URLS.ADD_LINK} element={<AddLink />} />
           <Route path={URLS.FEED_ITEMS_TEMPLATE} element={<FeedItems />} />
+          <Route path={URLS.EDIT_LINK_TEMPLATE} element={<EditLink />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -46,56 +46,56 @@ const URLParserForm = () => {
   return (
     <LynxShell>
       <Container size="sm">
-          <Stack>
-            <Title order={2}>Save a New Link</Title>
-            <Text size="md" c="dimmed">
-              Download, process, and save article content to read later
-            </Text>
+        <Stack>
+          <Title order={2}>Save a New Link</Title>
+          <Text size="md" c="dimmed">
+            Download, process, and save article content to read later
+          </Text>
 
-            {createdLink && (
-              <Alert
-                icon={<IconCircleCheck size={16} />}
-                title={createdLink.title}
+          {createdLink && (
+            <Alert
+              icon={<IconCircleCheck size={16} />}
+              title={createdLink.title}
+              color="green"
+            >
+              <Text size="md">{createdLink.excerpt}</Text>
+              <Button
+                component={Link}
+                to={URLS.LINK_VIEWER(createdLink.id)}
+                variant="outline"
                 color="green"
+                size="sm"
+                mt="sm"
               >
-                <Text size="md">{createdLink.excerpt}</Text>
-                <Button
-                  component={Link}
-                  to={URLS.LINK_VIEWER(createdLink.id)}
-                  variant="outline"
-                  color="green"
-                  size="sm"
-                  mt="sm"
-                >
-                  Read Now
-                </Button>
-              </Alert>
-            )}
+                Read Now
+              </Button>
+            </Alert>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <Stack>
-                <TextInput
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Enter URL"
-                  disabled={isLoading}
-                />
-                <Button type="submit" fullWidth loading={isLoading}>
-                  Parse {createdLink ? "Another " : ""}URL
-                </Button>
-              </Stack>
-            </form>
+          <form onSubmit={handleSubmit}>
+            <Stack>
+              <TextInput
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Enter URL"
+                disabled={isLoading}
+              />
+              <Button type="submit" fullWidth loading={isLoading}>
+                Parse {createdLink ? "Another " : ""}URL
+              </Button>
+            </Stack>
+          </form>
 
-            {error && (
-              <Alert
-                icon={<IconAlertCircle size={16} />}
-                title="Error"
-                color="red"
-              >
-                {error}
-              </Alert>
-            )}
-          </Stack>
+          {error && (
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              title="Error"
+              color="red"
+            >
+              {error}
+            </Alert>
+          )}
+        </Stack>
       </Container>
     </LynxShell>
   );
