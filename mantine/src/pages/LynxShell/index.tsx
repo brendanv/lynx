@@ -19,6 +19,7 @@ import {
   IconRss,
   IconSearch,
   IconSettings,
+  IconSquareRoundedPlus
 } from "@tabler/icons-react";
 import LynxLogo from "@/components/LynxLogo";
 import URLS from "@/lib/urls";
@@ -28,6 +29,7 @@ import { useCommandMenu } from "@/lib/CommandMenuContext";
 
 const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
+  {link: URLS.ADD_LINK, label: "Add Link", icon: IconSquareRoundedPlus},
   { link: URLS.TAGS, label: "Tags", icon: IconTags },
   { link: URLS.FEEDS, label: "Feeds", icon: IconRss },
   { link: URLS.SETTINGS, label: "Settings", icon: IconSettings },

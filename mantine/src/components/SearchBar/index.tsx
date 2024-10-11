@@ -1,10 +1,6 @@
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
-import {
-  Button,
-  Menu,
-  TextInput,
-} from "@mantine/core";
+import { Button, Menu, TextInput } from "@mantine/core";
 import {
   IconCheck,
   IconFilter,
@@ -57,7 +53,9 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
       />
       <Menu>
         <Menu.Target>
-          <Button variant={searchParams.readState === "all" ? "default" : "filled"}>
+          <Button
+            variant={searchParams.readState === "all" ? "default" : "filled"}
+          >
             <IconFilter />
           </Button>
         </Menu.Target>
@@ -65,6 +63,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
           <Menu.Label>Read State</Menu.Label>
           {readStates.map(({ value, label }) => (
             <Menu.Item
+              key={value}
               leftSection={
                 searchParams.readState === value ? (
                   <IconCheck className={dropdownClasses.dropdownIcon} />
@@ -85,7 +84,11 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
       </Menu>
       <Menu>
         <Menu.Target>
-          <Button variant={searchParams.sortBy === "added_to_library" ? "default" : "filled"}>
+          <Button
+            variant={
+              searchParams.sortBy === "added_to_library" ? "default" : "filled"
+            }
+          >
             <IconSortAscending />
           </Button>
         </Menu.Target>
@@ -93,6 +96,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
           <Menu.Label>Sort By</Menu.Label>
           {sortOptions.map(({ value, label }) => (
             <Menu.Item
+              key={value}
               leftSection={
                 searchParams.sortBy === value ? (
                   <IconCheck className={dropdownClasses.dropdownIcon} />
@@ -121,6 +125,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
           {tags.length === 0 ? <Menu.Label>No tags</Menu.Label> : null}
           {tags.map((tag) => (
             <Menu.Item
+              key={tag.id}
               leftSection={
                 searchParams.tagId === tag.id ? (
                   <IconCheck className={dropdownClasses.dropdownIcon} />
@@ -148,6 +153,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
         <Menu.Dropdown>
           {feeds.map((feed) => (
             <Menu.Item
+              key={feed.id}
               leftSection={
                 searchParams.feedId === feed.id ? (
                   <IconCheck className={dropdownClasses.dropdownIcon} />
