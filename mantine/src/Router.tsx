@@ -10,6 +10,7 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const AddLink = lazy(() => import("@/pages/AddLink"));
 const FeedItems = lazy(() => import("@/pages/FeedItems"));
 const EditLink = lazy(() => import("@/pages/EditLink"));
+const ArchiveViewer = lazy(() => import("@/pages/ArchiveViewer"));
 
 const Router = () => {
   return (
@@ -23,6 +24,10 @@ const Router = () => {
           <Route path={URLS.ADD_LINK} element={<AddLink />} />
           <Route path={URLS.FEED_ITEMS_TEMPLATE} element={<FeedItems />} />
           <Route path={URLS.EDIT_LINK_TEMPLATE} element={<EditLink />} />
+          <Route
+            path={URLS.LINK_ARCHIVE_TEMPLATE}
+            element={<ArchiveViewer />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
