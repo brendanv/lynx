@@ -41,7 +41,7 @@ const ImportLynxV1: React.FC = () => {
     setProgress({ tags: 0, feeds: 0, feedItems: 0, links: 0 });
 
     const worker = new Worker(
-      new URL("@/workers/importLynxV1.ts", import.meta.url),
+      new URL("./importLynxV1.ts", import.meta.url),
       { type: "module" },
     );
 
