@@ -7,6 +7,7 @@ import {
   Group,
   NavLink,
   rem,
+  px,
   Kbd,
 } from "@mantine/core";
 import { useDisclosure, useHeadroom } from "@mantine/hooks";
@@ -50,7 +51,7 @@ const TopMenu = ({ burger }: { burger?: React.ReactElement }) => {
         <Group h="100%" px="md">
           <Anchor c="dimmed" underline="never" onClick={openMenu}>
             <Group gap="xs">
-              <IconSearch size="1.2rem" />
+              <IconSearch size={px('1.25rem')} />
               Search Lynx
               <Group gap={0}>
                 <Kbd>⌘</Kbd>
