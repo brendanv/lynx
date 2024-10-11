@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useCallback } from "react";
 import {
   Anchor,
   Avatar,
@@ -9,17 +9,22 @@ import {
   rem,
   px,
   Kbd,
+  useMantineColorScheme,
+  MantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure, useHeadroom } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import {
   IconHome,
   IconLogout,
+  IconMoon,
   IconTags,
   IconRss,
   IconSearch,
   IconSettings,
-  IconSquareRoundedPlus
+  IconSquareRoundedPlus,
+  IconSun,
+  IconSunMoon,
 } from "@tabler/icons-react";
 import LynxLogo from "@/components/LynxLogo";
 import URLS from "@/lib/urls";
@@ -29,7 +34,7 @@ import { useCommandMenu } from "@/lib/CommandMenuContext";
 
 const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
-  {link: URLS.ADD_LINK, label: "Add Link", icon: IconSquareRoundedPlus},
+  { link: URLS.ADD_LINK, label: "Add Link", icon: IconSquareRoundedPlus },
   { link: URLS.TAGS, label: "Tags", icon: IconTags },
   { link: URLS.FEEDS, label: "Feeds", icon: IconRss },
   { link: URLS.SETTINGS, label: "Settings", icon: IconSettings },
@@ -38,6 +43,28 @@ const links = [
 interface LynxShellProps {
   children: ReactNode;
 }
+
+const ColorSchemeToggle = () => {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const label = colorScheme.charAt(0).toUpperCase() + colorScheme.slice(1);
+
+  let nextColorScheme: MantineColorScheme = "light";
+  let icon = <IconSunMoon size={24} stroke={1} />;
+  if (colorScheme === "dark") {
+    nextColorScheme = "auto";
+    icon = <IconMoon size={24} stroke={1} />;
+  } else if (colorScheme === "light") {
+    nextColorScheme = "dark";
+    icon = <IconSun size={24} stroke={1} />;
+  }
+  return (
+    <NavLink
+      onClick={() => setColorScheme(nextColorScheme)}
+      label={label}
+      leftSection={icon}
+    />
+  );
+};
 
 const TopMenu = ({ burger }: { burger?: React.ReactElement }) => {
   const { openMenu } = useCommandMenu();
@@ -53,7 +80,7 @@ const TopMenu = ({ burger }: { burger?: React.ReactElement }) => {
         <Group h="100%" px="md">
           <Anchor c="dimmed" underline="never" onClick={openMenu}>
             <Group gap="xs">
-              <IconSearch size={px('1.25rem')} />
+              <IconSearch size={px("1.25rem")} />
               Search Lynx
               <Group gap={0}>
                 <Kbd>⌘</Kbd>
@@ -127,6 +154,7 @@ const LynxShell = ({ children }: LynxShellProps) => {
           ))}
         </AppShell.Section>
         <AppShell.Section>
+          <ColorSchemeToggle />
           <NavLink
             component={Link}
             to={URLS.SETTINGS}
