@@ -124,7 +124,7 @@ const LinkCard = ({ link, onUpdate }: Props) => {
               {link.read_time_display ? " • " + link.read_time_display : ""}
             </Group>
           </div>
-          <Menu>
+          <Menu zIndex={50}>
             <Menu.Target>
               <ActionIcon variant="subtle">
                 <IconDotsVertical />

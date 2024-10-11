@@ -142,7 +142,7 @@ const Feeds: React.FC = () => {
             }
             label="Auto-add"
           />
-          <Menu withinPortal position="bottom-end" shadow="sm">
+          <Menu withinPortal position="bottom-end" shadow="sm" zIndex={50}>
             <Menu.Target>
               <ActionIcon>
                 <IconDots size={16} />

@@ -39,7 +39,7 @@ interface LynxShellProps {
 const TopMenu = ({ burger }: { burger?: React.ReactElement }) => {
   const { openMenu } = useCommandMenu();
   return (
-    <AppShell.Header zIndex={300}>
+    <AppShell.Header>
       <div className={classes.inner}>
         <Group wrap="nowrap" h="100%" px="md">
           {burger ? burger : null}
@@ -110,7 +110,7 @@ const LynxShell = ({ children }: LynxShellProps) => {
           </>
         }
       />
-      <AppShell.Navbar p="md" zIndex={300}>
+      <AppShell.Navbar p="md">
         <AppShell.Section grow>
           {links.map((item) => (
             <NavLink
