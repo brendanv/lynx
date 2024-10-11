@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import {spotlight} from '@mantine/spotlight';
+import React, { createContext, useContext, useState } from "react";
+import { spotlight } from "@mantine/spotlight";
 
 export interface LynxCommandItem {
   display: string;

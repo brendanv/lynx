@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
-  Card,
   Text,
   Title,
   TextInput,
