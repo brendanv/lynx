@@ -8,6 +8,7 @@ const Tags = lazy(() => import("./Tags"));
 const Cookies = lazy(() => import("./Cookies"));
 const General = lazy(() => import("./General"));
 const Feeds = lazy(() => import("./Feeds"));
+const Import = lazy(() => import("./Import"));
 
 const TabsToTitles: { [key: string]: string } = {
   api_keys: "Manage API Keys",
@@ -35,6 +36,7 @@ const Settings = () => {
           <Tabs.Tab value="feeds">Feeds</Tabs.Tab>
           <Tabs.Tab value="cookies">Cookies</Tabs.Tab>
           <Tabs.Tab value="api_keys">API Keys</Tabs.Tab>
+          <Tabs.Tab value="import">Import</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="api_keys">
@@ -51,6 +53,9 @@ const Settings = () => {
         </Tabs.Panel>
         <Tabs.Panel value="feeds">
           <Feeds />
+        </Tabs.Panel>
+        <Tabs.Panel value="import">
+          <Import />
         </Tabs.Panel>
       </Tabs>
     </LynxShell>
