@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { rem } from "@mantine/core";
 import {
   Spotlight,
@@ -22,6 +22,7 @@ import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 
 const LynxCommandMenu = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
 
   const {
     tags,
@@ -30,7 +31,7 @@ const LynxCommandMenu = () => {
   } = useAllUserTagsWithoutMetadata();
   const { feeds, loading: feedsLoading, error: feedsError } = useAllUserFeeds();
 
-  const actions: (SpotlightActionGroupData | SpotlightActionData)[] =
+  const pageTagFeedActions: (SpotlightActionGroupData | SpotlightActionData)[] =
     useMemo(() => {
       const baseActions: (SpotlightActionGroupData | SpotlightActionData)[] = [
         {
@@ -157,10 +158,25 @@ const LynxCommandMenu = () => {
       navigate,
     ]);
 
+  const searchAction = {
+    id: "search",
+    label: `Search for "${query}"`,
+    description: "Search for links",
+    onClick: () => navigate(URLS.HOME_WITH_SEARCH_STRING(query)),
+    leftSection: (
+      <IconSearch style={{ width: rem(24), height: rem(24) }} stroke={1.5} />
+    ),
+  };
   return (
     <Spotlight
-      actions={actions}
+      actions={
+        query !== ""
+          ? [...pageTagFeedActions, searchAction]
+          : pageTagFeedActions
+      }
       nothingFound="Nothing found..."
+      query={query}
+      onQueryChange={setQuery}
       highlightQuery
       scrollable
       maxHeight={400}
