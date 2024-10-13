@@ -199,9 +199,13 @@ const LinkCard = ({ link, onUpdate }: Props) => {
           </BackgroundImage>
         </Card.Section>
         {link.tags.length > 0 ? (
-      <div className={classes.tags}>
-          <LinkTagsDisplay link={link} refetch={onUpdate} allowEdits={false} />
-        </div>
+          <div className={classes.tags}>
+            <LinkTagsDisplay
+              link={link}
+              refetch={onUpdate}
+              allowEdits={false}
+            />
+          </div>
         ) : null}
 
         <Text
