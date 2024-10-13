@@ -41,7 +41,7 @@ const FeedItems: React.FC = () => {
     {},
   );
 
-  usePageTitle(`Feed: ${feedName}`);
+  usePageTitle(feedName);
 
   useEffect(() => {
     fetchFeedItems();

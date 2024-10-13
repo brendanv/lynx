@@ -18,15 +18,11 @@ import {
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconPlus,
-  IconDots,
-  IconEye,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconPlus, IconDots, IconEye, IconTrash } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Feed = {
   id: string;
@@ -39,6 +35,7 @@ type Feed = {
 };
 
 const Feeds: React.FC = () => {
+  usePageTitle("Feeds");
   const { pb } = usePocketBase();
   const { feeds, loading, error, refetch } = useAllUserFeeds();
   const [deleteConfirmation, setDeleteConfirmation] = useState<{

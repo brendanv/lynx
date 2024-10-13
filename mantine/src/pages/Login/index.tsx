@@ -11,8 +11,10 @@ import {
   Alert,
 } from "@mantine/core";
 import classes from "./Login.module.css";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Login = () => {
+  usePageTitle("Login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

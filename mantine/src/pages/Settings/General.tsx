@@ -12,8 +12,10 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from "@mantine/notifications";
 import { usePocketBase } from "@/hooks/usePocketBase";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const General: React.FC = () => {
+  usePageTitle('Settings')
   const { pb, user } = usePocketBase();
   const form = useForm({
     initialValues: {

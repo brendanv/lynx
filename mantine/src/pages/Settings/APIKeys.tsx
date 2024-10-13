@@ -24,6 +24,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import DrawerDialog from "@/components/DrawerDialog";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type ApiKey = {
   id: string;
@@ -33,6 +34,7 @@ type ApiKey = {
 };
 
 const APIKeys: React.FC = () => {
+  usePageTitle("API Keys");
   const { pb } = usePocketBase();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState("");

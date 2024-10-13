@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { usePocketBase } from '@/hooks/usePocketBase';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { usePocketBase } from "@/hooks/usePocketBase";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const ArchiveViewer: React.FC = () => {
+  usePageTitle("Link Archive");
   const { id: linkId } = useParams<{ id: string }>();
   const [archiveContent, setArchiveContent] = useState<string | null>(null);
   const { pb } = usePocketBase();
@@ -11,13 +13,13 @@ const ArchiveViewer: React.FC = () => {
     const fetchArchiveContent = async () => {
       if (!linkId) return;
       try {
-        const link = await pb.collection('links').getOne(linkId);
+        const link = await pb.collection("links").getOne(linkId);
         const archiveUrl = pb.files.getUrl(link, link.archive);
         const response = await fetch(archiveUrl);
         const content = await response.text();
         setArchiveContent(content);
       } catch (error) {
-        console.error('Error fetching archive content:', error);
+        console.error("Error fetching archive content:", error);
       }
     };
 
@@ -31,7 +33,7 @@ const ArchiveViewer: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       className="archive-content"
       dangerouslySetInnerHTML={{ __html: archiveContent }}
     />

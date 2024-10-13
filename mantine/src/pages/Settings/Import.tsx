@@ -12,6 +12,7 @@ import {
   Stack,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type ProgressState = {
   tags: number;
@@ -21,6 +22,7 @@ type ProgressState = {
 };
 
 const ImportLynxV1: React.FC = () => {
+  usePageTitle('Import')
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState<ProgressState>({

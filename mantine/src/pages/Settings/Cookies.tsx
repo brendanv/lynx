@@ -16,6 +16,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import DrawerDialog from "@/components/DrawerDialog";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Cookie = {
   id: string;
@@ -25,6 +26,7 @@ type Cookie = {
 };
 
 const Cookies: React.FC = () => {
+  usePageTitle("Cookies");
   const { pb, user } = usePocketBase();
   const [cookies, setCookies] = useState<Cookie[]>([]);
   const [cookiesLoading, setCookiesLoading] = useState(true);

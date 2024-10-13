@@ -22,8 +22,10 @@ import { notifications } from "@mantine/notifications";
 import { IconAlertCircle, IconPlus, IconTrash } from "@tabler/icons-react";
 import URLS from "@/lib/urls";
 import DrawerDialog from "@/components/DrawerDialog";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const Tags: React.FC = () => {
+  usePageTitle("Tags");
   const { pb, user } = usePocketBase();
   const {
     tags,
