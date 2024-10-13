@@ -1,76 +1,40 @@
-import React from "react";
-import { useMediaQuery } from "react-responsive";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import { useMediaQuery } from "@mantine/hooks";
+import { Drawer, Modal } from "@mantine/core";
 
-interface ResponsiveDialogProps {
-  trigger?: React.ReactNode;
-  footer?: React.ReactNode;
-  title: string;
-  description?: string;
-  open: boolean;
-  handleOpenChange: (open: boolean) => void;
+interface Props {
   children: React.ReactNode;
+  title: string;
+  open: boolean;
+  onClose: () => void;
 }
 
-const DrawerDialog: React.FC<ResponsiveDialogProps> = ({
-  trigger,
-  footer,
-  title,
-  description,
-  open,
-  handleOpenChange,
-  children,
-}) => {
-  const isLargeScreen = useMediaQuery({ minWidth: 768 });
+const DrawerDialog = ({ children, title, open, onClose }: Props) => {
+  const isLargeScreen = useMediaQuery("(min-width: 45em)");
 
-  if (isLargeScreen) {
+  if (!isLargeScreen) {
     return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            {description && (
-              <DialogDescription>{description}</DialogDescription>
-            )}
-          </DialogHeader>
-          {children}
-          {footer && <DialogFooter>{footer}</DialogFooter>}
-        </DialogContent>
-      </Dialog>
+      <Drawer
+        title={title}
+        overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
+        position="bottom"
+        opened={open}
+        onClose={onClose}
+      >
+        {children}
+      </Drawer>
+    );
+  } else {
+    return (
+      <Modal
+        title={title}
+        overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
+        opened={open}
+        onClose={onClose}
+      >
+        {children}
+      </Modal>
     );
   }
-
-  return (
-    <Drawer open={open} onOpenChange={handleOpenChange}>
-      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>{title}</DrawerTitle>
-          {description && <DrawerDescription>{description}</DrawerDescription>}
-        </DrawerHeader>
-        <div className="p-4">{children}</div>
-        {footer && <DrawerFooter>{footer}</DrawerFooter>}
-      </DrawerContent>
-    </Drawer>
-  );
 };
 
 export default DrawerDialog;

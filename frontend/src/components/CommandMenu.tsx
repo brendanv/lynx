@@ -1,167 +1,196 @@
-import React, { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { rem } from "@mantine/core";
 import {
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
-import type { LynxCommandGroup } from "@/lib/CommandMenuContext";
+  Spotlight,
+  SpotlightActionGroupData,
+  SpotlightActionData,
+} from "@mantine/spotlight";
+import {
+  IconHome,
+  IconRss,
+  IconSettings,
+  IconSearch,
+  IconCookie,
+  IconKey,
+  IconPlus,
+  IconTag,
+} from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
 import URLS from "@/lib/urls";
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
-import {
-  CirclePlus,
-  Cookie,
-  House,
-  KeyRound,
-  Rss,
-  Search,
-  Settings,
-  Tag,
-} from "lucide-react";
 
-interface CommandMenuProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  customCommands?: LynxCommandGroup[];
-}
-
-const CommandMenu: React.FC<CommandMenuProps> = ({
-  open,
-  onOpenChange,
-  customCommands,
-}) => {
+const LynxCommandMenu = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+
   const {
     tags,
     loading: tagsLoading,
     error: tagsError,
   } = useAllUserTagsWithoutMetadata();
   const { feeds, loading: feedsLoading, error: feedsError } = useAllUserFeeds();
-  const runCommand = (command: () => void) => {
-    onOpenChange(false);
-    command();
-  };
-  const navigateHome = useCallback(
-    () => runCommand(() => navigate(URLS.HOME)),
-    [navigate],
-  );
-  const navigateSettings = useCallback(
-    () => runCommand(() => navigate(URLS.SETTINGS)),
-    [navigate],
-  );
-  const navigateFeeds = useCallback(
-    () => runCommand(() => navigate(URLS.FEEDS)),
-    [navigate],
-  );
-  const navigateCookies = useCallback(
-    () => runCommand(() => navigate(URLS.COOKIES)),
-    [navigate],
-  );
-  const navigateApiKeys = useCallback(
-    () => runCommand(() => navigate(URLS.API_KEYS)),
-    [navigate],
-  );
-  const navigateAddLink = useCallback(
-    () => runCommand(() => navigate(URLS.ADD_LINK)),
-    [navigate],
-  );
 
-  return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput
-        value={search}
-        onValueChange={setSearch}
-        placeholder="Type a command or search..."
-      />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        {(customCommands || []).map((group) => (
-          <CommandGroup key={group.display} heading={group.display}>
-            {group.items.map((item) => (
-              <CommandItem
-                onSelect={item.onSelect}
-                key={group.display + item.display}
+  const pageTagFeedActions: (SpotlightActionGroupData | SpotlightActionData)[] =
+    useMemo(() => {
+      const baseActions: (SpotlightActionGroupData | SpotlightActionData)[] = [
+        {
+          group: "Pages",
+          actions: [
+            {
+              id: "home",
+              label: "Home",
+              description: "Go to the home page",
+              onClick: () => navigate(URLS.HOME),
+              leftSection: (
+                <IconHome
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "feeds",
+              label: "Feeds",
+              description: "Manage your feeds",
+              onClick: () => navigate(URLS.FEEDS),
+              leftSection: (
+                <IconRss
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "settings",
+              label: "Settings",
+              description: "Adjust your account settings",
+              onClick: () => navigate(URLS.SETTINGS),
+              leftSection: (
+                <IconSettings
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "cookies",
+              label: "Cookies",
+              description: "Manage your stored cookies",
+              onClick: () => navigate(URLS.COOKIES),
+              leftSection: (
+                <IconCookie
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "api-keys",
+              label: "API Keys",
+              description: "Manage your API keys",
+              onClick: () => navigate(URLS.API_KEYS),
+              leftSection: (
+                <IconKey
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "add-link",
+              label: "Add Link",
+              description: "Add a new link",
+              onClick: () => navigate(URLS.ADD_LINK),
+              leftSection: (
+                <IconPlus
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+          ],
+        },
+      ];
+
+      if (!feedsLoading && !feedsError && feeds.length > 0) {
+        baseActions.push({
+          group: "Feeds",
+          actions: feeds.map((feed) => ({
+            id: `feed-${feed.id}`,
+            label: feed.name,
+            // description: "View links for feed",
+            onClick: () => navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
+            leftSection: (
+              <IconRss
+                style={{ width: rem(24), height: rem(24) }}
+                stroke={1.5}
               />
-            ))}
-          </CommandGroup>
-        ))}
-        <CommandGroup heading="Pages">
-          <CommandItem onSelect={navigateHome}>
-            <House className="mr-2 h-4 w-4" /> Home
-          </CommandItem>
-          <CommandItem onSelect={navigateSettings}>
-            <Settings className="mr-2 h-4 w-4" /> Settings
-          </CommandItem>
-          <CommandItem onSelect={navigateApiKeys}>
-            <KeyRound className="mr-2 h-4 w-4" /> API Keys
-          </CommandItem>
-          <CommandItem onSelect={navigateCookies}>
-            <Cookie className="mr-2 h-4 w-4" /> Cookies
-          </CommandItem>
-          <CommandItem onSelect={navigateFeeds}>
-            <Rss className="mr-2 h-4 w-4" /> Feeds
-          </CommandItem>
-          <CommandItem onSelect={navigateAddLink}>
-            <CirclePlus className="mr-2 h-4 w-4" /> Add Link
-          </CommandItem>
-        </CommandGroup>
-        <CommandGroup heading="View Tagged Links">
-          {tagsLoading ? (
-            <CommandItem>Loading...</CommandItem>
-          ) : tagsError ? (
-            <CommandItem>Error: {tagsError}</CommandItem>
-          ) : (
-            tags.map((tag) => (
-              <CommandItem
-                onSelect={() =>
-                  runCommand(() => navigate(URLS.HOME_WITH_TAGS_SEARCH(tag.id)))
-                }
-                key={tag.id}
-              >
-                <Tag className="mr-2 h-4 w-4" /> {tag.name}
-              </CommandItem>
-            ))
-          )}
-        </CommandGroup>
-        <CommandGroup heading="View Feed Items">
-          {feedsLoading ? (
-            <CommandItem>Loading...</CommandItem>
-          ) : feedsError ? (
-            <CommandItem>Error: {feedsError}</CommandItem>
-          ) : (
-            feeds.map((feed) => (
-              <CommandItem
-                onSelect={() =>
-                  runCommand(() =>
-                    navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
-                  )
-                }
-                key={feed.id}
-              >
-                <Rss className="mr-2 h-4 w-4" /> {feed.name}
-              </CommandItem>
-            ))
-          )}
-        </CommandGroup>
-        {search !== "" && (
-          <CommandGroup heading="Search">
-            <CommandItem
-              onSelect={() =>
-                runCommand(() => navigate(URLS.HOME_WITH_SEARCH_STRING(search)))
-              }
-            >
-              <Search className="mr-2 h-4 w-4" /> Search for "{search}"
-            </CommandItem>
-          </CommandGroup>
-        )}
-      </CommandList>
-    </CommandDialog>
+            ),
+          })),
+        });
+      }
+      if (!tagsLoading && !tagsError && tags.length > 0) {
+        baseActions.push({
+          group: "Tags",
+          actions: tags.map((tag) => ({
+            id: `tag-${tag.id}`,
+            label: tag.name,
+            // description: `View links with tag: ${tag.name}`,
+            onClick: () => navigate(URLS.HOME_WITH_TAGS_SEARCH(tag.id)),
+            leftSection: (
+              <IconTag
+                style={{ width: rem(24), height: rem(24) }}
+                stroke={1.5}
+              />
+            ),
+          })),
+        });
+      }
+      return baseActions;
+    }, [
+      feeds,
+      tags,
+      feedsLoading,
+      tagsLoading,
+      feedsError,
+      tagsError,
+      navigate,
+    ]);
+
+  const searchAction = {
+    id: "search",
+    label: `Search for "${query}"`,
+    description: "Search for links",
+    onClick: () => navigate(URLS.HOME_WITH_SEARCH_STRING(query)),
+    leftSection: (
+      <IconSearch style={{ width: rem(24), height: rem(24) }} stroke={1.5} />
+    ),
+  };
+  return (
+    <Spotlight
+      actions={
+        query !== ""
+          ? [...pageTagFeedActions, searchAction]
+          : pageTagFeedActions
+      }
+      nothingFound="Nothing found..."
+      query={query}
+      onQueryChange={setQuery}
+      highlightQuery
+      scrollable
+      maxHeight={400}
+      searchProps={{
+        leftSection: (
+          <IconSearch
+            style={{ width: rem(20), height: rem(20) }}
+            stroke={1.5}
+          />
+        ),
+        placeholder: "Search...",
+      }}
+    />
   );
 };
 
-export default CommandMenu;
+export default LynxCommandMenu;

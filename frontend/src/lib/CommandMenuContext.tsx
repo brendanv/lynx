@@ -1,9 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState } from "react";
+import { spotlight } from "@mantine/spotlight";
 
 export interface LynxCommandItem {
   display: string;
@@ -16,15 +12,17 @@ export interface LynxCommandGroup {
 }
 
 interface CommandMenuContextType {
-  isOpen: boolean;
-  setCommandMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  openMenu: () => void;
+  closeMenu: () => void;
+  toggleMenu: () => void;
   customCommands: LynxCommandGroup[];
   setCustomCommands: React.Dispatch<React.SetStateAction<LynxCommandGroup[]>>;
 }
 
 const CommandMenuContext = createContext<CommandMenuContextType>({
-  isOpen: false,
-  setCommandMenuOpen: () => {},
+  openMenu: () => {},
+  closeMenu: () => {},
+  toggleMenu: () => {},
   customCommands: [],
   setCustomCommands: () => {},
 });
@@ -32,26 +30,14 @@ const CommandMenuContext = createContext<CommandMenuContextType>({
 export const CommandMenuProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [customCommands, setCustomCommands] = useState<LynxCommandGroup[]>([]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <CommandMenuContext.Provider
       value={{
-        isOpen,
-        setCommandMenuOpen: setIsOpen,
+        openMenu: spotlight.open,
+        closeMenu: spotlight.close,
+        toggleMenu: spotlight.toggle,
         customCommands,
         setCustomCommands,
       }}

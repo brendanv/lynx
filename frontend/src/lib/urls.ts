@@ -4,10 +4,12 @@ export default {
   HOME_WITH_TAGS_SEARCH: (tagId: string) => `/?t=${tagId}`,
   HOME_WITH_FEED_SEARCH: (feedId: string) => `/?f=${feedId}`,
   LOGIN: "/login",
-  SETTINGS: "/settings",
   FEEDS: "/settings/feeds",
   NOTES: "/notes",
   ADD_LINK: "/links/add",
+
+  SETTINGS_TEMPLATE: "/settings/:tabValue",
+  SETTINGS: "/settings/general",
   TAGS: "/settings/tags",
   COOKIES: "/settings/cookies",
   IMPORT: "/settings/import",
