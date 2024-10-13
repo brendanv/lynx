@@ -124,7 +124,7 @@ const EditLink = () => {
               type="date"
               {...form.getInputProps("article_date")}
             />
-            <LinkTagsDisplay link={link} refetch={refetch} />
+            <LinkTagsDisplay link={link} refetch={refetch} allowEdits />
             <Button
               type="submit"
               fullWidth

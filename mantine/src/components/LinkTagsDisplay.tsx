@@ -8,9 +8,10 @@ import TagsEditor from "@/components/TagsEditor";
 interface Props {
   link: FeedLink | LinkView;
   refetch: (() => Promise<void>) | null;
+  allowEdits: boolean;
 }
 
-const LinkTagsDisplay = ({ link, refetch }: Props) => {
+const LinkTagsDisplay = ({ link, refetch, allowEdits }: Props) => {
   const [isEditOpen, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   return (
@@ -25,12 +26,16 @@ const LinkTagsDisplay = ({ link, refetch }: Props) => {
           {tag.name}
         </Badge>
       ))}
-      <Button size="xs" variant="subtle" onClick={openEdit}>
-        Edit Tags
-      </Button>
-      <DrawerDialog title="Edit Tags" open={isEditOpen} onClose={closeEdit}>
-        <TagsEditor link={link} refetch={refetch} />
-      </DrawerDialog>
+      {allowEdits ? (
+        <>
+          <Button size="xs" variant="subtle" onClick={openEdit}>
+            Edit Tags
+          </Button>
+          <DrawerDialog title="Edit Tags" open={isEditOpen} onClose={closeEdit}>
+            <TagsEditor link={link} refetch={refetch} />
+          </DrawerDialog>
+        </>
+      ) : null}
     </Group>
   );
 };

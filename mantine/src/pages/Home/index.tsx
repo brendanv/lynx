@@ -4,7 +4,7 @@ import LynxShell from "@/pages/LynxShell";
 import SearchBar, { SearchParams } from "@/components/SearchBar";
 import useLinksFeedQuery from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
-import { Alert, Center, Pagination } from "@mantine/core";
+import { Alert, Center, Pagination, SimpleGrid } from "@mantine/core";
 import classes from "./Home.module.css";
 
 export function HomePage() {
