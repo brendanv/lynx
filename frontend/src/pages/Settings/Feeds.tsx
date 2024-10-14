@@ -12,7 +12,6 @@ import {
   ActionIcon,
   Menu,
   Alert,
-  Modal,
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -23,6 +22,7 @@ import { Link } from "react-router-dom";
 import URLS from "@/lib/urls";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import DrawerDialog from "@/components/DrawerDialog";
 
 type Feed = {
   id: string;
@@ -196,12 +196,14 @@ const Feeds: React.FC = () => {
         feeds.map((feed) => <FeedCard key={feed.id} feed={feed} />)
       )}
 
-      <Modal opened={opened} onClose={close} title="Add New RSS Feed">
+      <DrawerDialog
+      open={opened} onClose={close} title="Add New RSS Feed">
         <form onSubmit={form.onSubmit(handleAddFeed)}>
           <TextInput
             required
             label="Feed URL"
             placeholder="https://example.com/feed"
+            size="md"
             {...form.getInputProps("feedUrl")}
           />
           <Switch
@@ -213,10 +215,10 @@ const Feeds: React.FC = () => {
             <Button type="submit">Add Feed</Button>
           </Group>
         </form>
-      </Modal>
+      </DrawerDialog>
 
-      <Modal
-        opened={deleteConfirmation.isOpen}
+      <DrawerDialog
+        open={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, feedId: null })}
         title="Confirm Deletion"
       >
@@ -237,7 +239,7 @@ const Feeds: React.FC = () => {
             Delete
           </Button>
         </Group>
-      </Modal>
+      </DrawerDialog>
     </Container>
   );
 };

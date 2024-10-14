@@ -9,9 +9,10 @@ interface Props {
   link: FeedLink | LinkView;
   refetch: (() => Promise<void>) | null;
   allowEdits: boolean;
+  size: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
-const LinkTagsDisplay = ({ link, refetch, allowEdits }: Props) => {
+const LinkTagsDisplay = ({ link, refetch, allowEdits, size }: Props) => {
   const [isEditOpen, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   return (
@@ -19,7 +20,7 @@ const LinkTagsDisplay = ({ link, refetch, allowEdits }: Props) => {
       {link.tags.map((tag) => (
         <Badge
           key={tag.id}
-          size="xs"
+          size={size}
           variant="gradient"
           gradient={{ from: "blue", to: "cyan", deg: 90 }}
         >
@@ -28,7 +29,7 @@ const LinkTagsDisplay = ({ link, refetch, allowEdits }: Props) => {
       ))}
       {allowEdits ? (
         <>
-          <Button size="xs" variant="subtle" onClick={openEdit}>
+          <Button size={size} variant="subtle" onClick={openEdit}>
             Edit Tags
           </Button>
           <DrawerDialog title="Edit Tags" open={isEditOpen} onClose={closeEdit}>

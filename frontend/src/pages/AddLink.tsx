@@ -79,6 +79,7 @@ const URLParserForm = () => {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Enter URL"
                 disabled={isLoading}
+                size="md"
               />
               <Button type="submit" fullWidth loading={isLoading}>
                 Parse {createdLink ? "Another " : ""}URL

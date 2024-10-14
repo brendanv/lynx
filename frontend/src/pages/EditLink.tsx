@@ -117,19 +117,29 @@ const EditLink = () => {
         </Title>
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
-            <TextInput label="Title" {...form.getInputProps("title")} />
-            <Textarea label="Excerpt" {...form.getInputProps("excerpt")} />
+            <TextInput
+              label="Title"
+              {...form.getInputProps("title")}
+              size="md"
+            />
+            <Textarea
+              label="Excerpt"
+              {...form.getInputProps("excerpt")}
+              size="md"
+            />
             <TextInput
               label="Article Date"
               type="date"
+              size="md"
               {...form.getInputProps("article_date")}
             />
-            <LinkTagsDisplay link={link} refetch={refetch} allowEdits />
+            <LinkTagsDisplay link={link} refetch={refetch} allowEdits size="md" />
             <Button
               type="submit"
               fullWidth
               disabled={!form.isDirty() || isSubmitting}
               loading={isSubmitting}
+              size="md"
             >
               Update Link
             </Button>

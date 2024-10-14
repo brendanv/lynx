@@ -112,7 +112,7 @@ const ArticleHeader: React.FC<{
               </Anchor>
             </div>
           ) : null}
-          <LinkTagsDisplay link={linkView} refetch={refetch} allowEdits />
+          <LinkTagsDisplay size="xs" link={linkView} refetch={refetch} allowEdits />
         </Group>
       </Stack>
     </Container>

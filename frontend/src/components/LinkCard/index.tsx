@@ -40,21 +40,23 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
   });
   const items: React.ReactNode[] = [
     formattedDate,
-    <span key="hostname" className={classes.hostname}>{link.hostname}</span>,
+    <span key="hostname" className={classes.hostname}>
+      {link.hostname}
+    </span>,
     link.read_time_display,
   ].filter(Boolean);
   const itemsWithDividers = items.reduce(
     (acc: any, item, index) =>
       index === items.length - 1
         ? [...acc, item]
-        : [...acc, item, <Divider key={`divider-${index}`} orientation="vertical" />],
+        : [
+            ...acc,
+            item,
+            <Divider key={`divider-${index}`} orientation="vertical" />,
+          ],
     [],
   );
-  return (
-    <div className={classes.metadata}>
-      {itemsWithDividers}
-    </div>
-  )
+  return <div className={classes.metadata}>{itemsWithDividers}</div>;
 };
 const LinkCard = ({ link, onUpdate }: Props) => {
   const { pb } = usePocketBase();
@@ -204,6 +206,7 @@ const LinkCard = ({ link, onUpdate }: Props) => {
               link={link}
               refetch={onUpdate}
               allowEdits={false}
+              size="xs"
             />
           </div>
         ) : null}

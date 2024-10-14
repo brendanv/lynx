@@ -105,6 +105,7 @@ const Cookies: React.FC = () => {
               setNewCookie({ ...newCookie, domain: e.target.value })
             }
             placeholder="Domain"
+            size="md"
             required
           />
           <TextInput
@@ -113,6 +114,7 @@ const Cookies: React.FC = () => {
               setNewCookie({ ...newCookie, name: e.target.value })
             }
             placeholder="Name"
+            size="md"
             required
           />
           <TextInput
@@ -121,6 +123,7 @@ const Cookies: React.FC = () => {
               setNewCookie({ ...newCookie, value: e.target.value })
             }
             placeholder="Value"
+            size="md"
             required
           />
           <Button type="submit" leftSection={<IconPlus size={14} />}>

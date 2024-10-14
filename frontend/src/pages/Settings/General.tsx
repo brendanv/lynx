@@ -9,13 +9,13 @@ import {
   Text,
   Paper,
 } from "@mantine/core";
-import { useForm } from '@mantine/form';
+import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const General: React.FC = () => {
-  usePageTitle('Settings')
+  usePageTitle("Settings");
   const { pb, user } = usePocketBase();
   const form = useForm({
     initialValues: {
@@ -42,7 +42,8 @@ const General: React.FC = () => {
       form.setValues({
         openai_api_key: record.openai_api_key || "",
         anthropic_api_key: record.anthropic_api_key || "",
-        automatically_summarize_new_links: record.automatically_summarize_new_links || false,
+        automatically_summarize_new_links:
+          record.automatically_summarize_new_links || false,
         summarization_model: record.summarization_model || "",
         id: record.id,
       });
@@ -107,37 +108,47 @@ const General: React.FC = () => {
           <TextInput
             label="OpenAI API Key"
             type="password"
-            {...form.getInputProps('openai_api_key')}
+            {...form.getInputProps("openai_api_key")}
             mb="md"
+            size="md"
           />
           <TextInput
             label="Anthropic API Key"
             type="password"
-            {...form.getInputProps('anthropic_api_key')}
+            {...form.getInputProps("anthropic_api_key")}
             mb="md"
+            size="md"
           />
           <Group mb="md">
             <Switch
               label="Automatically summarize new links"
-              {...form.getInputProps('automatically_summarize_new_links', { type: 'checkbox' })}
+              {...form.getInputProps("automatically_summarize_new_links", {
+                type: "checkbox",
+              })}
+              size="md"
             />
           </Group>
           <Select
             label="Summarization Model"
+            size="md"
             data={[
               { value: "gpt-4o-mini", label: "GPT-4O Mini" },
               { value: "gpt-4o", label: "GPT-4O" },
               { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
-              { value: "claude-3-5-sonnet-20240620", label: "Claude 3.5 Sonnet" },
+              {
+                value: "claude-3-5-sonnet-20240620",
+                label: "Claude 3.5 Sonnet",
+              },
               { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
             ]}
-            {...form.getInputProps('summarization_model')}
+            {...form.getInputProps("summarization_model")}
             mb="md"
           />
-          <Button 
-            type="submit" 
-            disabled={!form.isDirty()} 
+          <Button
+            type="submit"
+            disabled={!form.isDirty()}
             loading={isLoading}
+            size="md"
           >
             Save Settings
           </Button>

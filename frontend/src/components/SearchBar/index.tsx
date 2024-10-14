@@ -50,11 +50,13 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
         placeholder="Search..."
         value={searchParams.searchText}
         onChange={(e) => updateSearchParams({ searchText: e.target.value })}
+        size="md"
       />
       <Menu>
         <Menu.Target>
           <Button
             variant={searchParams.readState === "all" ? "default" : "filled"}
+            size="md"
           >
             <IconFilter />
           </Button>
@@ -88,6 +90,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
             variant={
               searchParams.sortBy === "added_to_library" ? "default" : "filled"
             }
+            size="md"
           >
             <IconSortAscending />
           </Button>
@@ -117,7 +120,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
       </Menu>
       <Menu>
         <Menu.Target>
-          <Button variant={searchParams.tagId ? "filled" : "default"}>
+          <Button variant={searchParams.tagId ? "filled" : "default"} size="md">
             <IconTag />
           </Button>
         </Menu.Target>
@@ -146,7 +149,10 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
       </Menu>
       <Menu>
         <Menu.Target>
-          <Button variant={searchParams.feedId ? "filled" : "default"}>
+          <Button
+            variant={searchParams.feedId ? "filled" : "default"}
+            size="md"
+          >
             <IconRss />
           </Button>
         </Menu.Target>
