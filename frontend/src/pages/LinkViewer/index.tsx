@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useWindowScroll } from "@mantine/hooks";
 import { useParams } from "react-router-dom";
 import {
+  ActionIcon,
+  Affix,
   Anchor,
   BackgroundImage,
   Container,
   Text,
+  Transition,
   TypographyStylesProvider,
   Group,
   Stack,
@@ -15,6 +19,7 @@ import {
 } from "@mantine/core";
 import {
   IconAlertCircle,
+  IconArrowUp,
   IconClockFilled,
   IconLink,
   IconUserFilled,
@@ -143,6 +148,7 @@ const ArticleView = ({
   const [lastSentProgress, setLastSentProgress] = useState(
     linkView.reading_progress || 0,
   );
+  const [scroll, scrollTo] = useWindowScroll();
 
   const { pb } = usePocketBase();
   const handleScroll = useCallback(() => {
@@ -215,6 +221,21 @@ const ArticleView = ({
           />
         </TypographyStylesProvider>
       </Container>
+      <Affix position={{ bottom: 20, right: 20 }}>
+        <Transition transition="slide-up" mounted={scroll.y > 0}>
+          {(transitionStyles) => (
+            <ActionIcon
+              radius="xl"
+              size="lg"
+              onClick={() => scrollTo({ y: 0 })}
+              style={transitionStyles}
+              aria-label="Scroll to top"
+            >
+              <IconArrowUp style={{ width: "70% ", height: "70%" }} />
+            </ActionIcon>
+          )}
+        </Transition>
+      </Affix>
     </FullBleedLynxShell>
   );
 };
