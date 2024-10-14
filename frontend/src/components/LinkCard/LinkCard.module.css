@@ -29,10 +29,18 @@
 .metadata {
   color: var(--mantine-color-dimmed);
   font-size: var(--mantine-font-size-xs);
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  white-space: nowrap;
 }
 
 .hostname {
   text-transform: uppercase;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .skeletons {

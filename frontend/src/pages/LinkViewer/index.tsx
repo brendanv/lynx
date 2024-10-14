@@ -208,7 +208,7 @@ const ArticleView = ({
       <NavigationProgress />
       <ArticleHeader linkView={linkView} refetch={refetch} />
       <Container size="md">
-        <TypographyStylesProvider fz="lg">
+        <TypographyStylesProvider fz="lg" px="0.5rem">
           <div
             className={classes.articleContent}
             dangerouslySetInnerHTML={{ __html: linkView.article_html || "" }}

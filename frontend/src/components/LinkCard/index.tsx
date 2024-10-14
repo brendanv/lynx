@@ -40,21 +40,21 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
   });
   const items: React.ReactNode[] = [
     formattedDate,
-    <span className={classes.hostname}>{link.hostname}</span>,
+    <span key="hostname" className={classes.hostname}>{link.hostname}</span>,
     link.read_time_display,
   ].filter(Boolean);
   const itemsWithDividers = items.reduce(
     (acc: any, item, index) =>
       index === items.length - 1
         ? [...acc, item]
-        : [...acc, item, <Divider orientation="vertical" />],
+        : [...acc, item, <Divider key={`divider-${index}`} orientation="vertical" />],
     [],
   );
   return (
-    <Group wrap="nowrap" gap="xs" className={classes.metadata}>
+    <div className={classes.metadata}>
       {itemsWithDividers}
-    </Group>
-  );
+    </div>
+  )
 };
 const LinkCard = ({ link, onUpdate }: Props) => {
   const { pb } = usePocketBase();
