@@ -17,3 +17,8 @@
 .searchBar> :first-child {
   flex-grow: 1
 }
+
+.actionIcon {
+  height: 42px;
+  width: 3rem;
+}
