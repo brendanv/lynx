@@ -1,12 +1,19 @@
-.searchBar {
+.searchWrapper {
+  margin-bottom: var(--mantine-spacing-xl);
+}
+
+.selectedFilters {
+  margin-top: var(--mantine-spacing-md);
+}
+
+.searchBar, .selectedFilters {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: flex-start;
   gap: var(--mantine-spacing-md);
-  margin-bottom: var(--mantine-spacing-xl);
 }
 
-.searchBar > :first-child {
+.searchBar> :first-child {
   flex-grow: 1
 }
