@@ -1,7 +1,7 @@
 import { render, screen } from "@/test-utils";
 import { vi, describe, it, expect, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import LynxLoggedInPage from "@/pages/LynxLoggedInPage";
+import { AuthOnly as LynxLoggedInPage } from "@/pages/LynxLoggedInPage";
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
@@ -39,11 +39,13 @@ describe("LynxLoggedInPage", () => {
   it("does not render the outlet if not logged in", async () => {
     render(
       <TestWrapper>
-        <LynxLoggedInPage />
+        <LynxLoggedInPage>
+          <span data-testid="protected-content" />
+        </LynxLoggedInPage>
       </TestWrapper>,
     );
 
-    const outlet = screen.queryByTestId("outlet");
+    const outlet = screen.queryByTestId("protected-content");
     expect(outlet).toBeNull();
   });
 
@@ -51,11 +53,13 @@ describe("LynxLoggedInPage", () => {
     validLogin = true;
     render(
       <TestWrapper>
-        <LynxLoggedInPage />
+        <LynxLoggedInPage>
+          <span data-testid="protected-content" />
+        </LynxLoggedInPage>
       </TestWrapper>,
     );
 
-    const outlet = screen.queryByTestId("outlet");
+    const outlet = screen.queryByTestId("protected-content");
     expect(outlet).not.toBeNull();
   });
 });
