@@ -13,6 +13,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ export default function App() {
     <Suspense>
       <MantineProvider theme={theme} cssVariablesResolver={resolver}>
         <QueryClientProvider client={queryClient}>
+          <ReactQueryDevtools initialIsOpen={false} />
           <Notifications />
           <PocketBaseProvider>
             <Router />

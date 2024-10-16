@@ -7,6 +7,7 @@ const useAllUserTagsWithoutMetadata = () => {
   const { user, pb } = usePocketBase();
   return useQuery({
     queryKey: ["tags", "all", user?.id, { metadata: false }],
+    staleTime: 60 * 1000,
     queryFn: async ({
       queryKey,
     }: {
@@ -28,6 +29,7 @@ export default function useAllUserTags() {
   const { user, pb } = usePocketBase();
   return useQuery({
     queryKey: ["tags", "all", user?.id, { metadata: true}],
+    staleTime: 60 * 1000,
     queryFn: async ({
       queryKey,
     }: {

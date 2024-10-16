@@ -6,6 +6,7 @@ const useAllUserFeeds = () => {
   const { user, pb } = usePocketBase();
   return useQuery({
     queryKey: ["feeds", "all", user?.id],
+    staleTime: 60 * 1000,
     queryFn: async ({
       queryKey,
     }: {

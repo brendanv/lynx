@@ -20,6 +20,7 @@
     "@mantine/spotlight": "^7.13.2",
     "@tabler/icons-react": "^3.19.0",
     "@tanstack/react-query": "^5.59.15",
+    "@tanstack/react-query-devtools": "^5.59.15",
     "pocketbase": "^0.21.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
