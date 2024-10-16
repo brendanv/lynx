@@ -22,7 +22,7 @@ const useAllUserTagsWithoutMetadata = () => {
     try {
       const records = await pb.collection("tags").getFullList<Tag>({
         sort: "name",
-        filter: `user="${user.id}"`,
+        filter: pb.filter("user = {:user}", { user: user.id }),
       });
       setTags(records);
       setError(null);

@@ -1,0 +1,59 @@
+.card {
+  background-color: var(--mantine-color-body);
+}
+
+.footer {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+  margin-top: var(--mantine-spacing-md);
+  border-top: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+}
+
+.clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.title {
+  font-weight: bold;
+  font-size: var(--mantine-font-size-lg);
+  font-family:
+    Greycliff CF,
+    var(--mantine-font-family);
+  line-height: 1.2;
+}
+
+.metadata {
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  white-space: nowrap;
+}
+
+.hostname {
+  text-transform: uppercase;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tags {
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.headerImage {
+  height: 8rem;
+  width: 100%;
+}
