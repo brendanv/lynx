@@ -24,11 +24,7 @@ const LynxCommandMenu = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  const {
-    tags,
-    loading: tagsLoading,
-    error: tagsError,
-  } = useAllUserTagsWithoutMetadata();
+  const tagsQuery = useAllUserTagsWithoutMetadata();
   const feedsQuery = useAllUserFeeds();
 
   const pageTagFeedActions: (SpotlightActionGroupData | SpotlightActionData)[] =
@@ -120,7 +116,6 @@ const LynxCommandMenu = () => {
           actions: feeds.map((feed) => ({
             id: `feed-${feed.id}`,
             label: feed.name,
-            // description: "View links for feed",
             onClick: () => navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
             leftSection: (
               <IconRss
@@ -131,13 +126,13 @@ const LynxCommandMenu = () => {
           })),
         });
       }
-      if (!tagsLoading && !tagsError && tags.length > 0) {
+      if (tagsQuery.status === "success") {
+        const { data: tags } = tagsQuery;
         baseActions.push({
           group: "Tags",
           actions: tags.map((tag) => ({
             id: `tag-${tag.id}`,
             label: tag.name,
-            // description: `View links with tag: ${tag.name}`,
             onClick: () => navigate(URLS.HOME_WITH_TAGS_SEARCH(tag.id)),
             leftSection: (
               <IconTag
@@ -149,7 +144,7 @@ const LynxCommandMenu = () => {
         });
       }
       return baseActions;
-    }, [tags, tagsLoading, tagsError, navigate, feedsQuery]);
+    }, [tagsQuery, navigate, feedsQuery]);
 
   const searchAction = {
     id: "search",

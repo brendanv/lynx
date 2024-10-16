@@ -13,8 +13,8 @@ interface Props {
 
 const TagsEditor = ({ link, refetch }: Props) => {
   const { pb } = usePocketBase();
-  const { loading: allTagsLoading, tags: allTags } =
-    useAllUserTagsWithoutMetadata();
+  const tagsQuery = useAllUserTagsWithoutMetadata();
+  const allTags = tagsQuery.status === 'success' ? tagsQuery.data : [];
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,7 +58,7 @@ const TagsEditor = ({ link, refetch }: Props) => {
     }
   };
 
-  if (allTagsLoading) {
+  if (tagsQuery.isFetching) {
     return (
       <Center>
         <Loader />

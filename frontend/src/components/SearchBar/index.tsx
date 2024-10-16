@@ -27,7 +27,8 @@ type SearchBarProps = {
 };
 
 const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
-  const { tags } = useAllUserTagsWithoutMetadata();
+  const tagsQuery = useAllUserTagsWithoutMetadata();
+  const tags = tagsQuery.status === "success" ? tagsQuery.data : [];
   const feedsQuery = useAllUserFeeds();
   const feeds = feedsQuery.status === "success" ? feedsQuery.data : [];
   const updateSearchParams = (newParams: Partial<SearchParams>) => {
