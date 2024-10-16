@@ -9,6 +9,12 @@ import { theme } from "@/theme";
 import { Suspense } from "react";
 import { PocketBaseProvider } from "@/hooks/usePocketBase";
 import { Notifications } from "@mantine/notifications";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const resolver: CSSVariablesResolver = () => ({
   variables: {
@@ -22,10 +28,12 @@ export default function App() {
   return (
     <Suspense>
       <MantineProvider theme={theme} cssVariablesResolver={resolver}>
-        <Notifications />
-        <PocketBaseProvider>
-          <Router />
-        </PocketBaseProvider>
+        <QueryClientProvider client={queryClient}>
+          <Notifications />
+          <PocketBaseProvider>
+            <Router />
+          </PocketBaseProvider>
+        </QueryClientProvider>
       </MantineProvider>
     </Suspense>
   );

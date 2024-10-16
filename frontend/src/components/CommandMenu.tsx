@@ -29,7 +29,7 @@ const LynxCommandMenu = () => {
     loading: tagsLoading,
     error: tagsError,
   } = useAllUserTagsWithoutMetadata();
-  const { feeds, loading: feedsLoading, error: feedsError } = useAllUserFeeds();
+  const feedsQuery = useAllUserFeeds();
 
   const pageTagFeedActions: (SpotlightActionGroupData | SpotlightActionData)[] =
     useMemo(() => {
@@ -113,7 +113,8 @@ const LynxCommandMenu = () => {
         },
       ];
 
-      if (!feedsLoading && !feedsError && feeds.length > 0) {
+      if (feedsQuery.status === "success") {
+        const { data: feeds } = feedsQuery;
         baseActions.push({
           group: "Feeds",
           actions: feeds.map((feed) => ({
@@ -148,15 +149,7 @@ const LynxCommandMenu = () => {
         });
       }
       return baseActions;
-    }, [
-      feeds,
-      tags,
-      feedsLoading,
-      tagsLoading,
-      feedsError,
-      tagsError,
-      navigate,
-    ]);
+    }, [tags, tagsLoading, tagsError, navigate, feedsQuery]);
 
   const searchAction = {
     id: "search",
