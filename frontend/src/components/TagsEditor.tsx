@@ -1,23 +1,20 @@
 import { useState, useEffect } from "react";
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
-import { usePocketBase } from "@/hooks/usePocketBase";
 import { Button, Center, Chip, Group, Loader } from "@mantine/core";
 import type FeedLink from "@/types/FeedLink";
 import type { LinkView } from "@/hooks/useLinkViewerQuery";
-import { notifications } from "@mantine/notifications";
+import { GenericLynxMutator } from "@/types/Mutations";
 
 interface Props {
   link: FeedLink | LinkView;
-  refetch: (() => Promise<void>) | null;
+  linkMutator: GenericLynxMutator<FeedLink | LinkView>;
 }
 
-const TagsEditor = ({ link, refetch }: Props) => {
-  const { pb } = usePocketBase();
+const TagsEditor = ({ link, linkMutator }: Props) => {
   const tagsQuery = useAllUserTagsWithoutMetadata();
-  const allTags = tagsQuery.status === 'success' ? tagsQuery.data : [];
+  const allTags = tagsQuery.status === "success" ? tagsQuery.data : [];
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const initiallySelectedTags = allTags.filter(
@@ -39,23 +36,16 @@ const TagsEditor = ({ link, refetch }: Props) => {
   };
 
   const saveTags = async () => {
-    setIsSaving(true);
-    try {
-      await pb.collection("links").update(link.id, {
-        tags: selectedTagIds,
-      });
-      setHasChanges(false);
-      refetch && refetch();
-    } catch (error) {
-      console.error("Error updating tags:", error);
-      notifications.show({
-        title: "Error",
-        message: "Unable to save tags",
-        color: "red",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    linkMutator.mutate({
+      id: link.id,
+      updates: { tags: selectedTagIds },
+      options: {
+        afterSuccess: () => {
+          setHasChanges(false);
+        },
+        onErrorMessage: "Unable to save tags",
+      }
+    })
   };
 
   if (tagsQuery.isFetching) {
@@ -89,7 +79,7 @@ const TagsEditor = ({ link, refetch }: Props) => {
         })}
       </Group>
       <Group mt="lg" grow>
-        <Button loading={isSaving} onClick={saveTags} disabled={!hasChanges}>
+        <Button loading={linkMutator.isPending} onClick={saveTags} disabled={!hasChanges}>
           Save Changes
         </Button>
       </Group>

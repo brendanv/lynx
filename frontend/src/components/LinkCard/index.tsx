@@ -204,8 +204,6 @@ const LinkCard = ({ link, onUpdate }: Props) => {
           <div className={classes.tags}>
             <LinkTagsDisplay
               link={link}
-              refetch={onUpdate}
-              allowEdits={false}
               size="xs"
             />
           </div>
