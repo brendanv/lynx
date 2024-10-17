@@ -23,20 +23,19 @@ import { IconAlertCircle, IconPlus, IconTrash } from "@tabler/icons-react";
 import URLS from "@/lib/urls";
 import DrawerDialog from "@/components/DrawerDialog";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { TagWithMetadata } from "@/types/Tag";
 
 const Tags: React.FC = () => {
   usePageTitle("Tags");
   const { pb, user } = usePocketBase();
-  const {
-    tags,
-    loading: isLoading,
-    error,
-    refetch: fetchTags,
-  } = useAllUserTags();
+  const tagsQuery = useAllUserTags();
+  const tags = tagsQuery.status === "success" ? tagsQuery.data : [];
+  const queryClient = useQueryClient();
   const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<any>(null);
+  const [tagToDelete, setTagToDelete] = useState<TagWithMetadata | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -55,55 +54,56 @@ const Tags: React.FC = () => {
       .replace(/\s+/g, "-");
   };
 
-  const handleSubmit = async (values: { tagName: string }) => {
-    try {
-      const slug = generateSlug(values.tagName);
-      await pb.collection("tags").create({
-        name: values.tagName,
+  const addMutation = useMutation({
+    mutationFn: async ({ tagName }: { tagName: string }) => {
+      const slug = generateSlug(tagName);
+      return await pb.collection("tags").create({
+        name: tagName,
         slug: slug,
         user: user?.id,
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags", "all", user?.id] });
       form.reset();
       notifications.show({
         message: "Tag created successfully",
         color: "green",
       });
-      fetchTags();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error creating tag:", error);
       notifications.show({
         message: "Failed to create tag. Please try again.",
         color: "red",
       });
-    }
-  };
+    },
+  });
 
-  const handleDeleteClick = (tag: any) => {
+  const handleDeleteClick = (tag: TagWithMetadata) => {
     setTagToDelete(tag);
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!tagToDelete) return;
-
-    try {
-      await pb.collection("tags").delete(tagToDelete.id);
-      notifications.show({
-        message: "Tag deleted successfully",
-        color: "green",
-      });
-      fetchTags();
-    } catch (error) {
+  const deleteMutation = useMutation({
+    mutationFn: async ({ tag }: { tag: TagWithMetadata }) => {
+      return await pb.collection("tags").delete(tag.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags", "all", user?.id] });
+      setIsDeleteModalOpen(false);
+      setTagToDelete(null);
+    },
+    onError: (error) => {
       console.error("Error deleting tag:", error);
       notifications.show({
         message: "Failed to delete tag. Please try again.",
         color: "red",
       });
-    } finally {
       setIsDeleteModalOpen(false);
       setTagToDelete(null);
-    }
-  };
+    },
+  });
 
   const handleSort = (field: string) => {
     if (field === sortField) {
@@ -131,27 +131,17 @@ const Tags: React.FC = () => {
 
   return (
     <Container mt="md">
-      {!user && (
+      {tagsQuery.error && (
         <Alert
           icon={<IconAlertCircle size="1rem" />}
           title="Error"
           color="red"
           mb="md"
         >
-          Please log in to view tags.
+          Error: {String(tagsQuery.error)}
         </Alert>
       )}
-      {error && (
-        <Alert
-          icon={<IconAlertCircle size="1rem" />}
-          title="Error"
-          color="red"
-          mb="md"
-        >
-          Error: {error}
-        </Alert>
-      )}
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <form onSubmit={form.onSubmit(addMutation.mutate as any)}>
         <TextInput
           radius="xl"
           size="md"
@@ -170,7 +160,7 @@ const Tags: React.FC = () => {
         />
       </form>
 
-      {isLoading ? (
+      {tagsQuery.isPending ? (
         <Center>
           <Loader />
         </Center>
@@ -248,7 +238,12 @@ const Tags: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button color="red" onClick={handleDeleteConfirm}>
+            <Button
+              color="red"
+              onClick={() =>
+                tagToDelete && deleteMutation.mutate({ tag: tagToDelete })
+              }
+            >
               Delete
             </Button>
           </Group>

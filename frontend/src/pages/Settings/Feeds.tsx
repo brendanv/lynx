@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import {
+  Center,
   Container,
   Title,
   Button,
@@ -23,6 +24,7 @@ import URLS from "@/lib/urls";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import DrawerDialog from "@/components/DrawerDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Feed = {
   id: string;
@@ -34,10 +36,39 @@ type Feed = {
   last_fetched_at: string;
 };
 
-const Feeds: React.FC = () => {
+const Feeds = () => {
   usePageTitle("Feeds");
+  const feedsQuery = useAllUserFeeds();
+
+  let inner = null;
+  if (feedsQuery.status === "pending") {
+    inner = (
+      <Center>
+        <Loader />
+      </Center>
+    );
+  } else if (feedsQuery.status === "error") {
+    inner = (
+      <Center>
+        <Alert color="red">
+          Unable to load feeds: {String(feedsQuery.error)}
+        </Alert>
+      </Center>
+    );
+  } else {
+    inner = <InnerContent feeds={feedsQuery.data} />;
+  }
+
+  return (
+    <Container size="md" mt="xl">
+      {inner}
+    </Container>
+  );
+};
+
+const InnerContent = ({ feeds }: { feeds: Feed[] }) => {
   const { pb } = usePocketBase();
-  const { feeds, loading, error, refetch } = useAllUserFeeds();
+  const queryClient = useQueryClient();
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     feedId: string | null;
@@ -54,66 +85,82 @@ const Feeds: React.FC = () => {
     },
   });
 
-  const handleAddFeed = async (values: typeof form.values) => {
-    try {
+  const addMutation = useMutation({
+    mutationFn: async (values: typeof form.values) => {
       const formData = new FormData();
       formData.append("url", values.feedUrl);
       formData.append("auto_add_items", values.autoAdd.toString());
-      await pb.send("/lynx/parse_feed", { method: "POST", body: formData });
-      await refetch();
+      return await pb.send("/lynx/parse_feed", {
+        method: "POST",
+        body: formData,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feeds"] });
       close();
       form.reset();
       notifications.show({
         message: "Feed added successfully",
         color: "green",
       });
-    } catch (err) {
-      console.error("Error adding feed:", err);
+    },
+    onError: (error) => {
+      console.error("Error adding feed:", error);
       notifications.show({
         message: "Failed to add feed. Please try again.",
         color: "red",
       });
-    }
-  };
+    },
+  });
 
-  const handleToggleAutoAdd = async (id: string, currentValue: boolean) => {
-    try {
-      await pb.collection("feeds").update(id, {
+  const toggleMutation = useMutation({
+    mutationFn: async ({
+      feedId,
+      currentValue,
+    }: {
+      feedId: string;
+      currentValue: boolean;
+    }) => {
+      return await pb.collection("feeds").update(feedId, {
         auto_add_feed_items_to_library: !currentValue,
       });
-      await refetch();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feeds"] });
       notifications.show({
         message: "Feed updated successfully",
         color: "green",
       });
-    } catch (err) {
-      console.error("Error updating feed:", err);
+    },
+    onError: (error) => {
+      console.error("Error updating feed:", error);
       notifications.show({
         message: "Failed to update feed. Please try again.",
         color: "red",
       });
-    }
-  };
+    },
+  });
 
-  const handleDeleteFeed = async () => {
-    if (deleteConfirmation.feedId) {
-      try {
-        await pb.collection("feeds").delete(deleteConfirmation.feedId);
-        await refetch();
-        setDeleteConfirmation({ isOpen: false, feedId: null });
-        notifications.show({
-          message: "Feed deleted successfully",
-          color: "green",
-        });
-      } catch (err) {
-        console.error("Error deleting feed:", err);
-        notifications.show({
-          message: "Failed to delete feed. Please try again.",
-          color: "red",
-        });
-      }
-    }
-  };
+  const deleteMutation = useMutation({
+    mutationFn: async ({ feedId }: { feedId: string }) => {
+      return await pb.collection("feeds").delete(feedId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feeds"] });
+      setDeleteConfirmation({ isOpen: false, feedId: null });
+      notifications.show({
+        message: "Feed deleted successfully",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting feed:", error);
+      notifications.show({
+        message: "Failed to delete feed. Please try again.",
+        color: "red",
+      });
+    },
+  });
 
   const FeedCard: React.FC<{ feed: Feed }> = ({ feed }) => (
     <Card shadow="sm" padding="lg" radius="md" withBorder mb="md">
@@ -135,7 +182,10 @@ const Feeds: React.FC = () => {
           <Switch
             checked={feed.auto_add_feed_items_to_library}
             onChange={() =>
-              handleToggleAutoAdd(feed.id, feed.auto_add_feed_items_to_library)
+              toggleMutation.mutate({
+                feedId: feed.id,
+                currentValue: feed.auto_add_feed_items_to_library,
+              })
             }
             label="Auto-add"
           />
@@ -184,21 +234,12 @@ const Feeds: React.FC = () => {
         </Button>
       </Group>
 
-      {error && (
-        <Alert color="red" mb="md">
-          {error}
-        </Alert>
-      )}
+      {feeds.map((feed) => (
+        <FeedCard key={feed.id} feed={feed} />
+      ))}
 
-      {loading ? (
-        <Loader />
-      ) : (
-        feeds.map((feed) => <FeedCard key={feed.id} feed={feed} />)
-      )}
-
-      <DrawerDialog
-      open={opened} onClose={close} title="Add New RSS Feed">
-        <form onSubmit={form.onSubmit(handleAddFeed)}>
+      <DrawerDialog open={opened} onClose={close} title="Add New RSS Feed">
+        <form onSubmit={form.onSubmit(addMutation.mutate as any)}>
           <TextInput
             required
             label="Feed URL"
@@ -235,7 +276,13 @@ const Feeds: React.FC = () => {
           >
             Cancel
           </Button>
-          <Button color="red" onClick={handleDeleteFeed}>
+          <Button
+            color="red"
+            onClick={() =>
+              deleteConfirmation.feedId &&
+              deleteMutation.mutate({ feedId: deleteConfirmation.feedId })
+            }
+          >
             Delete
           </Button>
         </Group>

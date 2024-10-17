@@ -1,8 +1,16 @@
 import { usePocketBase } from "@/hooks/usePocketBase";
 import type FeedLink from "@/types/FeedLink";
+import { GenericLynxMutator } from "@/types/Mutations";
 import type Tag from "@/types/Tag";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import Client, { ListResult } from "pocketbase";
-import { useEffect, useState } from "react";
+import { notifications } from "@mantine/notifications";
+import { useCallback } from "react";
 
 const PAGE_SIZE = 15;
 
@@ -13,13 +21,6 @@ type Props = {
   searchText?: string;
   feedId?: string;
   sortBy: "added_to_library" | "article_date";
-};
-
-type QueryResult = {
-  loading: boolean;
-  error: Error | null;
-  result: ListResult<FeedLink> | null;
-  refetch: (() => Promise<void>) | null;
 };
 
 export type FeedQueryItem = {
@@ -40,6 +41,25 @@ export type FeedQueryItem = {
   user: string;
   archive: string | null;
 };
+
+// Must be kept in sync with the above
+const getFields = () =>
+  [
+    "id",
+    "added_to_library",
+    "article_date",
+    "author",
+    "excerpt",
+    "header_image_url",
+    "hostname",
+    "last_viewed_at",
+    "read_time_display",
+    "title",
+    "tags",
+    "archive",
+    "user",
+    "expand.tags.*",
+  ].join(",");
 
 export const convertFeedQueryItemToFeedLink = (
   item: FeedQueryItem,
@@ -98,53 +118,104 @@ const buildFilters = (client: Client, props: Props) => {
   return filterExprs.join(" && ");
 };
 
-const useLinksFeedQuery = (props: Props): QueryResult => {
+export const useLinksFeedMutation = (
+  props: Props,
+): GenericLynxMutator<FeedLink> => {
+  const { pb } = usePocketBase();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updates, options: _options }) => {
+      const mutationResult = await pb
+        .collection("links")
+        .update<FeedQueryItem>(id, updates, {
+          fields: getFields(),
+          expand: "tags",
+        });
+      return convertFeedQueryItemToFeedLink(mutationResult);
+    },
+    onSuccess: (data, variables) => {
+      const { id, options } = variables;
+      queryClient.setQueryData(
+        ["links", { source: "feed", ...props }],
+        (oldData: DT) => {
+          return {
+            ...oldData,
+            items: oldData.items.map((item) => {
+              if (item.id === id) {
+                return data;
+              } else {
+                return item;
+              }
+            }),
+          };
+        },
+      );
+      if (options?.onSuccessMessage) {
+        notifications.show({
+          title: "Link updated",
+          message: options.onSuccessMessage,
+          color: "green",
+        });
+      }
+      if (options?.afterSuccess) {
+        options.afterSuccess();
+      }
+    },
+    onError: (error, variables) => {
+      console.error("Failed to update link", error);
+      if (variables?.options?.onErrorMessage) {
+        notifications.show({
+          title: "Failed to update link",
+          message: variables.options.onErrorMessage,
+          color: "red",
+        });
+      }
+      if (variables?.options?.afterError) {
+        variables.options.afterError(error);
+      }
+    },
+  });
+};
+
+type DT = Omit<ListResult<FeedQueryItem>, "items"> & {
+  items: FeedLink[];
+};
+const useLinksFeedQuery = (props: Props) => {
   const { pb } = usePocketBase();
   const authModel = pb.authStore.model;
-  if (authModel === null) {
-    return { loading: false, error: null, result: null, refetch: null };
-  }
 
-  const [result, setResult] = useState<ListResult<FeedLink> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  return useQuery({
+    queryKey: ["links", { source: "feed", ...props }],
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: ["links", Props & { source: string }];
+    }): Promise<DT> => {
+      const [_1, { source, ...queryProps }] = queryKey;
       const queryResult = await pb
         .collection("links_feed")
-        .getList<FeedQueryItem>(props.page || 1, PAGE_SIZE, {
-          filter: buildFilters(pb, props),
+        .getList<FeedQueryItem>(queryProps.page || 1, PAGE_SIZE, {
+          filter: buildFilters(pb, queryProps),
           expand: "tags",
-          sort: `-${props.sortBy}`,
+          sort: `-${queryProps.sortBy}`,
         });
-      setResult({
+      return {
         ...queryResult,
         items: queryResult.items.map(convertFeedQueryItemToFeedLink),
-      });
-      setError(null);
-    } catch (e: any) {
-      setError(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+      };
+    },
+    enabled: !!authModel,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+  });
+};
 
-  useEffect(() => {
-    fetchData();
-  }, [
-    props.page,
-    props.readState,
-    props.tagId,
-    props.searchText,
-    props.sortBy,
-    props.feedId,
-    authModel.id,
-  ]);
-
-  return { result, loading, error, refetch: fetchData };
+export const useInvalidateLinksFeed = () => {
+  const queryClient = useQueryClient();
+  return useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["links"] }),
+    [queryClient],
+  );
 };
 
 export default useLinksFeedQuery;

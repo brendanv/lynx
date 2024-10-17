@@ -26,7 +26,10 @@ import {
   IconCalendarFilled,
 } from "@tabler/icons-react";
 import { FullBleedLynxShell } from "@/pages/LynxShell";
-import useLinkViewerQuery, { LinkView } from "@/hooks/useLinkViewerQuery";
+import useLinkViewerQuery, {
+  LinkView,
+  useLinkViewerMutation,
+} from "@/hooks/useLinkViewerQuery";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { nprogress, NavigationProgress } from "@mantine/nprogress";
 import { usePocketBase } from "@/hooks/usePocketBase";
@@ -40,10 +43,10 @@ const LinkViewer = () => {
     return <FullBleedLynxShell>error</FullBleedLynxShell>;
   }
 
-  const { result, loading, error, refetch } = useLinkViewerQuery(id, true);
-  usePageTitle(result?.title || "View Link");
+  const linkQuery = useLinkViewerQuery(id, true);
+  usePageTitle(linkQuery.data?.title || "View Link");
 
-  if (loading) {
+  if (linkQuery.isPending) {
     return (
       <FullBleedLynxShell>
         <LoadingView />
@@ -51,24 +54,22 @@ const LinkViewer = () => {
     );
   }
 
-  if (error && !result) {
+  if (linkQuery.isError) {
     return (
       <FullBleedLynxShell>
-        <ErrorView error={error} />
+        <ErrorView error={linkQuery.error} />
       </FullBleedLynxShell>
     );
   }
 
-  if (result) {
-    return <ArticleView linkView={result} refetch={refetch} />;
-  }
+  return <ArticleView linkView={linkQuery.data} />;
 };
 
 const ArticleHeader: React.FC<{
   linkView: LinkView;
-  refetch: (() => Promise<void>) | null;
-}> = ({ linkView, refetch }) => {
+}> = ({ linkView }) => {
   const colorScheme = useComputedColorScheme();
+  const linkMutation = useLinkViewerMutation();
   const formattedDate = linkView.article_date?.toLocaleDateString("en-US", {
     year: "numeric" as const,
     month: "short" as const,
@@ -112,7 +113,11 @@ const ArticleHeader: React.FC<{
               </Anchor>
             </div>
           ) : null}
-          <LinkTagsDisplay size="xs" link={linkView} refetch={refetch} allowEdits />
+          <LinkTagsDisplay
+            size="xs"
+            link={linkView}
+            linkMutator={linkMutation}
+          />
         </Group>
       </Stack>
     </Container>
@@ -137,17 +142,12 @@ const ArticleHeader: React.FC<{
   );
 };
 
-const ArticleView = ({
-  linkView,
-  refetch,
-}: {
-  linkView: LinkView;
-  refetch: (() => Promise<void>) | null;
-}) => {
+const ArticleView = ({ linkView }: { linkView: LinkView }) => {
   const [progress, setProgress] = useState(linkView.reading_progress || 0);
   const [lastSentProgress, setLastSentProgress] = useState(
     linkView.reading_progress || 0,
   );
+  const linkMutation = useLinkViewerMutation();
   const [scroll, scrollTo] = useWindowScroll();
 
   const { pb } = usePocketBase();
@@ -176,15 +176,18 @@ const ArticleView = ({
   }, [lastSentProgress]);
 
   const updateReadingProgress = useCallback(async () => {
-    try {
-      if (Math.abs(progressRef.current - lastSentRef.current) > 0.01) {
-        await pb
-          .collection("links")
-          .update(linkView.id, { reading_progress: progressRef.current });
-        setLastSentProgress(progressRef.current);
-      }
-    } catch (error) {
-      console.error("Error updating reading progress:", error);
+    if (Math.abs(progressRef.current - lastSentRef.current) > 0.01) {
+      linkMutation.mutate({
+        id: linkView.id,
+        updates: {
+          reading_progress: progressRef.current,
+        },
+        options: {
+          afterSuccess: () => {
+            setLastSentProgress(progressRef.current);
+          }
+        }
+      });
     }
   }, [pb, linkView.id]);
 
@@ -212,7 +215,7 @@ const ArticleView = ({
   return (
     <FullBleedLynxShell>
       <NavigationProgress />
-      <ArticleHeader linkView={linkView} refetch={refetch} />
+      <ArticleHeader linkView={linkView} />
       <Container size="md">
         <TypographyStylesProvider fz="lg" px="0.5rem">
           <div

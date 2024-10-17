@@ -4,15 +4,15 @@ import type FeedLink from "@/types/FeedLink";
 import type { LinkView } from "@/hooks/useLinkViewerQuery";
 import DrawerDialog from "@/components/DrawerDialog";
 import TagsEditor from "@/components/TagsEditor";
+import {GenericLynxMutator} from '@/types/Mutations'
 
 interface Props {
   link: FeedLink | LinkView;
-  refetch: (() => Promise<void>) | null;
-  allowEdits: boolean;
+  linkMutator?: GenericLynxMutator<FeedLink | LinkView>;
   size: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
-const LinkTagsDisplay = ({ link, refetch, allowEdits, size }: Props) => {
+const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
   const [isEditOpen, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   return (
@@ -27,13 +27,13 @@ const LinkTagsDisplay = ({ link, refetch, allowEdits, size }: Props) => {
           {tag.name}
         </Badge>
       ))}
-      {allowEdits ? (
+      {linkMutator ? (
         <>
           <Button size={size} variant="subtle" onClick={openEdit}>
             Edit Tags
           </Button>
           <DrawerDialog title="Edit Tags" open={isEditOpen} onClose={closeEdit}>
-            <TagsEditor link={link} refetch={refetch} />
+            <TagsEditor link={link} linkMutator={linkMutator} />
           </DrawerDialog>
         </>
       ) : null}

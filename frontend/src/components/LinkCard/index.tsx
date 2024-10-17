@@ -27,11 +27,15 @@ import {
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { notifications } from "@mantine/notifications";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
+import { GenericLynxMutator } from "@/types/Mutations";
+import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
+import { useMutation } from "@tanstack/react-query";
 
 interface Props {
   link: FeedLink;
-  onUpdate: (() => Promise<void>) | null;
+  linkMutator: GenericLynxMutator<FeedLink>;
 }
+
 const MetadataRow = ({ link }: { link: FeedLink }) => {
   const formattedDate = link.article_date?.toLocaleDateString("en-US", {
     year: "numeric" as const,
@@ -58,53 +62,45 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
   );
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
 };
-const LinkCard = ({ link, onUpdate }: Props) => {
+
+const LinkCard = ({ link, linkMutator }: Props) => {
   const { pb } = usePocketBase();
+  const invalidateLinksFeed = useInvalidateLinksFeed();
 
   const isUnread = link.last_viewed_at === null;
   const handleToggleUnread = async () => {
-    try {
-      const updatedLink = {
-        ...link,
+    linkMutator.mutate({
+      id: link.id,
+      updates: {
         last_viewed_at: isUnread ? new Date().toISOString() : null,
-      };
-      await pb.collection("links").update(link.id, updatedLink);
-      notifications.show({
-        title: "Link updated",
-        message: `Marked as ${isUnread ? "read" : "unread"}`,
-      });
-      if (onUpdate) {
-        await onUpdate();
-      }
-    } catch (error) {
-      console.error("Error toggling unread status:", error);
-      notifications.show({
-        title: "Error",
-        message: "Failed to update link status",
-        color: "red",
-      });
-    }
+      },
+      options: {
+        onSuccessMessage: `Marked as ${isUnread ? "read" : "unread"}`,
+        onErrorMessage: "Failed to update link status",
+      },
+    });
   };
-
-  const handleDelete = async () => {
-    try {
+  const deleteMutator = useMutation({
+    mutationFn: async () => {
       await pb.collection("links").delete(link.id);
+    },
+    onSuccess: async () => {
       notifications.show({
         title: "Link deleted",
         message: "The link has been removed from your library",
       });
-      if (onUpdate) {
-        await onUpdate();
-      }
-    } catch (error) {
+      await invalidateLinksFeed();
+    },
+    onError: (error) => {
       console.error("Error deleting link:", error);
       notifications.show({
         title: "Error",
         message: "Failed to delete link",
         color: "red",
       });
-    }
-  };
+    },
+  });
+
   const handleCreateArchive = async () => {
     try {
       await pb.send(`/lynx/link/${link.id}/create_archive`, {
@@ -187,7 +183,7 @@ const LinkCard = ({ link, onUpdate }: Props) => {
                   )}
                   <Menu.Label>Danger Zone</Menu.Label>
                   <Menu.Item
-                    onClick={handleDelete}
+                    onClick={() => deleteMutator.mutate()}
                     leftSection={
                       <IconTrash className={dropdownClasses.dropdownIcon} />
                     }
@@ -202,12 +198,7 @@ const LinkCard = ({ link, onUpdate }: Props) => {
         </Card.Section>
         {link.tags.length > 0 ? (
           <div className={classes.tags}>
-            <LinkTagsDisplay
-              link={link}
-              refetch={onUpdate}
-              allowEdits={false}
-              size="xs"
-            />
+            <LinkTagsDisplay link={link} size="xs" />
           </div>
         ) : null}
 

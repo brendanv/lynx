@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { usePocketBase } from "@/hooks/usePocketBase";
-import { notifications } from "@mantine/notifications";
 import {
   TextInput,
   Textarea,
   Title,
   Button,
-  Text,
   Container,
   Stack,
   Alert,
@@ -15,23 +12,20 @@ import {
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import useLinkViewerQuery from "@/hooks/useLinkViewerQuery";
+import useLinkViewerQuery, {
+  useLinkViewerMutation,
+} from "@/hooks/useLinkViewerQuery";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxShell from "@/pages/LynxShell";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 
 const EditLink = () => {
   const { id } = useParams<{ id: string }>();
-  const { pb } = usePocketBase();
   usePageTitle("Edit Link");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    result: link,
-    loading,
-    error,
-    refetch,
-  } = useLinkViewerQuery(id || "", false);
+  const linkQuery = useLinkViewerQuery(id || "", false);
+  const link = linkQuery.data;
+  const linkMutation = useLinkViewerMutation();
 
   const form = useForm({
     initialValues: {
@@ -59,32 +53,22 @@ const EditLink = () => {
 
   const handleSubmit = async (values: typeof form.values) => {
     if (!link) return;
-
-    setIsSubmitting(true);
-    try {
-      await pb.collection("links").update(link.id, {
+    linkMutation.mutate({
+      id: link.id,
+      updates: {
         title: values.title,
         excerpt: values.excerpt,
         article_date: values.article_date || null,
-      });
-      notifications.show({
-        message: "Link updated successfully",
-        color: "green",
-      });
-      if (refetch) await refetch();
-      form.resetDirty();
-    } catch (error) {
-      console.error("Error updating link:", error);
-      notifications.show({
-        message: "Failed to update link",
-        color: "red",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      options: {
+        onSuccessMessage: "Your changes have been saved",
+        afterSuccess: form.resetDirty,
+        onErrorMessage: "Unexpected error",
+      },
+    });
   };
 
-  if (loading)
+  if (linkQuery.isPending)
     return (
       <LynxShell>
         <Container size="sm">
@@ -95,19 +79,17 @@ const EditLink = () => {
       </LynxShell>
     );
 
-  if (error && !link) {
+  if (linkQuery.isError) {
     return (
       <LynxShell>
         <Container size="sm">
           <Alert color="red" title="Error">
-            {error.message}
+            {linkQuery.error.message}
           </Alert>
         </Container>
       </LynxShell>
     );
   }
-
-  if (!link) return <Text>Link not found</Text>;
 
   return (
     <LynxShell>
@@ -133,12 +115,16 @@ const EditLink = () => {
               size="md"
               {...form.getInputProps("article_date")}
             />
-            <LinkTagsDisplay link={link} refetch={refetch} allowEdits size="md" />
+            <LinkTagsDisplay
+              link={linkQuery.data}
+              linkMutator={linkMutation}
+              size="md"
+            />
             <Button
               type="submit"
               fullWidth
-              disabled={!form.isDirty() || isSubmitting}
-              loading={isSubmitting}
+              disabled={!form.isDirty() || linkMutation.isPending}
+              loading={linkMutation.isPending}
               size="md"
             >
               Update Link
