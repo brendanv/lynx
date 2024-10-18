@@ -19,6 +19,7 @@ Lynx is an easily self-hostable read-it-later service that lets you save article
 # Features
 
 - Save links quickly and easily, using the web UI or via a single API call.
+- Responsive design looks great on mobile and on larger screens.
 - View saved articles in a clean, easily-readable format.
   - Plus, an optional integration with [SingleFile](https://github.com/gildas-lormeau/SingleFile) to save faithful standalone archives of the complete webpage. Build your own internet archive!
 - Save highlighted passages from any articles in your collection or from around the web.
@@ -30,9 +31,11 @@ Lynx is an easily self-hostable read-it-later service that lets you save article
 - SQLite backend (powered by [Pocketbase](https://technology.riotgames.com/news/taxonomy-tech-debt)) for limited dependencies and great performance.
 - Light- and dark-mode support out of the box.
 
-<picture>
-  <img src="resources/dark_light_article.png">
-</picture>
+<p align="center">
+  <picture>
+    <img src="resources/dark_light_feed_mobile.png" width="30%">
+  </picture>
+</p>
 
 # Installation
 
