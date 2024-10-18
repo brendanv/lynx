@@ -16,6 +16,7 @@ import {
   Stack,
 } from "@mantine/core";
 import LynxShell from "@/pages/LynxShell";
+import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
 
 const URLParserForm = () => {
   const [url, setUrl] = useState("");
@@ -24,6 +25,7 @@ const URLParserForm = () => {
   const [createdLink, setCreatedLink] = useState<FeedLink | null>(null);
   const { pb } = usePocketBase();
   usePageTitle("Add Link");
+  const invalidateLinksFeed = useInvalidateLinksFeed();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,7 @@ const URLParserForm = () => {
       const newLink = await parseNewLink(url, pb);
       setCreatedLink(newLink);
       setUrl("");
+      invalidateLinksFeed();
     } catch (e: any) {
       console.log(e);
       setError(e.message);

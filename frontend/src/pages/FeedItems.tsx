@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import {
@@ -16,6 +16,10 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import URLS from "@/lib/urls";
 import parseNewLink from "@/utils/parseNewLink";
 import LynxShell from "@/pages/LynxShell";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Feed from "@/types/Feed";
+import { notifications } from "@mantine/notifications";
+import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
 
 type FeedItem = {
   id: string;
@@ -30,84 +34,106 @@ const ITEMS_PER_PAGE = 12;
 
 const FeedItems: React.FC = () => {
   const { id: feedId } = useParams<{ id: string }>();
-  const { pb } = usePocketBase();
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [feedName, setFeedName] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+  const { pb, user } = usePocketBase();
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [savingItems, setSavingItems] = useState<{ [key: string]: boolean }>(
     {},
   );
+  const queryClient = useQueryClient();
+  const invalidateLinksFeed = useInvalidateLinksFeed();
 
-  usePageTitle(feedName);
-
-  useEffect(() => {
-    fetchFeedItems();
-  }, [feedId, page]);
-
-  useEffect(() => {
-    fetchFeedName();
-  }, [feedId]);
-
-  const fetchFeedItems = async () => {
-    setLoading(true);
-    try {
-      const records = await pb
+  const feedItemQuery = useQuery({
+    queryKey: ["feedItems", user?.id, { feedId, page }],
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: ["feedItems", string | null, { feedId?: string; page: number }];
+    }) => {
+      const [_1, _2, { feedId, page }] = queryKey;
+      if (!feedId) {
+        return {
+          page,
+          perPage: ITEMS_PER_PAGE,
+          totalItems: 0,
+          totalPages: 1,
+          items: [],
+        };
+      }
+      return await pb
         .collection("feed_items")
         .getList<FeedItem>(page, ITEMS_PER_PAGE, {
-          filter: `feed="${feedId}"`,
+          filter: pb.filter("feed={:feedId}", { feedId }),
           sort: "-pub_date",
         });
-      setFeedItems(records.items);
-      setTotalPages(Math.ceil(records.totalItems / ITEMS_PER_PAGE));
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching feed items:", err);
-      setError("Failed to fetch feed items. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    staleTime: 60 * 1000,
+    enabled: !!user && !!feedId,
+  });
 
-  const fetchFeedName = async () => {
-    if (feedId === undefined) {
-      return;
-    }
-    try {
-      const feed = await pb.collection("feeds").getOne(feedId);
-      setFeedName(feed.name);
-    } catch (err) {
-      console.error("Error fetching feed name:", err);
-    }
-  };
+  const feedQuery = useQuery({
+    queryKey: ["feed", user?.id, feedId],
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: ["feed", string | null, string | undefined];
+    }) => {
+      const [_1, _2, feedIdForQuery] = queryKey;
+      if (!feedIdForQuery) {
+        return null as Feed | null;
+      }
+      return await pb.collection<Feed>("feeds").getOne(feedIdForQuery);
+    },
+    staleTime: 60 * 1000,
+    enabled: !!user && !!feedId,
+  });
 
-  const handleSaveToLibrary = async (item: FeedItem) => {
-    setSavingItems((prev) => ({ ...prev, [item.id]: true }));
-    try {
-      await parseNewLink(item.url, pb, item.id);
-      fetchFeedItems();
-    } catch (e: any) {
-      console.log(e);
-      setError(e.message);
-    } finally {
-      setSavingItems((prev) => ({ ...prev, [item.id]: false }));
-    }
-  };
+  usePageTitle(feedQuery.data?.name || "");
 
-  return (
-    <LynxShell>
-      <Container size="xl">
-        <Title order={2} mb="md">
-          Feed: {feedName}
-        </Title>
-        {error && (
-          <Alert color="red" mb="md" title="Error">
-            {error}
-          </Alert>
-        )}
-        {loading ? (
+  const saveToLibraryMutation = useMutation({
+    mutationFn: async ({ item }: { item: FeedItem }) => {
+      setSavingItems((prev) => ({ ...prev, [item.id]: true }));
+      return await parseNewLink(item.url, pb, item.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["feedItems", user?.id, { feedId, page }],
+      });
+      invalidateLinksFeed();
+    },
+    onError: (error) => {
+      console.log(error);
+      notifications.show({
+        message: "Failed to save feed item.",
+        color: "red",
+      });
+    },
+    onSettled: (_data, _error, variables, _context) => {
+      setSavingItems((prev) => ({ ...prev, [variables.item.id]: false }));
+    },
+  });
+
+  if (feedItemQuery.isError) {
+    return (
+      <LynxShell>
+        <Container size="xl">
+          <Title order={2} mb="md">
+            Feed: {feedQuery.data?.name}
+          </Title>
+          {feedItemQuery.isError && (
+            <Alert color="red" mb="md" title="Error">
+              {String(feedItemQuery.error)}
+            </Alert>
+          )}
+        </Container>
+      </LynxShell>
+    );
+  } else if (feedItemQuery.isPending) {
+    return (
+      <LynxShell>
+        <Container size="xl">
+          <Title order={2} mb="md">
+            Feed: {feedQuery.data?.name}
+          </Title>
           <div
             style={{
               display: "flex",
@@ -118,49 +144,58 @@ const FeedItems: React.FC = () => {
           >
             <Loader size="xl" />
           </div>
-        ) : (
-          <SimpleGrid
-            cols={{ base: 1, sm: 2, lg: 3 }}
-            spacing={{ base: 10, sm: "xl" }}
-            verticalSpacing={{ base: "md", sm: "xl" }}
-          >
-            {feedItems.map((item) => (
-              <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
-                <Card.Section>
-                  <Text fw={500} size="lg" lineClamp={2} p="md">
-                    {item.title}
-                  </Text>
-                </Card.Section>
-                <Text size="sm" c="dimmed" mb="xs">
-                  {new Date(item.pub_date).toLocaleString()}
+        </Container>
+      </LynxShell>
+    );
+  }
+
+  return (
+    <LynxShell>
+      <Container size="xl">
+        <Title order={2} mb="md">
+          Feed: {feedQuery.data?.name}
+        </Title>
+        <SimpleGrid
+          cols={{ base: 1, sm: 2, lg: 3 }}
+          spacing={{ base: 10, sm: "xl" }}
+          verticalSpacing={{ base: "md", sm: "xl" }}
+        >
+          {feedItemQuery.data.items.map((item) => (
+            <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+              <Card.Section>
+                <Text fw={500} size="lg" lineClamp={2} p="md">
+                  {item.title}
                 </Text>
-                <Text lineClamp={3} mb="md">
-                  {item.description}
-                </Text>
-                {item.saved_as_link ? (
-                  <Button
-                    component={Link}
-                    to={URLS.LINK_VIEWER(item.saved_as_link)}
-                    variant="light"
-                    fullWidth
-                  >
-                    View In Library
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => handleSaveToLibrary(item)}
-                    disabled={savingItems[item.id]}
-                    loading={savingItems[item.id]}
-                    fullWidth
-                  >
-                    {savingItems[item.id] ? "Saving..." : "Save to Library"}
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </SimpleGrid>
-        )}
-        {totalPages > 1 && (
+              </Card.Section>
+              <Text size="sm" c="dimmed" mb="xs">
+                {new Date(item.pub_date).toLocaleString()}
+              </Text>
+              <Text lineClamp={3} mb="md">
+                {item.description}
+              </Text>
+              {item.saved_as_link ? (
+                <Button
+                  component={Link}
+                  to={URLS.LINK_VIEWER(item.saved_as_link)}
+                  variant="light"
+                  fullWidth
+                >
+                  View In Library
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => saveToLibraryMutation.mutate({ item })}
+                  disabled={savingItems[item.id]}
+                  loading={savingItems[item.id]}
+                  fullWidth
+                >
+                  {savingItems[item.id] ? "Saving..." : "Save to Library"}
+                </Button>
+              )}
+            </Card>
+          ))}
+        </SimpleGrid>
+        {feedItemQuery.data.totalPages > 1 && (
           <div
             style={{
               display: "flex",
@@ -168,7 +203,11 @@ const FeedItems: React.FC = () => {
               marginTop: "2rem",
             }}
           >
-            <Pagination total={totalPages} value={page} onChange={setPage} />
+            <Pagination
+              total={feedItemQuery.data.totalPages}
+              value={feedItemQuery.data.page}
+              onChange={setPage}
+            />
           </div>
         )}
       </Container>

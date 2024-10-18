@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import LynxShell from "@/pages/LynxShell";
 import SearchBar, { SearchParams } from "@/components/SearchBar";
-import useLinksFeedQuery from "@/hooks/useLinksFeedQuery";
+import useLinksFeedQuery, {
+  useLinksFeedMutation,
+} from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
-import { Alert, Center, Pagination } from "@mantine/core";
+import { Alert, Center, Loader, Pagination } from "@mantine/core";
 import classes from "./Home.module.css";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
@@ -25,18 +27,15 @@ export function HomePage() {
     setUrlParams({ ...urlParams, p: p.toString() });
   };
 
-  const {
-    loading: feedLoading,
-    result: queryResult,
-    error: feedError,
-    refetch,
-  } = useLinksFeedQuery({
+  const queryProps = {
     page,
     ...searchParams,
     searchText,
     tagId,
     feedId,
-  });
+  };
+  const linksQuery = useLinksFeedQuery(queryProps);
+  const linksMutation = useLinksFeedMutation(queryProps);
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
@@ -55,7 +54,7 @@ export function HomePage() {
 
   let content = null;
 
-  if (feedLoading) {
+  if (linksQuery.isPending) {
     content = (
       <div className={classes.linkCards}>
         {Array.from({ length: 5 }, (_, index) => (
@@ -63,31 +62,38 @@ export function HomePage() {
         ))}{" "}
       </div>
     );
-  } else if (feedLoading && queryResult?.totalItems === 0) {
+  } else if (linksQuery.isError) {
+    content = (
+      <Alert title="Error" color="red">
+        {linksQuery.error.message}
+      </Alert>
+    );
+  } else if (linksQuery.data.totalItems === 0) {
     content = (
       <Alert title="No Results">
         Try adjusting your filters or add some new links to your feed
       </Alert>
     );
-  } else if (feedError && queryResult === null) {
-    content = (
-      <Alert title="Error" color="red">
-        {feedError.message}
-      </Alert>
-    );
-  } else if (!feedLoading && queryResult != null) {
+  } else {
     content = (
       <>
+        {linksQuery.isPlaceholderData && (
+          <Center mb="md">
+            <Loader />
+          </Center>
+        )}
         <div className={classes.linkCards}>
-          {queryResult.items.map((item) => {
-            return <LinkCard key={item.id} link={item} onUpdate={refetch} />;
+          {linksQuery.data.items.map((item) => {
+            return (
+              <LinkCard key={item.id} link={item} linkMutator={linksMutation} />
+            );
           })}
         </div>
         <Center>
-          {queryResult.totalPages > 1 && (
+          {linksQuery.data.totalPages > 1 && (
             <Pagination
-              value={page}
-              total={queryResult.totalPages}
+              value={linksQuery.data.page}
+              total={linksQuery.data.totalPages}
               onChange={setPage}
             />
           )}
