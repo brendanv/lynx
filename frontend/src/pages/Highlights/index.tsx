@@ -1,11 +1,11 @@
+import { useState } from "react";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import useUserHighlightsQuery, {
   Highlight,
   useUserHighlightMutation,
 } from "@/hooks/useUserHighlightsQuery";
-import { useState } from "react";
 import LynxShell from "@/pages/LynxShell";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Alert,
   Anchor,
@@ -24,8 +24,9 @@ import classes from "./Highlights.module.css";
 import URLS from "@/lib/urls";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import LynxGrid from "@/components/LynxGrid";
-import {IconBlockquote} from '@tabler/icons-react'
+import { IconBlockquote } from "@tabler/icons-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import SearchBar, { SearchParams } from "./SearchBar";
 
 const generateURLWithFragment = (url: string, text: string) => {
   const urlWithoutFragment = url.split("#")[0];
@@ -61,27 +62,15 @@ const MetadataRow = ({ highlight }: { highlight: Highlight }) => {
   const libraryLink = getLinkInLibrary(highlight);
   const items: React.ReactNode[] = [
     libraryLink ? (
-      <Center>
-        <Anchor
-          size="sm"
-          component={Link}
-          to={libraryLink}
-          target="_blank"
-          key={`library-${highlight.id}`}
-        >
+      <Center key={`library-${highlight.id}`}>
+        <Anchor size="sm" component={Link} to={libraryLink} target="_blank">
           View in library
         </Anchor>
       </Center>
     ) : null,
     originalLink ? (
-      <Center>
-        <Anchor
-          size="sm"
-          component={Link}
-          to={originalLink}
-          target="_blank"
-          key={`original-${highlight.id}`}
-        >
+      <Center key={`original-${highlight.id}`}>
+        <Anchor size="sm" component={Link} to={originalLink} target="_blank">
           View original
         </Anchor>
       </Center>
@@ -102,11 +91,46 @@ const MetadataRow = ({ highlight }: { highlight: Highlight }) => {
 };
 
 const Highlights: React.FC = () => {
+  usePageTitle("My Highlights");
   const { pb, user } = usePocketBase();
-  const [page, setPage] = useState(1);
-  usePageTitle('My Highlights')
-  const highlightQuery = useUserHighlightsQuery({ page });
-  const highlightMutator = useUserHighlightMutation({ page });
+  const [urlParams, setUrlParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useState<
+    Omit<SearchParams, "searchText">
+  >({
+    sort: "newest_first",
+  });
+  const searchText = urlParams.get("s") || "";
+  const tagId = urlParams.get("t") || undefined;
+  const page = parseInt(urlParams.get("p") || "1");
+  const linkId = urlParams.get("l") || undefined;
+  const setPage = (p: number) => {
+    setUrlParams({ ...urlParams, p: p.toString() });
+  };
+
+  const queryProps = {
+    ...searchParams,
+    page,
+    searchText,
+    tagId,
+    linkId,
+  };
+  const highlightQuery = useUserHighlightsQuery(queryProps);
+  const highlightMutator = useUserHighlightMutation(queryProps);
+
+  const handleSearchParamsChange = (newSearchParams: SearchParams) => {
+    setSearchParams(newSearchParams);
+    const newParams: { [key: string]: string } = {
+      s: newSearchParams.searchText,
+      p: "1",
+    };
+    if (newSearchParams.tagId) {
+      newParams["t"] = newSearchParams.tagId;
+    }
+    if (newSearchParams.linkId) {
+      newParams["l"] = newSearchParams.linkId;
+    }
+    setUrlParams(newParams);
+  };
 
   let content = null;
   if (highlightQuery.isPending) {
@@ -123,13 +147,17 @@ const Highlights: React.FC = () => {
         <Title order={2} mb="md">
           My Highlights
         </Title>
+        <SearchBar
+          searchParams={{ ...searchParams, searchText, tagId, linkId }}
+          onSearchParamsChange={handleSearchParamsChange}
+        />
         <LynxGrid>
           {highlightQuery.data.items.map((highlight) => (
             <div key={highlight.id}>
               <Card withBorder shadow="sm">
                 <Blockquote
                   cite={`- ${highlight.linkAuthor || highlight.linkTitle}`}
-                  icon={<IconBlockquote  />}
+                  icon={<IconBlockquote />}
                   iconSize={35}
                   mb="lg"
                 >

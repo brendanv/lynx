@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import Client, { ListResult } from "pocketbase";
 import { GenericLynxMutator } from "@/types/Mutations";
@@ -10,6 +10,7 @@ type Props = {
   linkId?: string;
   tagId?: string;
   searchText?: string;
+  sort: "newest_first" | "oldest_first";
 };
 
 export type Highlight = {
@@ -22,7 +23,7 @@ export type Highlight = {
   linkUrl?: string | null;
   linkHostname?: string | null;
   linkAuthor?: string | null;
-  tags: Tag[],
+  tags: Tag[];
 };
 
 const PAGE_SIZE = 20;
@@ -57,14 +58,16 @@ const buildFilters = (client: Client, props: Props) => {
 
   if (searchText) {
     filterExprs.push(
-      client.filter("(highlighted_text ~ {:searchText}", { searchText }),
+      client.filter("highlighted_text ~ {:searchText}", { searchText }),
     );
   }
 
   return filterExprs.join(" && ");
 };
 
-export const useUserHighlightMutation = (props: Props): GenericLynxMutator<Highlight> => {
+export const useUserHighlightMutation = (
+  props: Props,
+): GenericLynxMutator<Highlight> => {
   const { pb, user } = usePocketBase();
   const queryClient = useQueryClient();
   return useMutation({
@@ -80,7 +83,7 @@ export const useUserHighlightMutation = (props: Props): GenericLynxMutator<Highl
     onSuccess: (data, variables) => {
       const { id, options } = variables;
       queryClient.setQueryData(
-        ["highlights", {...props, user: user?.id}],
+        ["highlights", { ...props, user: user?.id }],
         (oldData: ListResult<Highlight>) => {
           return {
             ...oldData,
@@ -118,8 +121,8 @@ export const useUserHighlightMutation = (props: Props): GenericLynxMutator<Highl
         variables.options.afterError(error);
       }
     },
-  })
-}
+  });
+};
 
 const convertQueryItemToHighlight = (item: any): Highlight => {
   return {
@@ -130,8 +133,7 @@ const convertQueryItemToHighlight = (item: any): Highlight => {
     linkId: item.expand?.link?.id,
     linkTitle: item.expand?.link?.title || item.link_backup_title,
     linkUrl: item.expand?.link?.cleaned_url || item.link_backup_url,
-    linkHostname:
-      item.expand?.link?.hostname || item.link_backup_hostname,
+    linkHostname: item.expand?.link?.hostname || item.link_backup_hostname,
     linkAuthor: item.expand?.link?.author,
     tags:
       item.expand && item.expand.tags
@@ -141,8 +143,8 @@ const convertQueryItemToHighlight = (item: any): Highlight => {
             slug,
           }))
         : [],
-  }
-}
+  };
+};
 
 const useUserHighlightsQuery = (props: Props) => {
   const { pb, user } = usePocketBase();
@@ -155,18 +157,23 @@ const useUserHighlightsQuery = (props: Props) => {
       queryKey: ["highlights", Props & { user?: string }];
     }): Promise<ListResult<Highlight>> => {
       const [_1, queryProps] = queryKey;
+      console.log(buildFilters(pb, queryProps));
       const queryResult = await pb
         .collection("highlights")
         .getList(queryProps.page || 1, PAGE_SIZE, {
           fields: getFields(),
           filter: buildFilters(pb, queryProps),
           expand: "link,tags",
+          sort: `${queryProps.sort == 'newest_first' ? '-' : ''}created`,
         });
       return {
         ...queryResult,
-        items: queryResult.items.map(convertQueryItemToHighlight)
+        items: queryResult.items.map(convertQueryItemToHighlight),
       };
     },
+    enabled: !!user,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
   });
 };
 
