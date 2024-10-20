@@ -1,0 +1,21 @@
+.footer {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+  margin-top: var(--mantine-spacing-md);
+  border-top: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+}
+
+.metadata {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  white-space: nowrap;
+}
+
+.metadata div:last-child {
+  flex-grow: 1;
+}
+
+.metadata div:first-child {
+  flex-grow: 1;
+}

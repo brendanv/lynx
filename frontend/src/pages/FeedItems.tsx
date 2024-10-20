@@ -5,7 +5,6 @@ import {
   Card,
   Text,
   Button,
-  SimpleGrid,
   Loader,
   Alert,
   Pagination,
@@ -20,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Feed from "@/types/Feed";
 import { notifications } from "@mantine/notifications";
 import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
+import LynxGrid from "@/components/LynxGrid";
 
 type FeedItem = {
   id: string;
@@ -155,46 +155,44 @@ const FeedItems: React.FC = () => {
         <Title order={2} mb="md">
           Feed: {feedQuery.data?.name}
         </Title>
-        <SimpleGrid
-          cols={{ base: 1, sm: 2, lg: 3 }}
-          spacing={{ base: 10, sm: "xl" }}
-          verticalSpacing={{ base: "md", sm: "xl" }}
-        >
+        <LynxGrid>
           {feedItemQuery.data.items.map((item) => (
-            <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
-              <Card.Section>
-                <Text fw={500} size="lg" lineClamp={2} p="md">
-                  {item.title}
+            <div key={item.id}>
+              <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Card.Section>
+                  <Text fw={500} size="lg" lineClamp={2} p="md">
+                    {item.title}
+                  </Text>
+                </Card.Section>
+                <Text size="sm" c="dimmed" mb="xs">
+                  {new Date(item.pub_date).toLocaleString()}
                 </Text>
-              </Card.Section>
-              <Text size="sm" c="dimmed" mb="xs">
-                {new Date(item.pub_date).toLocaleString()}
-              </Text>
-              <Text lineClamp={3} mb="md">
-                {item.description}
-              </Text>
-              {item.saved_as_link ? (
-                <Button
-                  component={Link}
-                  to={URLS.LINK_VIEWER(item.saved_as_link)}
-                  variant="light"
-                  fullWidth
-                >
-                  View In Library
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => saveToLibraryMutation.mutate({ item })}
-                  disabled={savingItems[item.id]}
-                  loading={savingItems[item.id]}
-                  fullWidth
-                >
-                  {savingItems[item.id] ? "Saving..." : "Save to Library"}
-                </Button>
-              )}
-            </Card>
+                <Text lineClamp={3} mb="md">
+                  {item.description}
+                </Text>
+                {item.saved_as_link ? (
+                  <Button
+                    component={Link}
+                    to={URLS.LINK_VIEWER(item.saved_as_link)}
+                    variant="light"
+                    fullWidth
+                  >
+                    View In Library
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => saveToLibraryMutation.mutate({ item })}
+                    disabled={savingItems[item.id]}
+                    loading={savingItems[item.id]}
+                    fullWidth
+                  >
+                    {savingItems[item.id] ? "Saving..." : "Save to Library"}
+                  </Button>
+                )}
+              </Card>
+            </div>
           ))}
-        </SimpleGrid>
+        </LynxGrid>
         {feedItemQuery.data.totalPages > 1 && (
           <div
             style={{

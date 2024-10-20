@@ -5,7 +5,7 @@ export default {
   HOME_WITH_FEED_SEARCH: (feedId: string) => `/?f=${feedId}`,
   LOGIN: "/login",
   FEEDS: "/settings/feeds",
-  NOTES: "/notes",
+  HIGHLIGHTS: "/highlights",
   ADD_LINK: "/links/add",
 
   SETTINGS_TEMPLATE: "/settings/:tabValue",

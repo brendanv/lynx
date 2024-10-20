@@ -1,20 +1,25 @@
 import { Badge, Group, Button } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import type FeedLink from "@/types/FeedLink";
-import type { LinkView } from "@/hooks/useLinkViewerQuery";
 import DrawerDialog from "@/components/DrawerDialog";
 import TagsEditor from "@/components/TagsEditor";
-import {GenericLynxMutator} from '@/types/Mutations'
+import { GenericLynxMutator } from "@/types/Mutations";
+import Tag from "@/types/Tag";
+
+interface Taggable {
+  id: string;
+  tags: Tag[];
+}
 
 interface Props {
-  link: FeedLink | LinkView;
-  linkMutator?: GenericLynxMutator<FeedLink | LinkView>;
+  link: Taggable;
+  linkMutator?: GenericLynxMutator<Taggable>;
   size: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
   const [isEditOpen, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
+  const editLabel = link.tags.length === 0 ? "Add Tags" : "Edit Tags";
   return (
     <Group>
       {link.tags.map((tag) => (
@@ -30,9 +35,9 @@ const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
       {linkMutator ? (
         <>
           <Button size={size} variant="subtle" onClick={openEdit}>
-            Edit Tags
+            {editLabel}
           </Button>
-          <DrawerDialog title="Edit Tags" open={isEditOpen} onClose={closeEdit}>
+          <DrawerDialog title={editLabel} open={isEditOpen} onClose={closeEdit}>
             <TagsEditor link={link} linkMutator={linkMutator} />
           </DrawerDialog>
         </>
