@@ -15,6 +15,7 @@ import {
 import { useDisclosure, useHeadroom } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import {
+  IconBlockquote,
   IconHome,
   IconLogout,
   IconMoon,
@@ -35,6 +36,7 @@ import { useCommandMenu } from "@/lib/CommandMenuContext";
 const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
   { link: URLS.ADD_LINK, label: "Add Link", icon: IconSquareRoundedPlus },
+  { link: URLS.HIGHLIGHTS, label: "Highlights", icon: IconBlockquote },
   { link: URLS.TAGS, label: "Tags", icon: IconTags },
   { link: URLS.FEEDS, label: "Feeds", icon: IconRss },
   { link: URLS.SETTINGS, label: "Settings", icon: IconSettings },

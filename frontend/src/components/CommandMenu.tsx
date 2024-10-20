@@ -6,6 +6,7 @@ import {
   SpotlightActionData,
 } from "@mantine/spotlight";
 import {
+  IconBlockquote,
   IconHome,
   IconRss,
   IconSettings,
@@ -52,6 +53,18 @@ const LynxCommandMenu = () => {
               onClick: () => navigate(URLS.FEEDS),
               leftSection: (
                 <IconRss
+                  style={{ width: rem(24), height: rem(24) }}
+                  stroke={1.5}
+                />
+              ),
+            },
+            {
+              id: "highlights",
+              label: "Highlights",
+              description: "Review saved highlights",
+              onClick: () => navigate(URLS.HIGHLIGHTS),
+              leftSection: (
+                <IconBlockquote
                   style={{ width: rem(24), height: rem(24) }}
                   stroke={1.5}
                 />
