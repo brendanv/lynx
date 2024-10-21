@@ -19,6 +19,7 @@
   "customizations": {
     "codespaces": {
       "openFiles": [
+        "resources/codespaces.md",
         "frontend/.env"
       ]
     }
