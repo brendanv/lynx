@@ -8,7 +8,7 @@ By default, ports opened in a codespace are not accessible without authenticatio
 
 The two ports should already be configured when you open the tab, but you must change the visibility to public:
 
-
+![img](codespaces_ports.png)
 
 # Running Lynx in a codespace
 
@@ -22,9 +22,18 @@ To build the backend and run in development mode, run the following command:
 cd backend && go run main.go serve --http 0.0.0.0:3000
 ```
 
+
+### Creating your admin user
+
+Once the backend is built and port 3000 is opened, you'll get a prompt to open the page in your browser. Ignore the `Not Found` error and go to `https://<YOUR_CODESPACE>-5173.app.github.dev/_`. Create an admin user with any credentials you want (don't lose them!). Then create a new record in the `users` collection - this will be your actual Lynx login!
+
 ## Running the frontend 
 To build the frontend and run Vite in development mode, run the following command: 
 
 ```
 cd frontend && npm run dev
 ```
+
+Once the frontend is built you'll get another prompt to open the newly-available port in your browser. You should see the Lynx login page - log in with your new credentials and you should be able to access Lynx normally.
+
+The dev environment is set with live-reloading so when you edit in the codespace changes should be available ~immediately in your other browser tab.
