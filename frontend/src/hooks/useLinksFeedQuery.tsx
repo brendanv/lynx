@@ -12,7 +12,8 @@ import Client, { ListResult } from "pocketbase";
 import { notifications } from "@mantine/notifications";
 import { useCallback } from "react";
 
-const PAGE_SIZE = 15;
+// Works for 2- and 3- column grids
+const PAGE_SIZE = 18;
 
 type Props = {
   page?: number;

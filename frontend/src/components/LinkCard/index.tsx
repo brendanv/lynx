@@ -17,6 +17,7 @@ import dropdownClasses from "@/components/SharedCSS/DropdownIcon.module.css";
 import URLS from "@/lib/urls";
 import {
   IconArchive,
+  IconBlockquote,
   IconCircle,
   IconCircleCheck,
   IconDotsVertical,
@@ -24,6 +25,7 @@ import {
   IconPencil,
   IconTrash,
 } from "@tabler/icons-react";
+import { Link } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { notifications } from "@mantine/notifications";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
@@ -144,6 +146,17 @@ const LinkCard = ({ link, linkMutator }: Props) => {
                     href={URLS.EDIT_LINK(link.id)}
                   >
                     Edit Link
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <IconBlockquote
+                        className={dropdownClasses.dropdownIcon}
+                      />
+                    }
+                    component={Link}
+                    to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
+                  >
+                    View Highlights
                   </Menu.Item>
                   <Menu.Item
                     onClick={handleToggleUnread}

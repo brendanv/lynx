@@ -15,6 +15,10 @@ export type LinkView = {
   last_viewed_at: Date | null;
   read_time_display: string | null;
   tags: Tag[];
+  highlights: {
+    id: string;
+    serialized_range: string;
+  }[];
   title: string | null;
   cleaned_url: string | null;
   article_html: string | null;
@@ -26,7 +30,10 @@ type RawLinkQueryResult = {
   article_date: string | null;
   author: string | null;
   excerpt: string | null;
-  expand?: { tags: Tag[] };
+  expand?: {
+    tags?: Tag[];
+    highlights_via_link?: { id: string; serialized_range: string }[];
+  };
   header_image_url: string | null;
   hostname: string | null;
   last_viewed_at: string | null;
@@ -54,6 +61,10 @@ const queryResultToLinkView = (queryResult: RawLinkQueryResult): LinkView => ({
           slug,
         }))
       : [],
+  highlights:
+    queryResult.expand && queryResult.expand.highlights_via_link
+      ? queryResult.expand.highlights_via_link
+      : [],
 });
 
 // Must be kept in sync with above
@@ -73,7 +84,10 @@ const getFields = () =>
     "article_html",
     "reading_progress",
     "expand.tags.*",
+    "expand.highlights_via_link.id",
+    "expand.highlights_via_link.serialized_range",
   ].join(",");
+const getExpand = () => ['tags', 'highlights_via_link'].join(",");
 
 export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
   const { pb } = usePocketBase();
@@ -85,13 +99,13 @@ export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
         .collection("links")
         .update<RawLinkQueryResult>(id, updates, {
           fields: getFields(),
-          expand: "tags",
+          expand: getExpand(),
         });
       return queryResultToLinkView(mutationResult);
     },
     onSuccess: (data, variables) => {
       const { id, options } = variables;
-      queryClient.setQueryData(["link", { id, type: 'full' }], data);
+      queryClient.setQueryData(["link", { id, type: "full" }], data);
       if (options?.onSuccessMessage) {
         notifications.show({
           title: "Link updated",
@@ -146,7 +160,7 @@ const runQuery = async (
   const queryResult = await client
     .collection("links")
     .getOne<RawLinkQueryResult>(id, {
-      expand: "tags",
+      expand: getExpand(),
       fields: getFields(),
       headers: updateLastViewedAt
         ? { "X-Lynx-Update-Last-Viewed": "true" }

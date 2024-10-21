@@ -16,6 +16,7 @@ import {
   Alert,
   Box,
   useComputedColorScheme,
+  Button,
 } from "@mantine/core";
 import {
   IconAlertCircle,
@@ -35,6 +36,9 @@ import { nprogress, NavigationProgress } from "@mantine/nprogress";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import classes from "./LinkViewer.module.css";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
+import { Rangee } from "rangee";
+import useCreateHighlightMutation from "@/hooks/useCreateHighlightMutation";
+const rangee = new Rangee({ document });
 
 const LinkViewer = () => {
   const { id } = useParams();
@@ -149,6 +153,8 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
   );
   const linkMutation = useLinkViewerMutation();
   const [scroll, scrollTo] = useWindowScroll();
+  const [selection, setSelection] = useState<Range | null>(null);
+  const createHighlightMutation = useCreateHighlightMutation();
 
   const { pb } = usePocketBase();
   const handleScroll = useCallback(() => {
@@ -185,14 +191,13 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
         options: {
           afterSuccess: () => {
             setLastSentProgress(progressRef.current);
-          }
-        }
+          },
+        },
       });
     }
   }, [pb, linkView.id]);
 
   useEffect(() => {
-    // Scroll to the saved reading progress on load
     if (linkView.reading_progress) {
       const scrollHeight =
         document.documentElement.scrollHeight -
@@ -200,10 +205,10 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
       const scrollPosition = scrollHeight * linkView.reading_progress;
       window.scrollTo(0, scrollPosition);
     }
-    // Add scroll event listener
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [linkView.reading_progress, handleScroll]);
+
   useEffect(() => {
     const interval = setInterval(updateReadingProgress, 10000);
     return () => {
@@ -211,6 +216,38 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
       updateReadingProgress();
     };
   }, [updateReadingProgress]);
+
+  const handleSelection = () => {
+    const selObj = window.getSelection();
+    if (selObj && !selObj.isCollapsed) {
+      setSelection(selObj.getRangeAt(0));
+    } else {
+      setSelection(null);
+    }
+  };
+
+  const saveHighlight = () => {
+    if (selection) {
+      const serialized = rangee.serializeAtomic(selection);
+      createHighlightMutation.mutate({
+        link: linkView,
+        serializedRange: serialized,
+        highlightedText: selection.toString(),
+      });
+    }
+  };
+
+  useEffect(() => {
+    CSS.highlights.clear();
+    CSS.highlights.set(
+      "article-highlights",
+      new Highlight(
+        ...linkView.highlights
+          .map((h) => rangee.deserializeAtomic(h.serialized_range))
+          .flat(),
+      ),
+    );
+  }, [linkView.highlights]);
 
   return (
     <FullBleedLynxShell>
@@ -221,10 +258,17 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
           <div
             className={classes.articleContent}
             dangerouslySetInnerHTML={{ __html: linkView.article_html || "" }}
+            onMouseUp={handleSelection}
+            onTouchEnd={handleSelection}
           />
         </TypographyStylesProvider>
       </Container>
-      <Affix position={{ bottom: 20, right: 20 }}>
+      {selection && (
+        <Affix position={{ bottom: 20, right: 20 }}>
+          <Button onClick={saveHighlight}>Save Highlight</Button>
+        </Affix>
+      )}
+      <Affix position={{ bottom: 20, right: selection ? 180 : 20 }}>
         <Transition transition="slide-up" mounted={scroll.y > 0}>
           {(transitionStyles) => (
             <ActionIcon

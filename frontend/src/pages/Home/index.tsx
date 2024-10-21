@@ -7,8 +7,8 @@ import useLinksFeedQuery, {
 } from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, Center, Loader, Pagination } from "@mantine/core";
-import classes from "./Home.module.css";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import LynxGrid from "@/components/LynxGrid";
 
 export function HomePage() {
   usePageTitle("My Feed");
@@ -56,11 +56,11 @@ export function HomePage() {
 
   if (linksQuery.isPending) {
     content = (
-      <div className={classes.linkCards}>
+      <LynxGrid>
         {Array.from({ length: 5 }, (_, index) => (
           <LinkCardSkeleton key={`skeleton-${index}`} />
         ))}{" "}
-      </div>
+      </LynxGrid>
     );
   } else if (linksQuery.isError) {
     content = (
@@ -82,13 +82,13 @@ export function HomePage() {
             <Loader />
           </Center>
         )}
-        <div className={classes.linkCards}>
+        <LynxGrid>
           {linksQuery.data.items.map((item) => {
             return (
               <LinkCard key={item.id} link={item} linkMutator={linksMutation} />
             );
           })}
-        </div>
+        </LynxGrid>
         <Center>
           {linksQuery.data.totalPages > 1 && (
             <Pagination

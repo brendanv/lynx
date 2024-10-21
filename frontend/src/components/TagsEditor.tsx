@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
 import { Button, Center, Chip, Group, Loader } from "@mantine/core";
-import type FeedLink from "@/types/FeedLink";
-import type { LinkView } from "@/hooks/useLinkViewerQuery";
 import { GenericLynxMutator } from "@/types/Mutations";
+import Tag from "@/types/Tag";
+
+interface Taggable {
+  id: string;
+  tags: Tag[];
+}
 
 interface Props {
-  link: FeedLink | LinkView;
-  linkMutator: GenericLynxMutator<FeedLink | LinkView>;
+  link: Taggable;
+  linkMutator: GenericLynxMutator<Taggable>;
 }
 
 const TagsEditor = ({ link, linkMutator }: Props) => {
