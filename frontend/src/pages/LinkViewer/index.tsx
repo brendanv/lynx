@@ -167,6 +167,11 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
     nprogress.set(newProgress * 100.0);
   }, [setProgress]);
 
+  // Hacky use of refs to be able to access the current state without
+  // creating a new updateReadingProgress callback. If we use the
+  // state values directly we need to include them in the deps array,
+  // which ultimately causes us to reset our interval every time the
+  // state changes...
   const progressRef = useRef(progress);
   useEffect(() => {
     progressRef.current = progress;
@@ -228,7 +233,7 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
         link: linkView,
         serializedRange: serialized,
         highlightedText: selection.toString(),
-      })
+      });
     }
   };
 
