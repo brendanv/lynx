@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import Client, { ListResult } from "pocketbase";
 import { GenericLynxMutator } from "@/types/Mutations";
@@ -26,7 +31,8 @@ export type Highlight = {
   tags: Tag[];
 };
 
-const PAGE_SIZE = 20;
+// Works for 2- and 3-column grids
+const PAGE_SIZE = 18;
 
 const getFields = () =>
   [
@@ -164,7 +170,7 @@ const useUserHighlightsQuery = (props: Props) => {
           fields: getFields(),
           filter: buildFilters(pb, queryProps),
           expand: "link,tags",
-          sort: `${queryProps.sort == 'newest_first' ? '-' : ''}created`,
+          sort: `${queryProps.sort == "newest_first" ? "-" : ""}created`,
         });
       return {
         ...queryResult,

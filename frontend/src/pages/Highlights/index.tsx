@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { usePocketBase } from "@/hooks/usePocketBase";
 import useUserHighlightsQuery, {
   Highlight,
   useUserHighlightMutation,
@@ -14,17 +13,14 @@ import {
   Center,
   Container,
   Divider,
-  Group,
-  Indicator,
   Loader,
-  SimpleGrid,
-  Title,
+  Text,
+  Pagination,
 } from "@mantine/core";
 import classes from "./Highlights.module.css";
 import URLS from "@/lib/urls";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import LynxGrid from "@/components/LynxGrid";
-import { IconBlockquote } from "@tabler/icons-react";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import SearchBar, { SearchParams } from "./SearchBar";
 
@@ -92,7 +88,6 @@ const MetadataRow = ({ highlight }: { highlight: Highlight }) => {
 
 const Highlights: React.FC = () => {
   usePageTitle("My Highlights");
-  const { pb, user } = usePocketBase();
   const [urlParams, setUrlParams] = useSearchParams();
   const [searchParams, setSearchParams] = useState<
     Omit<SearchParams, "searchText">
@@ -141,40 +136,68 @@ const Highlights: React.FC = () => {
     );
   } else if (highlightQuery.isError) {
     content = <Alert color="red">{String(highlightQuery.error)}</Alert>;
+  } else if (highlightQuery.data.totalItems === 0) {
+    content = (
+      <Container size="xl">
+        <SearchBar
+          searchParams={{ ...searchParams, searchText, tagId, linkId }}
+          onSearchParamsChange={handleSearchParamsChange}
+        />
+        <Alert title="No Results">
+          Try adjusting your filters or add some new links to your feed
+        </Alert>
+      </Container>
+    );
   } else {
     content = (
       <Container size="xl">
-        <Title order={2} mb="md">
-          My Highlights
-        </Title>
         <SearchBar
           searchParams={{ ...searchParams, searchText, tagId, linkId }}
           onSearchParamsChange={handleSearchParamsChange}
         />
         <LynxGrid>
-          {highlightQuery.data.items.map((highlight) => (
-            <div key={highlight.id}>
-              <Card withBorder shadow="sm">
-                <Blockquote
-                  cite={`- ${highlight.linkAuthor || highlight.linkTitle}`}
-                  icon={<IconBlockquote />}
-                  iconSize={35}
-                  mb="lg"
-                >
-                  {highlight.highlighted_text}
-                </Blockquote>
-                <LinkTagsDisplay
-                  link={highlight}
-                  size="xs"
-                  linkMutator={highlightMutator}
-                />
-                <Card.Section className={classes.footer}>
-                  <MetadataRow highlight={highlight} />
-                </Card.Section>
-              </Card>
-            </div>
-          ))}
+          {highlightQuery.data.items.map((highlight) => {
+            const formattedDate = highlight.created?.toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric" as const,
+                month: "short" as const,
+                day: "numeric" as const,
+              },
+            );
+            return (
+              <div key={highlight.id}>
+                <Card withBorder shadow="sm">
+                  <Text size="lg" fw={700} lineClamp={2} component="div">
+                    {highlight.linkTitle}
+                  </Text>
+                  <Text size="md" c="dimmed" lineClamp={1}>
+                    {formattedDate} | {highlight.linkHostname}
+                  </Text>
+                  <Blockquote my="lg">{highlight.highlighted_text}</Blockquote>
+                  <LinkTagsDisplay
+                    link={highlight}
+                    size="xs"
+                    linkMutator={highlightMutator}
+                  />
+                  <Card.Section className={classes.footer}>
+                    <MetadataRow highlight={highlight} />
+                  </Card.Section>
+                </Card>
+              </div>
+            );
+          })}
         </LynxGrid>
+        <Center>
+          {highlightQuery.data.totalPages > 1 && (
+            <Pagination
+              my="lg"
+              value={highlightQuery.data.page}
+              total={highlightQuery.data.totalPages}
+              onChange={setPage}
+            />
+          )}
+        </Center>
       </Container>
     );
   }
