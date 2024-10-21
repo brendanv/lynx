@@ -6,6 +6,7 @@ export default {
   LOGIN: "/login",
   FEEDS: "/settings/feeds",
   HIGHLIGHTS: "/highlights",
+  HIGHLIGHTS_WITH_LINK_SEARCH: (linkId: string) => `/highlights/?l=${linkId}`,
   ADD_LINK: "/links/add",
 
   SETTINGS_TEMPLATE: "/settings/:tabValue",
