@@ -72,7 +72,7 @@ const buildFilters = (client: Client, props: Props) => {
 };
 
 export const useUserHighlightDeletionMutation = () => {
-  const { pb, user } = usePocketBase();
+  const { pb } = usePocketBase();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
