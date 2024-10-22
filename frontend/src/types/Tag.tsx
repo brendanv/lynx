@@ -6,6 +6,7 @@ type Tag = {
 
 export type TagWithMetadata = Tag & {
   link_count: number;
+  highlight_count: number;
 };
 
 export default Tag;

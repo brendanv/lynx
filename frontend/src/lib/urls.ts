@@ -7,6 +7,7 @@ export default {
   FEEDS: "/settings/feeds",
   HIGHLIGHTS: "/highlights",
   HIGHLIGHTS_WITH_LINK_SEARCH: (linkId: string) => `/highlights/?l=${linkId}`,
+  HIGHLIGHTS_WITH_TAG_SEARCH: (tagId: string) => `/highlights/?t=${tagId}`,
   ADD_LINK: "/links/add",
 
   SETTINGS_TEMPLATE: "/settings/:tabValue",

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import useUserHighlightsQuery, {
   Highlight,
+  useUserHighlightDeletionMutation,
   useUserHighlightMutation,
 } from "@/hooks/useUserHighlightsQuery";
 import LynxShell from "@/pages/LynxShell";
 import { Link, useSearchParams } from "react-router-dom";
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Blockquote,
@@ -13,16 +15,20 @@ import {
   Center,
   Container,
   Divider,
+  Group,
   Loader,
+  Menu,
   Text,
   Pagination,
 } from "@mantine/core";
 import classes from "./Highlights.module.css";
+import dropdownClasses from "@/components/SharedCSS/DropdownIcon.module.css";
 import URLS from "@/lib/urls";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import LynxGrid from "@/components/LynxGrid";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import SearchBar, { SearchParams } from "./SearchBar";
+import { IconDotsVertical, IconTrash } from '@tabler/icons-react'
 
 const generateURLWithFragment = (url: string, text: string) => {
   const urlWithoutFragment = url.split("#")[0];
@@ -77,10 +83,10 @@ const MetadataRow = ({ highlight }: { highlight: Highlight }) => {
       index === items.length - 1
         ? [...acc, item]
         : [
-            ...acc,
-            item,
-            <Divider key={`divider-${index}`} orientation="vertical" />,
-          ],
+          ...acc,
+          item,
+          <Divider key={`divider-${index}`} orientation="vertical" />,
+        ],
     [],
   );
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
@@ -111,6 +117,7 @@ const Highlights: React.FC = () => {
   };
   const highlightQuery = useUserHighlightsQuery(queryProps);
   const highlightMutator = useUserHighlightMutation(queryProps);
+  const deleteMutator = useUserHighlightDeletionMutation();
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
@@ -168,12 +175,34 @@ const Highlights: React.FC = () => {
             return (
               <div key={highlight.id}>
                 <Card withBorder shadow="sm">
-                  <Text size="lg" fw={700} lineClamp={2} component="div">
-                    {highlight.linkTitle}
-                  </Text>
-                  <Text size="md" c="dimmed" lineClamp={1}>
-                    {formattedDate} | {highlight.linkHostname}
-                  </Text>
+                  <Group justify="space-between" align="top" preventGrowOverflow wrap="nowrap" gap="xs">
+                    <span>
+                      <Text size="lg" fw={700} lineClamp={2} component="div">
+                        {highlight.linkTitle}
+                      </Text>
+                      <Text size="md" c="dimmed" lineClamp={1}>
+                        {formattedDate} | {highlight.linkHostname}
+                      </Text>
+                    </span>
+                    <Menu>
+                      <Menu.Target>
+                        <ActionIcon variant="subtle">
+                          <IconDotsVertical />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          onClick={() => deleteMutator.mutate({ id: highlight.id })}
+                          leftSection={
+                            <IconTrash className={dropdownClasses.dropdownIcon} />
+                          }
+                          color="red"
+                        >
+                          Delete
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Group>
                   <Blockquote my="lg">{highlight.highlighted_text}</Blockquote>
                   <LinkTagsDisplay
                     link={highlight}

@@ -124,6 +124,10 @@ const Tags: React.FC = () => {
         return sortDirection === "asc"
           ? a.link_count - b.link_count
           : b.link_count - a.link_count;
+      } else if (sortField === "highlight_count") {
+        return sortDirection === "asc"
+          ? a.highlight_count - b.highlight_count
+          : b.highlight_count - a.highlight_count;
       }
       return 0;
     });
@@ -186,7 +190,14 @@ const Tags: React.FC = () => {
                   {sortField === "link_count" &&
                     (sortDirection === "asc" ? "▲" : "▼")}
                 </Table.Th>
-                <Table.Th></Table.Th>
+                <Table.Th
+                  onClick={() => handleSort("highlight_count")}
+                  style={{ cursor: "pointer" }}
+                >
+                  Highlight Count{" "}
+                  {sortField === "highlight_count" &&
+                    (sortDirection === "asc" ? "▲" : "▼")}
+                </Table.Th>
                 <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -194,14 +205,25 @@ const Tags: React.FC = () => {
               {sortedTags.map((tag) => (
                 <Table.Tr key={tag.id}>
                   <Table.Td>{tag.name}</Table.Td>
-                  <Table.Td>{tag.link_count}</Table.Td>
                   <Table.Td>
-                    <Anchor
-                      component={Link}
-                      to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
-                    >
-                      View Links
-                    </Anchor>
+                    {tag.link_count} (
+                      <Anchor
+                        component={Link}
+                        to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
+                      >
+                        See all
+                      </Anchor>
+                    )
+                  </Table.Td>
+                  <Table.Td>
+                    {tag.highlight_count} (
+                      <Anchor
+                        component={Link}
+                        to={URLS.HIGHLIGHTS_WITH_TAG_SEARCH(tag.id)}
+                      >
+                        See all
+                      </Anchor>
+                    )
                   </Table.Td>
                   <Table.Td>
                     <Button
@@ -229,7 +251,8 @@ const Tags: React.FC = () => {
         <Stack>
           <Text>
             Are you sure you want to delete the tag "{tagToDelete?.name}"? This
-            will remove it from {tagToDelete?.link_count} links.
+            will remove it from {tagToDelete?.link_count} links
+            and {tagToDelete?.highlight_count} highlights.
           </Text>
           <Group justify="flex-end">
             <Button
