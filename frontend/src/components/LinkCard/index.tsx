@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ActionIcon,
-  BackgroundImage,
   Card,
   Divider,
   Group,
@@ -32,6 +31,7 @@ import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import { GenericLynxMutator } from "@/types/Mutations";
 import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
 import { useMutation } from "@tanstack/react-query";
+import BackgroundImage from "./BackgroundImage";
 
 interface Props {
   link: FeedLink;
@@ -56,10 +56,10 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
       index === items.length - 1
         ? [...acc, item]
         : [
-            ...acc,
-            item,
-            <Divider key={`divider-${index}`} orientation="vertical" />,
-          ],
+          ...acc,
+          item,
+          <Divider key={`divider-${index}`} orientation="vertical" />,
+        ],
     [],
   );
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
@@ -126,8 +126,8 @@ const LinkCard = ({ link, linkMutator }: Props) => {
       <Card withBorder padding="lg" radius="md" className={classes.card}>
         <Card.Section mb="sm">
           <BackgroundImage
-            className={classes.headerImage}
-            src={link.header_image_url || "/img/lynx_placeholder.png"}
+            linkId={link.id}
+            imgSrc={link.header_image_url}
           >
             <Group justify="flex-end" p="xs">
               <Menu zIndex={50}>
