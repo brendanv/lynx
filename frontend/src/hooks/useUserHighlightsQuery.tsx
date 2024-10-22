@@ -71,6 +71,31 @@ const buildFilters = (client: Client, props: Props) => {
   return filterExprs.join(" && ");
 };
 
+export const useUserHighlightDeletionMutation = () => {
+  const { pb, user } = usePocketBase();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      return await pb.collection("highlights").delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['highlights'] })
+      notifications.show({
+        message: 'Highlight deleted',
+        color: 'green',
+      })
+    },
+    onError: (error, _variables) => {
+      console.error("Failed to update highlight", error);
+      notifications.show({
+        title: "Failed to delete highlight",
+        message: error.message,
+        color: "red",
+      });
+    }
+  })
+};
+
 export const useUserHighlightMutation = (
   props: Props,
 ): GenericLynxMutator<Highlight> => {
@@ -144,10 +169,10 @@ const convertQueryItemToHighlight = (item: any): Highlight => {
     tags:
       item.expand && item.expand.tags
         ? item.expand.tags.map(({ id, name, slug }: any) => ({
-            id,
-            name,
-            slug,
-          }))
+          id,
+          name,
+          slug,
+        }))
         : [],
   };
 };
