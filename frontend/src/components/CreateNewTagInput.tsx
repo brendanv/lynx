@@ -1,10 +1,6 @@
 import { useCreateNewTagMutation } from "@/hooks/useAllUserTags";
 import { useForm } from "@mantine/form";
-import {
-  ActionIcon,
-  TextInput,
-  rem,
-} from "@mantine/core";
+import { ActionIcon, TextInput, rem } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 
 const CreateNewTagInput = () => {
@@ -24,10 +20,10 @@ const CreateNewTagInput = () => {
       options: {
         onSuccessMessage: "Tag away!",
         onErrorMessage: "Please try again",
-        afterSuccess: form.reset
-      }
-    })
-  }
+        afterSuccess: form.reset,
+      },
+    });
+  };
   return (
     <form onSubmit={form.onSubmit(handleAdd as any)}>
       <TextInput
@@ -47,8 +43,7 @@ const CreateNewTagInput = () => {
         }
       />
     </form>
-  )
-
+  );
 };
 
 export default CreateNewTagInput;

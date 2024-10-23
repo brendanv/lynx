@@ -6,7 +6,8 @@
   margin-top: var(--mantine-spacing-md);
 }
 
-.searchBar, .selectedFilters {
+.searchBar,
+.selectedFilters {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -14,8 +15,8 @@
   gap: var(--mantine-spacing-md);
 }
 
-.searchBar> :first-child {
-  flex-grow: 1
+.searchBar > :first-child {
+  flex-grow: 1;
 }
 
 .actionIcon {

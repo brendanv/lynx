@@ -79,11 +79,11 @@ export const useUserHighlightDeletionMutation = () => {
       return await pb.collection("highlights").delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['highlights'] })
+      queryClient.invalidateQueries({ queryKey: ["highlights"] });
       notifications.show({
-        message: 'Highlight deleted',
-        color: 'green',
-      })
+        message: "Highlight deleted",
+        color: "green",
+      });
     },
     onError: (error, _variables) => {
       console.error("Failed to update highlight", error);
@@ -92,8 +92,8 @@ export const useUserHighlightDeletionMutation = () => {
         message: error.message,
         color: "red",
       });
-    }
-  })
+    },
+  });
 };
 
 export const useUserHighlightMutation = (
@@ -169,10 +169,10 @@ const convertQueryItemToHighlight = (item: any): Highlight => {
     tags:
       item.expand && item.expand.tags
         ? item.expand.tags.map(({ id, name, slug }: any) => ({
-          id,
-          name,
-          slug,
-        }))
+            id,
+            name,
+            slug,
+          }))
         : [],
   };
 };

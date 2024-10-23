@@ -87,7 +87,7 @@ const getFields = () =>
     "expand.highlights_via_link.id",
     "expand.highlights_via_link.serialized_range",
   ].join(",");
-const getExpand = () => ['tags', 'highlights_via_link'].join(",");
+const getExpand = () => ["tags", "highlights_via_link"].join(",");
 
 export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
   const { pb } = usePocketBase();

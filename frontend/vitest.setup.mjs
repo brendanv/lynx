@@ -1,12 +1,12 @@
-import '@testing-library/jest-dom/vitest';
+import "@testing-library/jest-dom/vitest";
 
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 const { getComputedStyle } = window;
 window.getComputedStyle = (elt) => getComputedStyle(elt);
-window.HTMLElement.prototype.scrollIntoView = () => { };
+window.HTMLElement.prototype.scrollIntoView = () => {};
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,
@@ -21,9 +21,9 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 class ResizeObserver {
-  observe() { }
-  unobserve() { }
-  disconnect() { }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
 }
 
 window.ResizeObserver = ResizeObserver;

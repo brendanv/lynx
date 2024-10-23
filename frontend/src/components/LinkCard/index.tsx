@@ -60,10 +60,10 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
       index === items.length - 1
         ? [...acc, item]
         : [
-          ...acc,
-          item,
-          <Divider key={`divider-${index}`} orientation="vertical" />,
-        ],
+            ...acc,
+            item,
+            <Divider key={`divider-${index}`} orientation="vertical" />,
+          ],
     [],
   );
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
@@ -132,10 +132,7 @@ const LinkCard = ({ link, linkMutator }: Props) => {
       <Indicator disabled={!isUnread} position="top-start" withBorder size={15}>
         <Card withBorder padding="lg" radius="md" className={classes.card}>
           <Card.Section mb="sm">
-            <BackgroundImage
-              linkId={link.id}
-              imgSrc={link.header_image_url}
-            >
+            <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
               <Group justify="flex-end" p="xs">
                 <Menu zIndex={50}>
                   <Menu.Target>
@@ -181,7 +178,9 @@ const LinkCard = ({ link, linkMutator }: Props) => {
                             className={dropdownClasses.dropdownIcon}
                           />
                         ) : (
-                          <IconCircle className={dropdownClasses.dropdownIcon} />
+                          <IconCircle
+                            className={dropdownClasses.dropdownIcon}
+                          />
                         )
                       }
                     >
@@ -190,7 +189,9 @@ const LinkCard = ({ link, linkMutator }: Props) => {
                     {link.archive ? (
                       <Menu.Item
                         leftSection={
-                          <IconArchive className={dropdownClasses.dropdownIcon} />
+                          <IconArchive
+                            className={dropdownClasses.dropdownIcon}
+                          />
                         }
                         component="a"
                         href={URLS.LINK_ARCHIVE(link.id)}
@@ -250,8 +251,16 @@ const LinkCard = ({ link, linkMutator }: Props) => {
           </Card.Section>
         </Card>
       </Indicator>
-      <DrawerDialog title="Edit Tags" open={isTagsEditOpen} onClose={closeTagsEdit}>
-        <TagsEditor link={link} linkMutator={linkMutator} afterSave={closeTagsEdit} />
+      <DrawerDialog
+        title="Edit Tags"
+        open={isTagsEditOpen}
+        onClose={closeTagsEdit}
+      >
+        <TagsEditor
+          link={link}
+          linkMutator={linkMutator}
+          afterSave={closeTagsEdit}
+        />
       </DrawerDialog>
     </>
   );
