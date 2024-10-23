@@ -22,7 +22,7 @@ type ProgressState = {
 };
 
 const ImportLynxV1: React.FC = () => {
-  usePageTitle('Import')
+  usePageTitle("Import");
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState<ProgressState>({
@@ -42,10 +42,9 @@ const ImportLynxV1: React.FC = () => {
     setError(null);
     setProgress({ tags: 0, feeds: 0, feedItems: 0, links: 0 });
 
-    const worker = new Worker(
-      new URL("./importLynxV1.ts", import.meta.url),
-      { type: "module" },
-    );
+    const worker = new Worker(new URL("./importLynxV1.ts", import.meta.url), {
+      type: "module",
+    });
 
     worker.onmessage = (event) => {
       if (event.data.type === "progress") {

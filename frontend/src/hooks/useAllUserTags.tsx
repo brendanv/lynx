@@ -27,12 +27,16 @@ const useAllUserTagsWithoutMetadata = () => {
 
 export { useAllUserTagsWithoutMetadata };
 
-const generateSlug = (name: string) => name
-  .toLowerCase()
-  .replace(/[^\w\s-]/g, "")
-  .replace(/\s+/g, "-");
+const generateSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
 
-const useCreateNewTagMutation = (): GenericLynxCreationMutator<Tag, { tagName: string }> => {
+const useCreateNewTagMutation = (): GenericLynxCreationMutator<
+  Tag,
+  { tagName: string }
+> => {
   const { user, pb } = usePocketBase();
   const queryClient = useQueryClient();
   return useMutation({
@@ -72,7 +76,7 @@ const useCreateNewTagMutation = (): GenericLynxCreationMutator<Tag, { tagName: s
       }
     },
   });
-}
+};
 
 export { useCreateNewTagMutation };
 

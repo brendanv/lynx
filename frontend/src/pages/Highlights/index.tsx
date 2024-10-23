@@ -28,7 +28,7 @@ import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import LynxGrid from "@/components/LynxGrid";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import SearchBar, { SearchParams } from "./SearchBar";
-import { IconDotsVertical, IconTrash } from '@tabler/icons-react'
+import { IconDotsVertical, IconTrash } from "@tabler/icons-react";
 
 const generateURLWithFragment = (url: string, text: string) => {
   const urlWithoutFragment = url.split("#")[0];
@@ -83,10 +83,10 @@ const MetadataRow = ({ highlight }: { highlight: Highlight }) => {
       index === items.length - 1
         ? [...acc, item]
         : [
-          ...acc,
-          item,
-          <Divider key={`divider-${index}`} orientation="vertical" />,
-        ],
+            ...acc,
+            item,
+            <Divider key={`divider-${index}`} orientation="vertical" />,
+          ],
     [],
   );
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
@@ -175,7 +175,13 @@ const Highlights: React.FC = () => {
             return (
               <div key={highlight.id}>
                 <Card withBorder shadow="sm">
-                  <Group justify="space-between" align="top" preventGrowOverflow wrap="nowrap" gap="xs">
+                  <Group
+                    justify="space-between"
+                    align="top"
+                    preventGrowOverflow
+                    wrap="nowrap"
+                    gap="xs"
+                  >
                     <span>
                       <Text size="lg" fw={700} lineClamp={2} component="div">
                         {highlight.linkTitle}
@@ -192,9 +198,13 @@ const Highlights: React.FC = () => {
                       </Menu.Target>
                       <Menu.Dropdown>
                         <Menu.Item
-                          onClick={() => deleteMutator.mutate({ id: highlight.id })}
+                          onClick={() =>
+                            deleteMutator.mutate({ id: highlight.id })
+                          }
                           leftSection={
-                            <IconTrash className={dropdownClasses.dropdownIcon} />
+                            <IconTrash
+                              className={dropdownClasses.dropdownIcon}
+                            />
                           }
                           color="red"
                         >

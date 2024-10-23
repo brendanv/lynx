@@ -145,22 +145,22 @@ const Tags: React.FC = () => {
                   <Table.Td>{tag.name}</Table.Td>
                   <Table.Td>
                     {tag.link_count} (
-                      <Anchor
-                        component={Link}
-                        to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
-                      >
-                        See all
-                      </Anchor>
+                    <Anchor
+                      component={Link}
+                      to={URLS.HOME_WITH_TAGS_SEARCH(tag.id)}
+                    >
+                      See all
+                    </Anchor>
                     )
                   </Table.Td>
                   <Table.Td>
                     {tag.highlight_count} (
-                      <Anchor
-                        component={Link}
-                        to={URLS.HIGHLIGHTS_WITH_TAG_SEARCH(tag.id)}
-                      >
-                        See all
-                      </Anchor>
+                    <Anchor
+                      component={Link}
+                      to={URLS.HIGHLIGHTS_WITH_TAG_SEARCH(tag.id)}
+                    >
+                      See all
+                    </Anchor>
                     )
                   </Table.Td>
                   <Table.Td>
@@ -189,8 +189,8 @@ const Tags: React.FC = () => {
         <Stack>
           <Text>
             Are you sure you want to delete the tag "{tagToDelete?.name}"? This
-            will remove it from {tagToDelete?.link_count} links
-            and {tagToDelete?.highlight_count} highlights.
+            will remove it from {tagToDelete?.link_count} links and{" "}
+            {tagToDelete?.highlight_count} highlights.
           </Text>
           <Group justify="flex-end">
             <Button

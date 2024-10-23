@@ -9,11 +9,8 @@ import { theme } from "@/theme";
 import { Suspense } from "react";
 import { PocketBaseProvider } from "@/hooks/usePocketBase";
 import { Notifications } from "@mantine/notifications";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const queryClient = new QueryClient();
 

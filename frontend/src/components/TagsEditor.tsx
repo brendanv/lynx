@@ -51,8 +51,8 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
           afterSave && afterSave();
         },
         onErrorMessage: "Unable to save tags",
-      }
-    })
+      },
+    });
   };
 
   if (tagsQuery.isFetching) {
@@ -87,7 +87,11 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
         })}
       </Group>
       <Group mt="lg" grow>
-        <Button loading={linkMutator.isPending} onClick={saveTags} disabled={!hasChanges}>
+        <Button
+          loading={linkMutator.isPending}
+          onClick={saveTags}
+          disabled={!hasChanges}
+        >
           Save Changes
         </Button>
       </Group>

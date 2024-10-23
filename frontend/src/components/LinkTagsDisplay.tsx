@@ -38,7 +38,11 @@ const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
             {editLabel}
           </Button>
           <DrawerDialog title={editLabel} open={isEditOpen} onClose={closeEdit}>
-            <TagsEditor link={link} linkMutator={linkMutator} afterSave={closeEdit} />
+            <TagsEditor
+              link={link}
+              linkMutator={linkMutator}
+              afterSave={closeEdit}
+            />
           </DrawerDialog>
         </>
       ) : null}

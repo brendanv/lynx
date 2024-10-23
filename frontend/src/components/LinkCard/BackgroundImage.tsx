@@ -1,7 +1,5 @@
 import React from "react";
-import {
-  BackgroundImage as MantineBackgroundImage
-} from "@mantine/core";
+import { BackgroundImage as MantineBackgroundImage } from "@mantine/core";
 import classes from "./LinkCard.module.css";
 
 interface Props {
@@ -14,7 +12,7 @@ const hashString = (str: string) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash;
   }
   return Math.abs(hash);
@@ -34,27 +32,27 @@ const generateHSLColor = (baseSeed: string) => {
 };
 
 const generateGradient = (seed: string) => {
-  const color1 = generateHSLColor(seed + '1');
-  const color2 = generateHSLColor(seed + '2');
-  const angle = Math.floor(seededRandom(hashString(seed + '3')) * 360);
+  const color1 = generateHSLColor(seed + "1");
+  const color2 = generateHSLColor(seed + "2");
+  const angle = Math.floor(seededRandom(hashString(seed + "3")) * 360);
   return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
 };
 
 const BackgroundImage = ({ imgSrc, linkId, children }: Props) => {
   if (imgSrc) {
     return (
-      <MantineBackgroundImage
-        className={classes.headerImage}
-        src={imgSrc}
-      >
+      <MantineBackgroundImage className={classes.headerImage} src={imgSrc}>
         {children}
       </MantineBackgroundImage>
     );
   } else {
     return (
-      <div className={classes.headerImage} style={{
-        background: generateGradient(linkId),
-      }}>
+      <div
+        className={classes.headerImage}
+        style={{
+          background: generateGradient(linkId),
+        }}
+      >
         {children}
       </div>
     );

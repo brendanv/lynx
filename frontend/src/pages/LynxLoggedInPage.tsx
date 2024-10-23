@@ -10,7 +10,7 @@ import React from "react";
 //    If not, it redirects them to the login page.
 // 2. It wraps the page in a CommandMenuContext so that any
 //    subcomponent can open/close the menu.
-export const AuthOnly = ({ children } : {children: React.ReactNode}) => {
+export const AuthOnly = ({ children }: { children: React.ReactNode }) => {
   const user = useRequireAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
