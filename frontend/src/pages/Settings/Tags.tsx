@@ -3,28 +3,25 @@ import { Link } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import useAllUserTags from "@/hooks/useAllUserTags";
 import {
-  ActionIcon,
   Anchor,
   Center,
   Container,
   Loader,
-  TextInput,
   Button,
   Table,
   Group,
   Text,
   Alert,
   Stack,
-  rem,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { IconAlertCircle, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconTrash } from "@tabler/icons-react";
 import URLS from "@/lib/urls";
 import DrawerDialog from "@/components/DrawerDialog";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TagWithMetadata } from "@/types/Tag";
+import CreateNewTagInput from "@/components/CreateNewTagInput";
 
 const Tags: React.FC = () => {
   usePageTitle("Tags");
@@ -36,49 +33,6 @@ const Tags: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<TagWithMetadata | null>(null);
-
-  const form = useForm({
-    initialValues: {
-      tagName: "",
-    },
-    validate: {
-      tagName: (value) =>
-        value.trim().length > 0 ? null : "Tag name is required",
-    },
-  });
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-");
-  };
-
-  const addMutation = useMutation({
-    mutationFn: async ({ tagName }: { tagName: string }) => {
-      const slug = generateSlug(tagName);
-      return await pb.collection("tags").create({
-        name: tagName,
-        slug: slug,
-        user: user?.id,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tags", "all", user?.id] });
-      form.reset();
-      notifications.show({
-        message: "Tag created successfully",
-        color: "green",
-      });
-    },
-    onError: (error) => {
-      console.error("Error creating tag:", error);
-      notifications.show({
-        message: "Failed to create tag. Please try again.",
-        color: "red",
-      });
-    },
-  });
 
   const handleDeleteClick = (tag: TagWithMetadata) => {
     setTagToDelete(tag);
@@ -145,24 +99,8 @@ const Tags: React.FC = () => {
           Error: {String(tagsQuery.error)}
         </Alert>
       )}
-      <form onSubmit={form.onSubmit(addMutation.mutate as any)}>
-        <TextInput
-          radius="xl"
-          size="md"
-          mb="lg"
-          placeholder="Add tag"
-          {...form.getInputProps("tagName")}
-          rightSectionWidth={42}
-          rightSection={
-            <ActionIcon type="submit" size={32} radius="xl" variant="filled">
-              <IconPlus
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
-          }
-        />
-      </form>
+
+      <CreateNewTagInput />
 
       {tagsQuery.isPending ? (
         <Center>

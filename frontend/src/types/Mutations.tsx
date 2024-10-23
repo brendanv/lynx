@@ -20,3 +20,12 @@ export type GenericLynxMutator<T> = UseMutationResult<
   Error,
   LynxMutationOptions
 >;
+
+export type GenericLynxCreationMutator<T, F> = UseMutationResult<
+  T,
+  Error,
+  {
+    fields: F;
+    options?: AfterMutationOptions;
+  }
+>;
