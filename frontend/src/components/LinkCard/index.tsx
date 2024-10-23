@@ -23,15 +23,19 @@ import {
   IconFileDownload,
   IconPencil,
   IconTrash,
+  IconTags,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import { usePocketBase } from "@/hooks/usePocketBase";
 import { notifications } from "@mantine/notifications";
+import { useDisclosure } from "@mantine/hooks";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import { GenericLynxMutator } from "@/types/Mutations";
 import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
 import { useMutation } from "@tanstack/react-query";
 import BackgroundImage from "./BackgroundImage";
+import DrawerDialog from "@/components/DrawerDialog";
+import TagsEditor from "@/components/TagsEditor";
 
 interface Props {
   link: FeedLink;
@@ -68,6 +72,8 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
 const LinkCard = ({ link, linkMutator }: Props) => {
   const { pb } = usePocketBase();
   const invalidateLinksFeed = useInvalidateLinksFeed();
+  const [isTagsEditOpen, { open: openTagsEdit, close: closeTagsEdit }] =
+    useDisclosure(false);
 
   const isUnread = link.last_viewed_at === null;
   const handleToggleUnread = async () => {
@@ -122,119 +128,132 @@ const LinkCard = ({ link, linkMutator }: Props) => {
   };
 
   return (
-    <Indicator disabled={!isUnread} position="top-start" withBorder size={15}>
-      <Card withBorder padding="lg" radius="md" className={classes.card}>
-        <Card.Section mb="sm">
-          <BackgroundImage
-            linkId={link.id}
-            imgSrc={link.header_image_url}
-          >
-            <Group justify="flex-end" p="xs">
-              <Menu zIndex={50}>
-                <Menu.Target>
-                  <ActionIcon variant="subtle">
-                    <IconDotsVertical />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Label>Link</Menu.Label>
-                  <Menu.Item
-                    leftSection={
-                      <IconPencil className={dropdownClasses.dropdownIcon} />
-                    }
-                    component="a"
-                    href={URLS.EDIT_LINK(link.id)}
-                  >
-                    Edit Link
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={
-                      <IconBlockquote
-                        className={dropdownClasses.dropdownIcon}
-                      />
-                    }
-                    component={Link}
-                    to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
-                  >
-                    View Highlights
-                  </Menu.Item>
-                  <Menu.Item
-                    onClick={handleToggleUnread}
-                    leftSection={
-                      isUnread ? (
-                        <IconCircleCheck
-                          className={dropdownClasses.dropdownIcon}
-                        />
-                      ) : (
-                        <IconCircle className={dropdownClasses.dropdownIcon} />
-                      )
-                    }
-                  >
-                    {isUnread ? "Mark as Read" : "Mark as Unread"}
-                  </Menu.Item>
-                  {link.archive ? (
+    <>
+      <Indicator disabled={!isUnread} position="top-start" withBorder size={15}>
+        <Card withBorder padding="lg" radius="md" className={classes.card}>
+          <Card.Section mb="sm">
+            <BackgroundImage
+              linkId={link.id}
+              imgSrc={link.header_image_url}
+            >
+              <Group justify="flex-end" p="xs">
+                <Menu zIndex={50}>
+                  <Menu.Target>
+                    <ActionIcon variant="subtle">
+                      <IconDotsVertical />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Label>Link</Menu.Label>
                     <Menu.Item
                       leftSection={
-                        <IconArchive className={dropdownClasses.dropdownIcon} />
+                        <IconPencil className={dropdownClasses.dropdownIcon} />
                       }
                       component="a"
-                      href={URLS.LINK_ARCHIVE(link.id)}
+                      href={URLS.EDIT_LINK(link.id)}
                     >
-                      View Archive
+                      Edit Link
                     </Menu.Item>
-                  ) : (
                     <Menu.Item
-                      onClick={handleCreateArchive}
                       leftSection={
-                        <IconFileDownload
+                        <IconTags className={dropdownClasses.dropdownIcon} />
+                      }
+                      onClick={openTagsEdit}
+                    >
+                      Tags
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <IconBlockquote
                           className={dropdownClasses.dropdownIcon}
                         />
                       }
+                      component={Link}
+                      to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
                     >
-                      Create Archive
+                      View Highlights
                     </Menu.Item>
-                  )}
-                  <Menu.Label>Danger Zone</Menu.Label>
-                  <Menu.Item
-                    onClick={() => deleteMutator.mutate()}
-                    leftSection={
-                      <IconTrash className={dropdownClasses.dropdownIcon} />
-                    }
-                    color="red"
-                  >
-                    Delete
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Group>
-          </BackgroundImage>
-        </Card.Section>
-        {link.tags.length > 0 ? (
-          <div className={classes.tags}>
-            <LinkTagsDisplay link={link} size="xs" />
-          </div>
-        ) : null}
+                    <Menu.Item
+                      onClick={handleToggleUnread}
+                      leftSection={
+                        isUnread ? (
+                          <IconCircleCheck
+                            className={dropdownClasses.dropdownIcon}
+                          />
+                        ) : (
+                          <IconCircle className={dropdownClasses.dropdownIcon} />
+                        )
+                      }
+                    >
+                      {isUnread ? "Mark as Read" : "Mark as Unread"}
+                    </Menu.Item>
+                    {link.archive ? (
+                      <Menu.Item
+                        leftSection={
+                          <IconArchive className={dropdownClasses.dropdownIcon} />
+                        }
+                        component="a"
+                        href={URLS.LINK_ARCHIVE(link.id)}
+                      >
+                        View Archive
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        onClick={handleCreateArchive}
+                        leftSection={
+                          <IconFileDownload
+                            className={dropdownClasses.dropdownIcon}
+                          />
+                        }
+                      >
+                        Create Archive
+                      </Menu.Item>
+                    )}
+                    <Menu.Label>Danger Zone</Menu.Label>
+                    <Menu.Item
+                      onClick={() => deleteMutator.mutate()}
+                      leftSection={
+                        <IconTrash className={dropdownClasses.dropdownIcon} />
+                      }
+                      color="red"
+                    >
+                      Delete
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            </BackgroundImage>
+          </Card.Section>
+          {link.tags.length > 0 ? (
+            <div className={classes.tags}>
+              <LinkTagsDisplay link={link} size="xs" />
+            </div>
+          ) : null}
 
-        <Text
-          className={[classes.title, classes.clamp].join(" ")}
-          component="a"
-          href={URLS.LINK_VIEWER(link.id)}
-        >
-          {link.title}
-        </Text>
-        <Text
-          className={classes.clamp}
-          component="a"
-          href={URLS.LINK_VIEWER(link.id)}
-        >
-          {link.excerpt}
-        </Text>
+          <Text
+            className={[classes.title, classes.clamp].join(" ")}
+            component="a"
+            href={URLS.LINK_VIEWER(link.id)}
+          >
+            {link.title}
+          </Text>
+          <Text
+            className={classes.clamp}
+            component="a"
+            href={URLS.LINK_VIEWER(link.id)}
+          >
+            {link.excerpt}
+          </Text>
 
-        <Card.Section className={classes.footer}>
-          <MetadataRow link={link} />
-        </Card.Section>
-      </Card>
-    </Indicator>
+          <Card.Section className={classes.footer}>
+            <MetadataRow link={link} />
+          </Card.Section>
+        </Card>
+      </Indicator>
+      <DrawerDialog title="Edit Tags" open={isTagsEditOpen} onClose={closeTagsEdit}>
+        <TagsEditor link={link} linkMutator={linkMutator} afterSave={closeTagsEdit} />
+      </DrawerDialog>
+    </>
   );
 };
 

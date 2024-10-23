@@ -3,6 +3,7 @@ import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
 import { Button, Center, Chip, Group, Loader } from "@mantine/core";
 import { GenericLynxMutator } from "@/types/Mutations";
 import Tag from "@/types/Tag";
+import CreateNewTagInput from "@/components/CreateNewTagInput";
 
 interface Taggable {
   id: string;
@@ -12,9 +13,10 @@ interface Taggable {
 interface Props {
   link: Taggable;
   linkMutator: GenericLynxMutator<Taggable>;
+  afterSave?: () => void;
 }
 
-const TagsEditor = ({ link, linkMutator }: Props) => {
+const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
   const tagsQuery = useAllUserTagsWithoutMetadata();
   const allTags = tagsQuery.status === "success" ? tagsQuery.data : [];
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -46,6 +48,7 @@ const TagsEditor = ({ link, linkMutator }: Props) => {
       options: {
         afterSuccess: () => {
           setHasChanges(false);
+          afterSave && afterSave();
         },
         onErrorMessage: "Unable to save tags",
       }
@@ -62,6 +65,7 @@ const TagsEditor = ({ link, linkMutator }: Props) => {
 
   return (
     <>
+      <CreateNewTagInput />
       <Group>
         {allTags.map((tag) => {
           const isChecked = selectedTagIds.includes(tag.id);
