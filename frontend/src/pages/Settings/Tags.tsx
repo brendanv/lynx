@@ -188,8 +188,8 @@ const Tags: React.FC = () => {
       >
         <Stack>
           <Text>
-            Are you sure you want to delete the tag "{tagToDelete?.name}"? This
-            will remove it from {tagToDelete?.link_count} links and{" "}
+            Are you sure you want to delete the tag &quot;{tagToDelete?.name}
+            &quot;? This will remove it from {tagToDelete?.link_count} links and{" "}
             {tagToDelete?.highlight_count} highlights.
           </Text>
           <Group justify="flex-end">

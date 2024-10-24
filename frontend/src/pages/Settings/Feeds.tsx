@@ -235,6 +235,7 @@ const InnerContent = ({ feeds }: { feeds: Feed[] }) => {
       </Group>
 
       {feeds.map((feed) => (
+        // eslint-disable-next-line react/prop-types
         <FeedCard key={feed.id} feed={feed} />
       ))}
 

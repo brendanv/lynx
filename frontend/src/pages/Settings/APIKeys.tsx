@@ -295,7 +295,7 @@ const APIKeys: React.FC = () => {
         title="New API Key Generated"
       >
         <Text mb="md">
-          Please copy your new API key. For security reasons, it won't be
+          Please copy your new API key. For security reasons, it won&apos;t be
           displayed again.
         </Text>
         <Group>

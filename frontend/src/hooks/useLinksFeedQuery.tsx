@@ -192,7 +192,7 @@ const useLinksFeedQuery = (props: Props) => {
     }: {
       queryKey: ["links", Props & { source: string }];
     }): Promise<DT> => {
-      const [_1, { source, ...queryProps }] = queryKey;
+      const [_1, { source: _source, ...queryProps }] = queryKey;
       const queryResult = await pb
         .collection("links_feed")
         .getList<FeedQueryItem>(queryProps.page || 1, PAGE_SIZE, {
