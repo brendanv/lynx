@@ -24,7 +24,10 @@ export function HomePage() {
   const page = parseInt(urlParams.get("p") || "1");
   const feedId = urlParams.get("f") || undefined;
   const setPage = (p: number) => {
-    setUrlParams({ ...urlParams, p: p.toString() });
+    setUrlParams((prev) => {
+      prev.set("p", p.toString());
+      return prev;
+    });
   };
 
   const queryProps = {
