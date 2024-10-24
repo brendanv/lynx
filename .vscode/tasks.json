@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Lynx Backend",
+			"type": "shell",
+			"group": "test",
+			"command": "cd /workspaces/lynx/backend; go test ./..."
+		},
+		{
+			"label": "Lynx Backend - Dev",
+			"type": "shell",
+			"group": "build",
+			"command": "cd /workspaces/lynx/backend; go run main.go serve --http 0.0.0.0:3000"
+		},
+		{
+			"label": "Lynx Frontend",
+			"type": "shell",
+			"group": "test",
+			"command": "cd /workspaces/lynx/frontend; npm run test:ci"
+		},
+		{
+			"label": "Lynx Frontend - Dev",
+			"type": "shell",
+			"group": "build",
+			"command": "cd /workspaces/lynx/frontend; npm run dev"
+		},
+		{
+			"label": "Lynx Frontend - Build",
+			"type": "shell",
+			"group": "build",
+			"command": "cd /workspaces/lynx/frontend; npm run build"
+		},
+	]
+}

@@ -25,9 +25,9 @@
     },
     "vscode": {
       "extensions": [
-        "arcticicestudio.nord-visual-studio-code",
         "golang.go",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
       ]
     }
   }

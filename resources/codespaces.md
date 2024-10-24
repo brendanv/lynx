@@ -22,6 +22,7 @@ To build the backend and run in development mode, run the following command:
 cd backend && go run main.go serve --http 0.0.0.0:3000
 ```
 
+This command is also available as a `Build Task` in the VSCode Command Palette as `Lynx Backend - Dev`.
 
 ### Creating your admin user
 
@@ -33,6 +34,8 @@ To build the frontend and run Vite in development mode, run the following comman
 ```
 cd frontend && npm run dev
 ```
+
+This command is also available as a `Build Task` in the VSCode Command Palette as `Lynx Frontend - Dev`.
 
 Once the frontend is built you'll get another prompt to open the newly-available port in your browser. You should see the Lynx login page - log in with your new credentials and you should be able to access Lynx normally.
 

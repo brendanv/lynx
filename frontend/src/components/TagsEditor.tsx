@@ -48,7 +48,9 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
       options: {
         afterSuccess: () => {
           setHasChanges(false);
-          afterSave && afterSave();
+          if (afterSave) {
+            afterSave();
+          }
         },
         onErrorMessage: "Unable to save tags",
       },
