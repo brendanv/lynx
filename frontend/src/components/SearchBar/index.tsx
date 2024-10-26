@@ -16,6 +16,7 @@ import classes from "./SearchBar.module.css";
 export type SearchParams = {
   searchText: string;
   readState: "all" | "read" | "unread";
+  highlightState: "has_highlights" | "no_highlights" | "all";
   tagId?: string;
   feedId?: string;
   sortBy: "added_to_library" | "article_date";
@@ -40,6 +41,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
     updateSearchParams({
       searchText: "",
       readState: "all",
+      highlightState: "all",
       tagId: undefined,
       feedId: undefined,
       sortBy: "added_to_library",
@@ -52,6 +54,12 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
     { value: "unread", label: "Unread" },
   ];
 
+  const highlightStates = [
+    { value: "all", label: "All" },
+    { value: "has_highlights", label: "Has Highlights" },
+    { value: "no_highlights", label: "No Highlights" },
+  ];
+
   const sortOptions = [
     { value: "added_to_library", label: "Date Added" },
     { value: "article_date", label: "Article Date" },
@@ -60,6 +68,12 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
   const selectedFilters: string[] = [];
   if (searchParams.readState !== "all") {
     selectedFilters.push(`${searchParams.readState} only`);
+  }
+  if (searchParams.highlightState !== "all") {
+    selectedFilters.push(
+      highlightStates.find((s) => s.value === searchParams.highlightState)
+        ?.label || "",
+    );
   }
   if (searchParams.tagId) {
     selectedFilters.push(
@@ -111,6 +125,29 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
                   onClick={() =>
                     updateSearchParams({
                       readState: value as "all" | "read" | "unread",
+                    })
+                  }
+                >
+                  {label}
+                </Menu.Item>
+              ))}
+              <Menu.Label>Highlights</Menu.Label>
+              {highlightStates.map(({ value, label }) => (
+                <Menu.Item
+                  key={value}
+                  leftSection={
+                    searchParams.highlightState === value ? (
+                      <IconCheck className={dropdownClasses.dropdownIcon} />
+                    ) : (
+                      <span className={dropdownClasses.dropdownIcon} />
+                    )
+                  }
+                  onClick={() =>
+                    updateSearchParams({
+                      highlightState: value as
+                        | "all"
+                        | "has_highlights"
+                        | "no_highlights",
                     })
                   }
                 >

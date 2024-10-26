@@ -18,6 +18,7 @@ const PAGE_SIZE = 18;
 type Props = {
   page?: number;
   readState?: "unread" | "read" | "all";
+  highlightState?: "has_highlights" | "no_highlights" | "all";
   tagId?: string;
   searchText?: string;
   feedId?: string;
@@ -89,7 +90,7 @@ export const convertFeedQueryItemToFeedLink = (
 };
 
 const buildFilters = (client: Client, props: Props) => {
-  const { readState, tagId, searchText, feedId } = props;
+  const { readState, tagId, searchText, feedId, highlightState } = props;
   const filterExprs: string[] = [];
 
   if (readState === "unread") {
@@ -114,6 +115,12 @@ const buildFilters = (client: Client, props: Props) => {
     filterExprs.push(
       client.filter("created_from_feed.id ?= {:feedId}", { feedId }),
     );
+  }
+
+  if (highlightState === "has_highlights") {
+    filterExprs.push(client.filter("highlights_via_link.id != null"));
+  } else if (highlightState === "no_highlights") {
+    filterExprs.push(client.filter("highlights_via_link.id = null"));
   }
 
   return filterExprs.join(" && ");
@@ -194,7 +201,7 @@ const useLinksFeedQuery = (props: Props) => {
     }): Promise<DT> => {
       const [_1, { source: _source, ...queryProps }] = queryKey;
       const queryResult = await pb
-        .collection("links_feed")
+        .collection("links")
         .getList<FeedQueryItem>(queryProps.page || 1, PAGE_SIZE, {
           filter: buildFilters(pb, queryProps),
           expand: "tags",
