@@ -18,13 +18,22 @@ export function HomePage() {
   >({
     readState: "all",
     sortBy: "added_to_library",
+    highlightState: "all",
   });
   const searchText = urlParams.get("s") || "";
   const tagId = urlParams.get("t") || undefined;
   const page = parseInt(urlParams.get("p") || "1");
   const feedId = urlParams.get("f") || undefined;
+  const highlightState = (urlParams.get("h") || undefined) as
+    | "all"
+    | "has_highlights"
+    | "no_highlights"
+    | undefined;
   const setPage = (p: number) => {
-    setUrlParams({ ...urlParams, p: p.toString() });
+    setUrlParams((prev) => {
+      prev.set("p", p.toString());
+      return prev;
+    });
   };
 
   const queryProps = {
@@ -33,6 +42,7 @@ export function HomePage() {
     searchText,
     tagId,
     feedId,
+    highlightState,
   };
   const linksQuery = useLinksFeedQuery(queryProps);
   const linksMutation = useLinksFeedMutation(queryProps);
@@ -48,6 +58,9 @@ export function HomePage() {
     }
     if (newSearchParams.feedId) {
       newParams["f"] = newSearchParams.feedId;
+    }
+    if (newSearchParams.highlightState) {
+      newParams["h"] = newSearchParams.highlightState;
     }
     setUrlParams(newParams);
   };
