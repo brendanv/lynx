@@ -28,7 +28,7 @@ Lynx is an easily self-hostable read-it-later service that lets you save article
 - Bring your own API key and automatically summarize all articles using the latest LLM hotness.
 - Self-hostable via Docker, for ultimate privacy.
   - Plus, multi-user support so friends and family can save their own links.
-- SQLite backend (powered by [Pocketbase](https://technology.riotgames.com/news/taxonomy-tech-debt)) for limited dependencies and great performance.
+- SQLite backend (powered by [Pocketbase](https://github.com/pocketbase/pocketbase)) for limited dependencies and great performance.
 - Light- and dark-mode support out of the box.
 
 <p align="center">
