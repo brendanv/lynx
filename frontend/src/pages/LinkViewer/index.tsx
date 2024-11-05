@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { useWindowScroll } from "@mantine/hooks";
+import { useDisclosure, useWindowScroll } from "@mantine/hooks";
 import { useParams } from "react-router-dom";
 import {
   ActionIcon,
@@ -22,6 +22,7 @@ import {
   IconAlertCircle,
   IconArrowUp,
   IconClockFilled,
+  IconFileTextAi,
   IconLink,
   IconUserFilled,
   IconCalendarFilled,
@@ -38,6 +39,7 @@ import classes from "./LinkViewer.module.css";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
 import { Rangee } from "rangee";
 import useCreateHighlightMutation from "@/hooks/useCreateHighlightMutation";
+import DrawerDialog from "@/components/DrawerDialog";
 const rangee = new Rangee({ document });
 
 const LinkViewer = () => {
@@ -72,6 +74,8 @@ const LinkViewer = () => {
 const ArticleHeader: React.FC<{
   linkView: LinkView;
 }> = ({ linkView }) => {
+  const [isSummaryOpen, { open: openSummary, close: closeSummary }] =
+    useDisclosure(false);
   const colorScheme = useComputedColorScheme();
   const linkMutation = useLinkViewerMutation();
   const formattedDate = linkView.article_date?.toLocaleDateString("en-US", {
@@ -117,11 +121,26 @@ const ArticleHeader: React.FC<{
               </Anchor>
             </div>
           ) : null}
+          {linkView.summary ? (
+            <div className={classes.metadataWithIcon}>
+              <IconFileTextAi size={16} />
+              <Anchor underline="hover" onClick={openSummary}>
+                View Summary
+              </Anchor>
+            </div>
+          ) : null}
           <LinkTagsDisplay
             size="xs"
             link={linkView}
             linkMutator={linkMutation}
           />
+          <DrawerDialog
+            title={`Summary for ${linkView.title}`}
+            open={isSummaryOpen}
+            onClose={closeSummary}
+          >
+            <pre className={classes.summaryPre}>{linkView.summary}</pre>
+          </DrawerDialog>
         </Group>
       </Stack>
     </Container>

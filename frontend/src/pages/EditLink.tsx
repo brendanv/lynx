@@ -31,6 +31,7 @@ const EditLink = () => {
     initialValues: {
       title: "",
       excerpt: "",
+      summary: "",
       article_date: "",
     },
     validate: {
@@ -43,6 +44,7 @@ const EditLink = () => {
       form.setValues({
         title: link.title || "",
         excerpt: link.excerpt || "",
+        summary: link.summary || "",
         article_date: link.article_date
           ? link.article_date.toISOString().split("T")[0]
           : "",
@@ -58,6 +60,7 @@ const EditLink = () => {
       updates: {
         title: values.title,
         excerpt: values.excerpt,
+        summary: values.summary,
         article_date: values.article_date || null,
       },
       options: {
@@ -104,11 +107,6 @@ const EditLink = () => {
               {...form.getInputProps("title")}
               size="md"
             />
-            <Textarea
-              label="Excerpt"
-              {...form.getInputProps("excerpt")}
-              size="md"
-            />
             <TextInput
               label="Article Date"
               type="date"
@@ -119,6 +117,24 @@ const EditLink = () => {
               link={linkQuery.data}
               linkMutator={linkMutation}
               size="md"
+            />
+            <Textarea
+              label="Excerpt"
+              {...form.getInputProps("excerpt")}
+              size="md"
+              minRows={3}
+              maxRows={6}
+              resize="vertical"
+              autosize
+            />
+            <Textarea
+              label="Summary"
+              {...form.getInputProps("summary")}
+              size="md"
+              minRows={3}
+              maxRows={6}
+              resize="vertical"
+              autosize
             />
             <Button
               type="submit"

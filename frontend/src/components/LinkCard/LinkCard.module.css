@@ -58,3 +58,7 @@
   height: 8rem;
   width: 100%;
 }
+
+.summaryPre {
+  white-space: pre-wrap;
+}

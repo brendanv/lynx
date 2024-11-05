@@ -14,6 +14,7 @@ export type LinkView = {
   hostname: string | null;
   last_viewed_at: Date | null;
   read_time_display: string | null;
+  summary: string | null;
   tags: Tag[];
   highlights: {
     id: string;
@@ -38,6 +39,7 @@ type RawLinkQueryResult = {
   hostname: string | null;
   last_viewed_at: string | null;
   read_time_display: string | null;
+  summary: string | null;
   tags: string[];
   cleaned_url: string | null;
   article_html: string | null;
@@ -78,6 +80,7 @@ const getFields = () =>
     "hostname",
     "last_viewed_at",
     "read_time_display",
+    "summary",
     "title",
     "tags",
     "cleaned_url",
@@ -166,6 +169,7 @@ const runQuery = async (
         ? { "X-Lynx-Update-Last-Viewed": "true" }
         : {},
     });
+  console.log(queryResult);
   return queryResultToLinkView(queryResult);
 };
 

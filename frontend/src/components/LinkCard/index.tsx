@@ -9,6 +9,7 @@ import {
   rem,
   Skeleton,
   Text,
+  Tooltip,
 } from "@mantine/core";
 import type FeedLink from "@/types/FeedLink";
 import classes from "./LinkCard.module.css";
@@ -21,6 +22,7 @@ import {
   IconCircleCheck,
   IconDotsVertical,
   IconFileDownload,
+  IconFileTextAi,
   IconPencil,
   IconTrash,
   IconTags,
@@ -73,6 +75,8 @@ const LinkCard = ({ link, linkMutator }: Props) => {
   const { pb } = usePocketBase();
   const invalidateLinksFeed = useInvalidateLinksFeed();
   const [isTagsEditOpen, { open: openTagsEdit, close: closeTagsEdit }] =
+    useDisclosure(false);
+  const [isSummaryOpen, { open: openSummary, close: closeSummary }] =
     useDisclosure(false);
 
   const isUnread = link.last_viewed_at === null;
@@ -134,97 +138,131 @@ const LinkCard = ({ link, linkMutator }: Props) => {
           <Card.Section mb="sm">
             <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
               <Group justify="flex-end" p="xs">
-                <Menu zIndex={50}>
-                  <Menu.Target>
-                    <ActionIcon variant="subtle">
-                      <IconDotsVertical />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Label>Link</Menu.Label>
-                    <Menu.Item
-                      leftSection={
-                        <IconPencil className={dropdownClasses.dropdownIcon} />
-                      }
-                      component="a"
-                      href={URLS.EDIT_LINK(link.id)}
-                    >
-                      Edit Link
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconTags className={dropdownClasses.dropdownIcon} />
-                      }
+                <ActionIcon.Group>
+                  {link.summary ? (
+                    <Tooltip label="View Summary">
+                      <ActionIcon
+                        variant="light"
+                        onClick={openSummary}
+                        title="View Summary"
+                      >
+                        <IconFileTextAi />
+                      </ActionIcon>
+                    </Tooltip>
+                  ) : null}
+                  <Tooltip label="Edit Tags">
+                    <ActionIcon
+                      variant="light"
                       onClick={openTagsEdit}
+                      title="Edit Tags"
                     >
-                      Tags
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconBlockquote
-                          className={dropdownClasses.dropdownIcon}
-                        />
-                      }
-                      component={Link}
-                      to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
-                    >
-                      View Highlights
-                    </Menu.Item>
-                    <Menu.Item
+                      <IconTags />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label={isUnread ? "Mark as Read" : "Mark as Unread"}>
+                    <ActionIcon
+                      variant="light"
                       onClick={handleToggleUnread}
-                      leftSection={
-                        isUnread ? (
-                          <IconCircleCheck
-                            className={dropdownClasses.dropdownIcon}
-                          />
-                        ) : (
-                          <IconCircle
-                            className={dropdownClasses.dropdownIcon}
-                          />
-                        )
-                      }
+                      title={isUnread ? "Mark as Read" : "Mark as Unread"}
                     >
-                      {isUnread ? "Mark as Read" : "Mark as Unread"}
-                    </Menu.Item>
-                    {link.archive ? (
+                      {isUnread ? <IconCircle /> : <IconCircleCheck />}
+                    </ActionIcon>
+                  </Tooltip>
+                  <Menu zIndex={50}>
+                    <Menu.Target>
+                      <ActionIcon variant="light">
+                        <IconDotsVertical />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Label>Link</Menu.Label>
                       <Menu.Item
                         leftSection={
-                          <IconArchive
+                          <IconPencil
                             className={dropdownClasses.dropdownIcon}
                           />
                         }
                         component="a"
-                        href={URLS.LINK_ARCHIVE(link.id)}
+                        href={URLS.EDIT_LINK(link.id)}
                       >
-                        View Archive
+                        Edit Link
                       </Menu.Item>
-                    ) : (
                       <Menu.Item
-                        onClick={handleCreateArchive}
                         leftSection={
-                          <IconFileDownload
+                          <IconTags className={dropdownClasses.dropdownIcon} />
+                        }
+                        onClick={openTagsEdit}
+                      >
+                        Tags
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconBlockquote
                             className={dropdownClasses.dropdownIcon}
                           />
                         }
+                        component={Link}
+                        to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
                       >
-                        Create Archive
+                        View Highlights
                       </Menu.Item>
-                    )}
-                    <Menu.Label>Danger Zone</Menu.Label>
-                    <Menu.Item
-                      onClick={() => deleteMutator.mutate()}
-                      leftSection={
-                        <IconTrash className={dropdownClasses.dropdownIcon} />
-                      }
-                      color="red"
-                    >
-                      Delete
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                      <Menu.Item
+                        onClick={handleToggleUnread}
+                        leftSection={
+                          isUnread ? (
+                            <IconCircleCheck
+                              className={dropdownClasses.dropdownIcon}
+                            />
+                          ) : (
+                            <IconCircle
+                              className={dropdownClasses.dropdownIcon}
+                            />
+                          )
+                        }
+                      >
+                        {isUnread ? "Mark as Read" : "Mark as Unread"}
+                      </Menu.Item>
+                      {link.archive ? (
+                        <Menu.Item
+                          leftSection={
+                            <IconArchive
+                              className={dropdownClasses.dropdownIcon}
+                            />
+                          }
+                          component="a"
+                          href={URLS.LINK_ARCHIVE(link.id)}
+                        >
+                          View Archive
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item
+                          onClick={handleCreateArchive}
+                          leftSection={
+                            <IconFileDownload
+                              className={dropdownClasses.dropdownIcon}
+                            />
+                          }
+                        >
+                          Create Archive
+                        </Menu.Item>
+                      )}
+                      <Menu.Label>Danger Zone</Menu.Label>
+                      <Menu.Item
+                        onClick={() => deleteMutator.mutate()}
+                        leftSection={
+                          <IconTrash className={dropdownClasses.dropdownIcon} />
+                        }
+                        color="red"
+                      >
+                        Delete
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </ActionIcon.Group>
               </Group>
             </BackgroundImage>
           </Card.Section>
+
           {link.tags.length > 0 ? (
             <div className={classes.tags}>
               <LinkTagsDisplay link={link} size="xs" />
@@ -261,6 +299,13 @@ const LinkCard = ({ link, linkMutator }: Props) => {
           linkMutator={linkMutator}
           afterSave={closeTagsEdit}
         />
+      </DrawerDialog>
+      <DrawerDialog
+        title={`Summary for ${link.title}`}
+        open={isSummaryOpen}
+        onClose={closeSummary}
+      >
+        <pre className={classes.summaryPre}>{link.summary}</pre>
       </DrawerDialog>
     </>
   );
