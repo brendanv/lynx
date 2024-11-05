@@ -38,7 +38,6 @@ import { useMutation } from "@tanstack/react-query";
 import BackgroundImage from "./BackgroundImage";
 import DrawerDialog from "@/components/DrawerDialog";
 import TagsEditor from "@/components/TagsEditor";
-import Markdown from "react-markdown";
 
 interface Props {
   link: FeedLink;
@@ -306,7 +305,7 @@ const LinkCard = ({ link, linkMutator }: Props) => {
         open={isSummaryOpen}
         onClose={closeSummary}
       >
-        <Markdown>{link.summary}</Markdown>
+        <pre className={classes.summaryPre}>{link.summary}</pre>
       </DrawerDialog>
     </>
   );
