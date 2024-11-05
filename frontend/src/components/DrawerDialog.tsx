@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@mantine/hooks";
-import { Drawer, Modal } from "@mantine/core";
+import { Drawer, Text, Modal } from "@mantine/core";
 
 interface Props {
   children: React.ReactNode;
@@ -14,7 +14,11 @@ const DrawerDialog = ({ children, title, open, onClose }: Props) => {
   if (!isLargeScreen) {
     return (
       <Drawer
-        title={title}
+        title={
+          <Text size="lg" fw={700}>
+            {title}
+          </Text>
+        }
         overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
         position="bottom"
         opened={open}
@@ -26,7 +30,11 @@ const DrawerDialog = ({ children, title, open, onClose }: Props) => {
   } else {
     return (
       <Modal
-        title={title}
+        title={
+          <Text size="lg" fw={700}>
+            {title}
+          </Text>
+        }
         overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
         opened={open}
         onClose={onClose}

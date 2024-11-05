@@ -38,6 +38,7 @@ export type FeedQueryItem = {
   hostname: string | null;
   last_viewed_at: string | null;
   read_time_display: string | null;
+  summary: string | null;
   tags: string[];
   title: string | null;
   user: string;
@@ -56,6 +57,7 @@ const getFields = () =>
     "hostname",
     "last_viewed_at",
     "read_time_display",
+    "summary",
     "title",
     "tags",
     "archive",
@@ -76,6 +78,7 @@ export const convertFeedQueryItemToFeedLink = (
     hostname: item.hostname,
     last_viewed_at: item.last_viewed_at ? new Date(item.last_viewed_at) : null,
     read_time_display: item.read_time_display,
+    summary: item.summary,
     title: item.title,
     tags:
       item.expand && item.expand.tags

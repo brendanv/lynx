@@ -10,6 +10,7 @@ type FeedLink = {
   hostname: string | null;
   last_viewed_at: Date | null;
   read_time_display: string | null;
+  summary: string | null;
   tags: Tag[];
   title: string | null;
   archive: string | null;

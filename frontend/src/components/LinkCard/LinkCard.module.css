@@ -9,6 +9,25 @@
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
 }
 
+.actionButtons { 
+  padding-top: var(--mantine-spacing-sm);
+}
+
+.actionLink {
+  background: none;
+  border: none;
+  color: var(--mantine-color-dimmed);
+  cursor: pointer;
+  font-size: var(--mantine-font-size-sm);
+  padding: 0;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.actionLink:hover {
+  color: var(--mantine-color-blue-6);
+}
+
 .clamp {
   overflow: hidden;
   text-overflow: ellipsis;
