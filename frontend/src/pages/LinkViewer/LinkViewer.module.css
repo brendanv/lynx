@@ -57,3 +57,7 @@
   background-color: var(--mantine-color-yellow-1);
   color: black;
 }
+
+.summaryPre {
+  white-space: pre-wrap;
+}
