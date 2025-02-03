@@ -3,21 +3,22 @@ package lynx
 import (
 	"time"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/hook"
 )
 
-func ApiKeyAuthMiddleware(app core.App) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			apiKey := c.Request().Header.Get("X-API-KEY")
+func ApiKeyAuthMiddleware(app core.App) *hook.Handler[*core.RequestEvent] {
+	return &hook.Handler[*core.RequestEvent]{
+		Id: "lynxApiKeyAuth",
+		Func: func(e *core.RequestEvent) error {
+			apiKey := e.Request.Header.Get("X-API-KEY")
 			if apiKey == "" {
-				return next(c)
+				return e.Next()
 			}
 
-			apiKeyRecord, err := app.Dao().FindFirstRecordByFilter(
+			apiKeyRecord, err := app.FindFirstRecordByFilter(
 				"api_keys",
 				"api_key = {:key} && expires_at > {:now}",
 				dbx.Params{
@@ -31,19 +32,19 @@ func ApiKeyAuthMiddleware(app core.App) echo.MiddlewareFunc {
 			}
 
 			userId := apiKeyRecord.GetString("user")
-			user, err := app.Dao().FindRecordById("users", userId)
+			user, err := app.FindRecordById("users", userId)
 			if err != nil {
 				return apis.NewUnauthorizedError("Invalid or expired API key", nil)
 			}
 
 			apiKeyRecord.Set("last_used_at", time.Now().UTC())
-			if err := app.Dao().SaveRecord(apiKeyRecord); err != nil {
+			if err := app.Save(apiKeyRecord); err != nil {
 				app.Logger().Error("Failed to update API key last used timestamp", "error", err)
 			}
 
-			c.Set(apis.ContextAuthRecordKey, user)
+			e.Auth = user
 
-			return next(c)
-		}
+			return e.Next()
+		},
 	}
 }

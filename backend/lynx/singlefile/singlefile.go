@@ -17,7 +17,6 @@ import (
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
@@ -39,7 +38,7 @@ func generateFilenameSuffix() string {
 func MaybeArchiveLink(app core.App, linkID string) {
 	logger := app.Logger().With("action", "createArchive", "linkID", linkID)
 
-	link, err := app.Dao().FindRecordById("links", linkID)
+	link, err := app.FindRecordById("links", linkID)
 	if err != nil {
 		logger.Error("Failed to find link", "error", err)
 		return
@@ -132,13 +131,13 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-	err = app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
-		updatedLink, err := txDao.FindRecordById("links", linkID)
+	err = app.RunInTransaction(func(txApp core.App) error {
+		updatedLink, err := txApp.FindRecordById("links", linkID)
 		if err != nil {
 			return err
 		}
 		updatedLink.Set("archive", fileKey)
-		if err := txDao.SaveRecord(updatedLink); err != nil {
+		if err := txApp.Save(updatedLink); err != nil {
 			return err
 		}
 
@@ -159,7 +158,7 @@ func getUserCookiesJSON(app core.App, userID string, urlStr string) (string, err
 		return "", fmt.Errorf("failed to parse URL: %w", err)
 	}
 
-	cookieRecords, err := app.Dao().FindRecordsByFilter(
+	cookieRecords, err := app.FindRecordsByFilter(
 		"user_cookies",
 		"user = {:user} && domain = {:domain}",
 		"-created",

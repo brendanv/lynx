@@ -8,12 +8,10 @@ import (
 
 	"main/lynx/url_parser"
 
-	"github.com/labstack/echo/v5"
 	"github.com/mmcdole/gofeed"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/models"
 )
 
 // FeedResult contains the parsed feed and the ETag and Last-Modified
@@ -65,7 +63,7 @@ func LoadFeedFromURL(url string, etag string, ifModifiedSince time.Time) (*FeedR
 }
 
 func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId string, lastArticlePubDate time.Time) error {
-	collection, err := app.Dao().FindCollectionByNameOrId("feed_items")
+	collection, err := app.FindCollectionByNameOrId("feed_items")
 	if err != nil {
 		return err
 	}
@@ -73,13 +71,13 @@ func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId strin
 		if item.PublishedParsed != nil && !item.PublishedParsed.After(lastArticlePubDate) {
 			continue
 		}
-		existingItem, _ := app.Dao().FindFirstRecordByFilter(
+		existingItem, _ := app.FindFirstRecordByFilter(
 			"feed_items",
 			"feed = {:feed} && guid = {:guid}",
 			map[string]interface{}{"feed": feedId, "guid": item.GUID},
 		)
 		if existingItem == nil {
-			newItem := models.NewRecord(collection)
+			newItem := core.NewRecord(collection)
 			newItem.Set("user", user)
 			newItem.Set("feed", feedId)
 			newItem.Set("title", item.Title)
@@ -87,7 +85,7 @@ func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId strin
 			newItem.Set("guid", item.GUID)
 			newItem.Set("description", item.Description)
 			newItem.Set("url", item.Link)
-			if err := app.Dao().SaveRecord(newItem); err != nil {
+			if err := app.Save(newItem); err != nil {
 				return err
 			}
 		}
@@ -96,7 +94,7 @@ func SaveNewFeedItems(app core.App, feed *gofeed.Feed, user string, feedId strin
 }
 
 func FetchAllFeeds(app core.App) error {
-	feeds, err := app.Dao().FindRecordsByFilter(
+	feeds, err := app.FindRecordsByFilter(
 		"feeds",
 		"last_fetched_at < {:oneHourAgo}",
 		"-last_fetched_at",
@@ -125,7 +123,7 @@ func FetchAllFeeds(app core.App) error {
 }
 
 func FetchNewFeedItems(app core.App, feedId string) error {
-	feed, err := app.Dao().FindRecordById("feeds", feedId)
+	feed, err := app.FindRecordById("feeds", feedId)
 	if err != nil {
 		return fmt.Errorf("failed to find feed: %w", err)
 	}
@@ -149,7 +147,7 @@ func FetchNewFeedItems(app core.App, feedId string) error {
 	previousFetchTime := feed.GetDateTime("last_fetched_at").Time()
 	lastFetchedAt := time.Now().UTC()
 	feed.Set("last_fetched_at", lastFetchedAt.Format(time.RFC3339))
-	if err := app.Dao().SaveRecord(feed); err != nil {
+	if err := app.Save(feed); err != nil {
 		return fmt.Errorf("failed to update feed record: %w", err)
 	}
 
@@ -163,29 +161,29 @@ func FetchNewFeedItems(app core.App, feedId string) error {
 // SaveNewFeed extracts the URL from the request, loads the
 // feed, and saves it to the database along with the first
 // set of feed items.
-func SaveNewFeed(app core.App, c echo.Context) error {
-	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+func SaveNewFeed(app core.App, e *core.RequestEvent) error {
+	authRecord := e.Auth
 	if authRecord == nil {
 		return apis.NewForbiddenError("Not authenticated", nil)
 	}
 
-	url := c.FormValue("url")
+	url := e.Request.FormValue("url")
 	if url == "" {
 		return apis.NewBadRequestError("URL is required", nil)
 	}
-	autoAddItems := c.FormValue("auto_add_items") == "true"
+	autoAddItems := e.Request.FormValue("auto_add_items") == "true"
 
 	feedResult, err := LoadFeedFromURL(url, "", time.Time{})
 	if err != nil {
 		return apis.NewBadRequestError("Error parsing feed", err)
 	}
 
-	collection, err := app.Dao().FindCollectionByNameOrId("feeds")
+	collection, err := app.FindCollectionByNameOrId("feeds")
 	if err != nil {
 		return apis.NewBadRequestError("Failed to find feeds collection", err)
 	}
 
-	record := models.NewRecord(collection)
+	record := core.NewRecord(collection)
 	record.Set("user", authRecord.Id)
 	record.Set("feed_url", url)
 	record.Set("name", feedResult.Feed.Title)
@@ -198,7 +196,7 @@ func SaveNewFeed(app core.App, c echo.Context) error {
 	record.Set("last_fetched_at", time.Now().UTC().Format(time.RFC3339))
 	record.Set("auto_add_feed_items_to_library", autoAddItems)
 
-	if err := app.Dao().SaveRecord(record); err != nil {
+	if err := app.Save(record); err != nil {
 		return apis.NewBadRequestError("Failed to save feed", err)
 	}
 
@@ -206,20 +204,20 @@ func SaveNewFeed(app core.App, c echo.Context) error {
 		return apis.NewBadRequestError("Failed to save feed items", err)
 	}
 
-	return c.JSON(200, map[string]interface{}{
+	return e.JSON(200, map[string]interface{}{
 		"id": record.Id,
 	})
 }
 
 func MaybeConvertFeedItemToLink(app core.App, feedItemId string) {
 	logger := app.Logger().With("action", "convertFeedItemToLink", "feedItemID", feedItemId)
-	feedItem, err := app.Dao().FindRecordById("feed_items", feedItemId)
+	feedItem, err := app.FindRecordById("feed_items", feedItemId)
 	if err != nil {
 		logger.Error("Failed to find feed item", "error", err)
 		return
 	}
 
-	feed, err := app.Dao().FindRecordById("feeds", feedItem.GetString("feed"))
+	feed, err := app.FindRecordById("feeds", feedItem.GetString("feed"))
 	if err != nil {
 		logger.Error("Unable to load feed", "error", err)
 		return
