@@ -43,7 +43,7 @@ const FeedItems: React.FC = () => {
   const invalidateLinksFeed = useInvalidateLinksFeed();
 
   const feedItemQuery = useQuery({
-    queryKey: ["feedItems", user?.id, { feedId, page }],
+    queryKey: ["feedItems", user?.id || "", { feedId, page }],
     queryFn: async ({
       queryKey,
     }: {
@@ -71,7 +71,7 @@ const FeedItems: React.FC = () => {
   });
 
   const feedQuery = useQuery({
-    queryKey: ["feed", user?.id, feedId],
+    queryKey: ["feed", user?.id || "", feedId],
     queryFn: async ({
       queryKey,
     }: {

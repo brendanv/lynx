@@ -2398,10 +2398,10 @@ picomatch@^2.3.1:
   resolved "https://registry.npmjs.org/picomatch/-/picomatch-2.3.1.tgz"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-pocketbase@^0.21.5:
-  version "0.21.5"
-  resolved "https://registry.npmjs.org/pocketbase/-/pocketbase-0.21.5.tgz"
-  integrity sha512-bnI/uinnQps+ElSlzxkc4yvwuSFfKcoszDtXH/4QT2FhGq2mJVUvDlxn+rjRXVntUjPfmMG5LEPZ1eGqV6ssog==
+pocketbase@^0.25.1:
+  version "0.25.1"
+  resolved "https://registry.npmjs.org/pocketbase/-/pocketbase-0.25.1.tgz"
+  integrity sha512-2IH0KLI/qMNR/E17C7BGWX2FxW7Tead+igLHOWZ45P56v/NyVT18Jnmddeft+3qWWGL1Hog2F8bc4orWV/+Fcg==
 
 possible-typed-array-names@^1.0.0:
   version "1.0.0"

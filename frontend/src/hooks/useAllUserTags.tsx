@@ -8,7 +8,7 @@ import { notifications } from "@mantine/notifications";
 const useAllUserTagsWithoutMetadata = () => {
   const { user, pb } = usePocketBase();
   return useQuery({
-    queryKey: ["tags", "all", user?.id, { metadata: false }],
+    queryKey: ["tags", "all", user?.id || "", { metadata: false }],
     staleTime: 60 * 1000,
     queryFn: async ({
       queryKey,
@@ -83,7 +83,7 @@ export { useCreateNewTagMutation };
 export default function useAllUserTags() {
   const { user, pb } = usePocketBase();
   return useQuery({
-    queryKey: ["tags", "all", user?.id, { metadata: true }],
+    queryKey: ["tags", "all", user?.id || "", { metadata: true }],
     staleTime: 60 * 1000,
     queryFn: async ({
       queryKey,
