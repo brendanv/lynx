@@ -8,10 +8,9 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
-	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tests"
+	"github.com/pocketbase/pocketbase/tools/router"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -141,7 +140,7 @@ func TestHandleParseURL(t *testing.T) {
 				tc.url = mockServer.URL
 			}
 
-			e := echo.New()
+			// e := echo.New()
 			form := url.Values{}
 			form.Set("url", tc.url)
 			if tc.feedItemId != "" {
@@ -150,12 +149,13 @@ func TestHandleParseURL(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/lynx/parse_url", strings.NewReader(form.Encode()))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-			rec := httptest.NewRecorder()
 
-			c := e.NewContext(req, rec)
-			c.Set(apis.ContextAuthRecordKey, user)
-
-			record, err := HandleParseURLRequest(testApp, c)
+			record, err := HandleParseURLRequest(testApp, &core.RequestEvent{
+				Auth: user,
+				Event: router.Event{
+					Request: req,
+				},
+			})
 
 			if tc.expectError {
 				assert.Error(t, err)
@@ -168,7 +168,7 @@ func TestHandleParseURL(t *testing.T) {
 				assert.Equal(t, user.Id, record.Get("user"))
 				if tc.feedItemId != "" {
 					assert.Equal(t, feed.Id, record.Get("created_from_feed"))
-					updateFeedItem, err := testApp.Dao().FindRecordById("feed_items", tc.feedItemId)
+					updateFeedItem, err := testApp.FindRecordById("feed_items", tc.feedItemId)
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -181,18 +181,18 @@ func TestHandleParseURL(t *testing.T) {
 	}
 }
 
-func createTestUser(app *tests.TestApp) (*models.Record, error) {
-	collection, err := app.Dao().FindCollectionByNameOrId("users")
+func createTestUser(app *tests.TestApp) (*core.Record, error) {
+	collection, err := app.FindCollectionByNameOrId("users")
 	if err != nil {
 		return nil, err
 	}
 
-	user := models.NewRecord(collection)
+	user := core.NewRecord(collection)
 	user.Set("email", "testurlparser@example.com")
 	user.Set("username", "testurlparser")
 	user.Set("password", "password123")
 
-	if err := app.Dao().SaveRecord(user); err != nil {
+	if err := app.Save(user); err != nil {
 		return nil, err
 	}
 
@@ -200,7 +200,7 @@ func createTestUser(app *tests.TestApp) (*models.Record, error) {
 }
 
 func createTestCookies(app *tests.TestApp, userId string, serverURL string) error {
-	collection, err := app.Dao().FindCollectionByNameOrId("user_cookies")
+	collection, err := app.FindCollectionByNameOrId("user_cookies")
 	if err != nil {
 		return err
 	}
@@ -210,45 +210,45 @@ func createTestCookies(app *tests.TestApp, userId string, serverURL string) erro
 		return err
 	}
 
-	cookie := models.NewRecord(collection)
+	cookie := core.NewRecord(collection)
 	cookie.Set("user", userId)
 	cookie.Set("domain", parsedURL.Hostname())
 	cookie.Set("name", "test_cookie")
 	cookie.Set("value", "test_value")
 
-	if err := app.Dao().SaveRecord(cookie); err != nil {
+	if err := app.Save(cookie); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func createTestFeed(app core.App, userID string) (*models.Record, error) {
-	collection, err := app.Dao().FindCollectionByNameOrId("feeds")
+func createTestFeed(app core.App, userID string) (*core.Record, error) {
+	collection, err := app.FindCollectionByNameOrId("feeds")
 	if err != nil {
 		return nil, err
 	}
-	feed := models.NewRecord(collection)
+	feed := core.NewRecord(collection)
 	feed.Set("user", userID)
 	feed.Set("feed_url", "https://example.com/feed")
 	feed.Set("name", "Test Feed")
-	if err := app.Dao().SaveRecord(feed); err != nil {
+	if err := app.Save(feed); err != nil {
 		return nil, err
 	}
 	return feed, nil
 }
 
-func createTestFeedItem(app core.App, feedID string, userID string) (*models.Record, error) {
-	collection, err := app.Dao().FindCollectionByNameOrId("feed_items")
+func createTestFeedItem(app core.App, feedID string, userID string) (*core.Record, error) {
+	collection, err := app.FindCollectionByNameOrId("feed_items")
 	if err != nil {
 		return nil, err
 	}
-	feedItem := models.NewRecord(collection)
+	feedItem := core.NewRecord(collection)
 	feedItem.Set("feed", feedID)
 	feedItem.Set("user", userID)
 	feedItem.Set("title", "Test Feed Item")
 	feedItem.Set("url", "https://example.com/item")
-	if err := app.Dao().SaveRecord(feedItem); err != nil {
+	if err := app.Save(feedItem); err != nil {
 		return nil, err
 	}
 	return feedItem, nil

@@ -50,7 +50,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 			},
 			cleanupEnv: func() {},
 			expectedResult: func(t *testing.T, app core.App, linkID string, hit bool) {
-				link, err := app.Dao().FindRecordById("links", linkID)
+				link, err := app.FindRecordById("links", linkID)
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
@@ -72,7 +72,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 				os.Unsetenv("SINGLEFILE_URL")
 			},
 			expectedResult: func(t *testing.T, app core.App, linkID string, hit bool) {
-				link, err := app.Dao().FindRecordById("links", linkID)
+				link, err := app.FindRecordById("links", linkID)
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
@@ -109,7 +109,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 				os.Unsetenv("SINGLEFILE_URL")
 			},
 			expectedResult: func(t *testing.T, app core.App, linkID string, hit bool) {
-				link, err := app.Dao().FindRecordById("links", linkID)
+				link, err := app.FindRecordById("links", linkID)
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
@@ -131,7 +131,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 				os.Unsetenv("SINGLEFILE_URL")
 			},
 			expectedResult: func(t *testing.T, app core.App, linkID string, hit bool) {
-				link, err := app.Dao().FindRecordById("links", linkID)
+				link, err := app.FindRecordById("links", linkID)
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
@@ -148,23 +148,23 @@ func TestMaybeArchiveLink(t *testing.T) {
 			name: "Link already archived",
 			setupEnv: func() {
 				os.Setenv("SINGLEFILE_URL", server.URL)
-				link, err := testApp.Dao().FindRecordById("links", "8n3iq8dt6vwi4ph")
+				link, err := testApp.FindRecordById("links", "8n3iq8dt6vwi4ph")
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
 				link.Set("archive", "pre_existing_archive.html")
-				if err := testApp.Dao().SaveRecord(link); err != nil {
+				if err := testApp.SaveNoValidate(link); err != nil {
 					t.Fatalf("Failed to update link with pre-existing archive: %v", err)
 				}
 			},
 			cleanupEnv: func() {
 				os.Unsetenv("SINGLEFILE_URL")
-				link, _ := testApp.Dao().FindRecordById("links", "8n3iq8dt6vwi4ph")
+				link, _ := testApp.FindRecordById("links", "8n3iq8dt6vwi4ph")
 				link.Set("archive", "")
-				testApp.Dao().SaveRecord(link)
+				testApp.Save(link)
 			},
 			expectedResult: func(t *testing.T, app core.App, linkID string, hit bool) {
-				link, err := app.Dao().FindRecordById("links", linkID)
+				link, err := app.FindRecordById("links", linkID)
 				if err != nil {
 					t.Fatalf("Failed to find link: %v", err)
 				}
@@ -190,7 +190,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 
 			tc.expectedResult(t, testApp, "8n3iq8dt6vwi4ph", serverHit)
 
-			link, err := testApp.Dao().FindRecordById("links", "8n3iq8dt6vwi4ph")
+			link, err := testApp.FindRecordById("links", "8n3iq8dt6vwi4ph")
 			if err != nil {
 				t.Fatalf("Failed to find link after test: %v", err)
 			}
@@ -210,7 +210,7 @@ func TestMaybeArchiveLink(t *testing.T) {
 
 				// Reset the archive field in the database
 				link.Set("archive", "")
-				if err := testApp.Dao().SaveRecord(link); err != nil {
+				if err := testApp.Save(link); err != nil {
 					t.Fatalf("Failed to reset archive field: %v", err)
 				}
 			}

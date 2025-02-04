@@ -125,18 +125,12 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-	err = fs.UploadFile(fsFile, fileName)
-	if err != nil {
-		logger.Error("Failed to upload archive file", "error", err)
-		return
-	}
-
 	err = app.RunInTransaction(func(txApp core.App) error {
 		updatedLink, err := txApp.FindRecordById("links", linkID)
 		if err != nil {
 			return err
 		}
-		updatedLink.Set("archive", fileKey)
+		updatedLink.Set("archive", fsFile)
 		if err := txApp.Save(updatedLink); err != nil {
 			return err
 		}
