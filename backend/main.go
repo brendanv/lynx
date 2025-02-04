@@ -9,6 +9,8 @@ import (
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+
+	_ "main/migrations"
 )
 
 func main() {
