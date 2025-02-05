@@ -67,7 +67,6 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	// the link record. This should not be stored on the
 	// model beacuse it's computed by pocketbase
 	fileKey := fmt.Sprintf("archive_%s.html", generateFilenameSuffix())
-	fileName := link.BaseFilesPath() + "/" + fileKey
 	fs, err := app.NewFilesystem()
 	if err != nil {
 		logger.Error("Failed to create filesystem", "error", err)
@@ -75,7 +74,7 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	}
 	defer fs.Close()
 
-	exists, err := fs.Exists(fileName)
+	exists, err := fs.Exists(fileKey)
 	if exists || err != nil {
 		logger.Info("Skipping archive creation, file already exists")
 		return
@@ -119,7 +118,7 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-	fsFile, err := filesystem.NewFileFromBytes(body, fileName)
+	fsFile, err := filesystem.NewFileFromBytes(body, fileKey)
 	if err != nil {
 		logger.Error("Failed to create archive file", "error", err)
 		return
