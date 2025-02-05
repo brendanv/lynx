@@ -45,7 +45,7 @@ func InitializePocketbase(app core.App) {
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		se.Router.GET(
 			"/{path...}",
-			apis.Static(os.DirFS("/pb_public"), false),
+			apis.Static(os.DirFS("./pb_public"), false),
 		)
 
 		se.Router.POST("/lynx/parse_link", func(e *core.RequestEvent) error {
