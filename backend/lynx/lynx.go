@@ -43,11 +43,6 @@ func InitializePocketbase(app core.App) {
 	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		se.Router.GET(
-			"/{path...}",
-			apis.Static(os.DirFS("./pb_public"), false),
-		)
-
 		se.Router.POST("/lynx/parse_link", func(e *core.RequestEvent) error {
 			record, err := parseUrlHandlerFunc(app, e)
 			if err != nil {
@@ -69,6 +64,11 @@ func InitializePocketbase(app core.App) {
 		se.Router.POST("/lynx/link/{id}/create_archive", func(e *core.RequestEvent) error {
 			return handleArchiveLink(app, e)
 		}).Bind(apis.RequireAuth())
+
+		se.Router.GET(
+			"/{path...}",
+			apis.Static(os.DirFS("./pb_public"), true),
+		)
 
 		return se.Next()
 	})
