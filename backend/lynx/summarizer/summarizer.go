@@ -3,13 +3,12 @@ package summarizer
 import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/daos"
 )
 
 func MaybeSummarizeLink(app core.App, linkID string) {
 	logger := app.Logger().With("action", "summarizeLink", "linkID", linkID)
 
-	link, err := app.Dao().FindRecordById("links", linkID)
+	link, err := app.FindRecordById("links", linkID)
 	if err != nil {
 		logger.Error("Summarization failed, failed to find link", "error", err)
 		return
@@ -21,7 +20,7 @@ func MaybeSummarizeLink(app core.App, linkID string) {
 	}
 
 	userID := link.GetString("user")
-	userSettings, err := app.Dao().FindFirstRecordByFilter("user_settings", "user = {:user}",
+	userSettings, err := app.FindFirstRecordByFilter("user_settings", "user = {:user}",
 		dbx.Params{
 			"user": userID,
 		})
@@ -75,14 +74,14 @@ func MaybeSummarizeLink(app core.App, linkID string) {
 		return
 	}
 
-	err = app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
-		updatedLink, err := txDao.FindRecordById("links", linkID)
+	err = app.RunInTransaction(func(txApp core.App) error {
+		updatedLink, err := txApp.FindRecordById("links", linkID)
 		if err != nil {
 			return err
 		}
 
 		updatedLink.Set("summary", summary)
-		if err := txDao.SaveRecord(updatedLink); err != nil {
+		if err := txApp.Save(updatedLink); err != nil {
 			return err
 		}
 

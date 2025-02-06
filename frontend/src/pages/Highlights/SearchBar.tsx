@@ -36,6 +36,9 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
     queryKey: ["linkTitle", user?.id, searchParams.linkId],
     queryFn: async ({ queryKey }) => {
       const [_1, _2, linkId] = queryKey;
+      if (!linkId) {
+        return "";
+      }
       const link = await pb.collection("links").getOne(linkId, {
         fields: ["id", "title"].join(","),
       });

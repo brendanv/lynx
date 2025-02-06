@@ -18,7 +18,7 @@ vi.mock("pocketbase", () => {
   return {
     default: vi.fn(() => ({
       authStore: {
-        model: validLogin ? { id: "user123" } : null,
+        record: validLogin ? { id: "user123" } : null,
         isValid: validLogin,
         onChange: vi.fn(),
       },

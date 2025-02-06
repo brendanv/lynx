@@ -137,8 +137,7 @@ export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
 };
 
 const useLinkViewerQuery = (id: string, updateLastViewedAt: boolean) => {
-  const { pb } = usePocketBase();
-  const authModel = pb.authStore.model;
+  const { pb, user } = usePocketBase();
 
   return useQuery({
     queryKey: ["link", { id, type: "full" }],
@@ -151,7 +150,7 @@ const useLinkViewerQuery = (id: string, updateLastViewedAt: boolean) => {
       return await runQuery(queryId, pb, updateLastViewedAt);
     },
     staleTime: 60 * 1000,
-    enabled: !!authModel,
+    enabled: !!user,
   });
 };
 

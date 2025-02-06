@@ -8,11 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tests"
-	"github.com/pocketbase/pocketbase/tokens"
 )
 
 const testDataDir = "../test_pb_data"
@@ -20,17 +17,17 @@ const testDataDir = "../test_pb_data"
 func TestHandleParseURL(t *testing.T) {
 	originalHandleParseURL := parseUrlHandlerFunc
 
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Stub!
-		parseUrlHandlerFunc = func(app core.App, c echo.Context) (*models.Record, error) {
+		parseUrlHandlerFunc = func(app core.App, c *core.RequestEvent) (*core.Record, error) {
 			// Create a mock record
-			mockRecord := &models.Record{}
-			mockRecord.SetId("mock_id_12345")
+			mockRecord := &core.Record{}
+			mockRecord.Id = "mock_id_12345"
 			return mockRecord, nil
 		}
 
@@ -47,18 +44,18 @@ func TestHandleParseURL(t *testing.T) {
 		{
 			Name:            "Unauthenticated request",
 			Method:          http.MethodPost,
-			Url:             "/lynx/parse_link",
+			URL:             "/lynx/parse_link",
 			Body:            strings.NewReader("url=https://example.com"),
 			ExpectedStatus:  401,
-			ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
+			ExpectedContent: []string{`"message":"The request requires valid record authorization token."`},
 			TestAppFactory:  setupTestApp,
 		},
 		{
 			Name:   "Authenticated request with user token",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_link",
+			URL:    "/lynx/parse_link",
 			Body:   strings.NewReader("url=https://example.com"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
 			ExpectedStatus:  200,
@@ -68,21 +65,21 @@ func TestHandleParseURL(t *testing.T) {
 		{
 			Name:   "Authenticated request with API key",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_link",
+			URL:    "/lynx/parse_link",
 			Body:   strings.NewReader("url=https://example.com"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"X-API-KEY": "this_is_a_test_api_key",
 			},
 			ExpectedStatus:  200,
 			ExpectedContent: []string{`"id":"mock_id_12345"`},
 			ExpectedEvents: map[string]int{
-				"OnModelBeforeUpdate": 1,
-				"OnModelAfterUpdate":  1,
+				"OnRecordUpdate": 1,
+				"OnRecordAfterUpdateSuccess":  1,
 			},
 			TestAppFactory: setupTestApp,
-			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
 				// Check if the API key was saved in the database
-				apiKey, err := app.Dao().FindRecordById("api_keys", "qvwy0nqws813o4s")
+				apiKey, err := app.FindRecordById("api_keys", "qvwy0nqws813o4s")
 				if err != nil {
 					t.Fatal("Failed to find the existing API key in the database")
 				}
@@ -99,9 +96,9 @@ func TestHandleParseURL(t *testing.T) {
 		{
 			Name:   "Request with invalid API key",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_link",
+			URL:    "/lynx/parse_link",
 			Body:   strings.NewReader("url=https://example.com"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"X-API-KEY": "INVALID_API_KEY",
 			},
 			ExpectedStatus:  401,
@@ -111,9 +108,9 @@ func TestHandleParseURL(t *testing.T) {
 		{
 			Name:   "Request with expired API key",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_link",
+			URL:    "/lynx/parse_link",
 			Body:   strings.NewReader("url=https://example.com"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"X-API-KEY": "this_key_is_expired",
 			},
 			ExpectedStatus:  401,
@@ -128,7 +125,7 @@ func TestHandleParseURL(t *testing.T) {
 }
 
 func TestOnRecordViewRequest(t *testing.T) {
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
@@ -143,8 +140,8 @@ func TestOnRecordViewRequest(t *testing.T) {
 		{
 			Name:   "View link without update header",
 			Method: http.MethodGet,
-			Url:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
-			RequestHeaders: map[string]string{
+			URL:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
+			Headers: map[string]string{
 				"Authorization": generateRecordToken("users", "test2@example.com"),
 			},
 			ExpectedStatus:  200,
@@ -157,20 +154,20 @@ func TestOnRecordViewRequest(t *testing.T) {
 		{
 			Name:   "View link with update header",
 			Method: http.MethodGet,
-			Url:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
-			RequestHeaders: map[string]string{
+			URL:    "/api/collections/links/records/8n3iq8dt6vwi4ph",
+			Headers: map[string]string{
 				"Authorization":             generateRecordToken("users", "test2@example.com"),
 				"X-Lynx-Update-Last-Viewed": "true",
 			},
 			ExpectedStatus:  200,
 			ExpectedContent: []string{"8n3iq8dt6vwi4ph"},
 			ExpectedEvents: map[string]int{
-				"OnRecordViewRequest": 1,
-				"OnModelBeforeUpdate": 1,
-				"OnModelAfterUpdate":  1,
+				"OnRecordViewRequest":       1,
+				"OnRecordUpdate":            1,
+				"OnModelAfterUpdateSuccess": 1,
 			},
-			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
-				record, err := app.Dao().FindRecordById("links", "8n3iq8dt6vwi4ph")
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
+				record, err := app.FindRecordById("links", "8n3iq8dt6vwi4ph")
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -192,7 +189,7 @@ func TestOnRecordViewRequest(t *testing.T) {
 }
 
 func TestHandleGenerateAPIKey(t *testing.T) {
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
@@ -207,20 +204,20 @@ func TestHandleGenerateAPIKey(t *testing.T) {
 		{
 			Name:   "Generate API key with valid user and name",
 			Method: http.MethodPost,
-			Url:    "/lynx/generate_api_key",
+			URL:    "/lynx/generate_api_key",
 			Body:   strings.NewReader(url.Values{"name": {"Test API Key"}}.Encode()),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"Content-Type":  "application/x-www-form-urlencoded",
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
 			ExpectedStatus: 200,
 			ExpectedEvents: map[string]int{
-				"OnModelBeforeCreate": 1,
-				"OnModelAfterCreate":  1,
+				"OnRecordCreate":             1,
+				"OnRecordAfterCreateSuccess": 1,
 			},
 			ExpectedContent: []string{`"name":"Test API Key"`},
 			TestAppFactory:  setupTestApp,
-			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
 				var result map[string]interface{}
 				if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 					t.Fatal(err)
@@ -241,7 +238,7 @@ func TestHandleGenerateAPIKey(t *testing.T) {
 				}
 
 				// Check if the API key was saved in the database
-				apiKey, err := app.Dao().FindRecordById("api_keys", result["id"].(string))
+				apiKey, err := app.FindRecordById("api_keys", result["id"].(string))
 				if err != nil {
 					t.Fatal("Failed to find the created API key in the database")
 				}
@@ -262,9 +259,9 @@ func TestHandleGenerateAPIKey(t *testing.T) {
 		{
 			Name:   "Generate API key without name",
 			Method: http.MethodPost,
-			Url:    "/lynx/generate_api_key",
+			URL:    "/lynx/generate_api_key",
 			Body:   strings.NewReader(""),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"Content-Type":  "application/x-www-form-urlencoded",
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
@@ -275,10 +272,10 @@ func TestHandleGenerateAPIKey(t *testing.T) {
 		{
 			Name:            "Generate API key without authentication",
 			Method:          http.MethodPost,
-			Url:             "/lynx/generate_api_key",
+			URL:             "/lynx/generate_api_key",
 			Body:            strings.NewReader(url.Values{"name": {"Test API Key"}}.Encode()),
 			ExpectedStatus:  401,
-			ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
+			ExpectedContent: []string{`"message":"The request requires valid record authorization token."`},
 			TestAppFactory:  setupTestApp,
 		},
 	}
@@ -295,12 +292,12 @@ func generateRecordToken(collectionNameOrId string, email string) string {
 	}
 	defer app.Cleanup()
 
-	record, err := app.Dao().FindAuthRecordByEmail(collectionNameOrId, email)
+	record, err := app.FindAuthRecordByEmail(collectionNameOrId, email)
 	if err != nil {
 		return ""
 	}
 
-	token, err := tokens.NewRecordAuthToken(app, record)
+	token, err := record.NewAuthToken()
 	if err != nil {
 		return ""
 	}
@@ -309,7 +306,7 @@ func generateRecordToken(collectionNameOrId string, email string) string {
 }
 
 func TestSummarizationHook(t *testing.T) {
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
@@ -323,30 +320,27 @@ func TestSummarizationHook(t *testing.T) {
 		{
 			Name:   "Create link and trigger summarization hook",
 			Method: http.MethodPost,
-			Url:    "/api/collections/links/records",
+			URL:    "/api/collections/links/records",
 			Body:   strings.NewReader(generateValidLinkJSON(t)),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"Content-Type":  "application/json",
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
 			ExpectedStatus: 200,
 			ExpectedEvents: map[string]int{
-				"OnModelBeforeCreate":         1,
-				"OnModelAfterCreate":          1,
-				"OnRecordBeforeCreateRequest": 1,
-				"OnRecordAfterCreateRequest":  1,
+				"OnRecordCreate":             1,
+				"OnRecordAfterCreateSuccess": 1,
 			},
 			ExpectedContent: []string{"example.com"},
 			TestAppFactory:  setupTestApp,
-			BeforeTestFunc: func(t *testing.T, app *tests.TestApp, e *echo.Echo) {
+			BeforeTestFunc: func(t testing.TB, app *tests.TestApp, e *core.ServeEvent) {
 				CurrentSummarizer = &MockSummarizer{
 					MaybeSummarizeLinkFunc: func(app core.App, linkID string) {
-						t.Log("MaybeSummarizeLink called with linkID:", linkID)
 						summarizeCalled = true
 					},
 				}
 			},
-			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
 				time.Sleep(100 * time.Millisecond)
 
 				if !summarizeCalled {
@@ -372,7 +366,7 @@ func (m *MockSummarizer) MaybeSummarizeLink(app core.App, linkID string) {
 	}
 }
 
-func generateValidLinkJSON(t *testing.T) string {
+func generateValidLinkJSON(t testing.TB) string {
 	link := map[string]interface{}{
 		"title":             "Test Link",
 		"original_url":      "https://example.com",
@@ -397,14 +391,14 @@ func generateValidLinkJSON(t *testing.T) string {
 func TestHandleParseFeed(t *testing.T) {
 	originalParseFeedHandler := parseFeedHandlerFunc
 
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Mock the feed parsing function
-		parseFeedHandlerFunc = func(app core.App, c echo.Context) error {
+		parseFeedHandlerFunc = func(app core.App, c *core.RequestEvent) error {
 			return c.JSON(http.StatusOK, map[string]interface{}{
 				"id": "mock_feed_id_12345",
 			})
@@ -423,18 +417,18 @@ func TestHandleParseFeed(t *testing.T) {
 		{
 			Name:            "Unauthenticated request",
 			Method:          http.MethodPost,
-			Url:             "/lynx/parse_feed",
+			URL:             "/lynx/parse_feed",
 			Body:            strings.NewReader("url=https://example.com/feed"),
 			ExpectedStatus:  401,
-			ExpectedContent: []string{`"message":"The request requires admin or record authorization token to be set."`},
+			ExpectedContent: []string{`"message":"The request requires valid record authorization token."`},
 			TestAppFactory:  setupTestApp,
 		},
 		{
 			Name:   "Authenticated request with user token",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_feed",
+			URL:    "/lynx/parse_feed",
 			Body:   strings.NewReader("url=https://example.com/feed"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"Authorization": generateRecordToken("users", "test@example.com"),
 			},
 			ExpectedStatus:  200,
@@ -444,21 +438,21 @@ func TestHandleParseFeed(t *testing.T) {
 		{
 			Name:   "Authenticated request with API key",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_feed",
+			URL:    "/lynx/parse_feed",
 			Body:   strings.NewReader("url=https://example.com/feed"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"X-API-KEY": "this_is_a_test_api_key",
 			},
 			ExpectedStatus:  200,
 			ExpectedContent: []string{`"id":"mock_feed_id_12345"`},
 			ExpectedEvents: map[string]int{
-				"OnModelBeforeUpdate": 1,
-				"OnModelAfterUpdate":  1,
+				"OnRecordUpdate":             1,
+				"OnRecordAfterUpdateSuccess": 1,
 			},
 			TestAppFactory: setupTestApp,
-			AfterTestFunc: func(t *testing.T, app *tests.TestApp, res *http.Response) {
+			AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
 				// Check if the API key was updated in the database
-				apiKey, err := app.Dao().FindRecordById("api_keys", "qvwy0nqws813o4s")
+				apiKey, err := app.FindRecordById("api_keys", "qvwy0nqws813o4s")
 				if err != nil {
 					t.Fatal("Failed to find the existing API key in the database")
 				}
@@ -475,9 +469,9 @@ func TestHandleParseFeed(t *testing.T) {
 		{
 			Name:   "Request with invalid API key",
 			Method: http.MethodPost,
-			Url:    "/lynx/parse_feed",
+			URL:    "/lynx/parse_feed",
 			Body:   strings.NewReader("url=https://example.com/feed"),
-			RequestHeaders: map[string]string{
+			Headers: map[string]string{
 				"X-API-KEY": "INVALID_API_KEY",
 			},
 			ExpectedStatus:  401,
@@ -491,24 +485,24 @@ func TestHandleParseFeed(t *testing.T) {
 	}
 }
 
-func createTestFeedItem(app core.App, feedID string, userID string) (*models.Record, error) {
-	collection, err := app.Dao().FindCollectionByNameOrId("feed_items")
+func createTestFeedItem(app core.App, feedID string, userID string) (*core.Record, error) {
+	collection, err := app.FindCollectionByNameOrId("feed_items")
 	if err != nil {
 		return nil, err
 	}
-	feedItem := models.NewRecord(collection)
+	feedItem := core.NewRecord(collection)
 	feedItem.Set("feed", feedID)
 	feedItem.Set("user", userID)
 	feedItem.Set("title", "Test Feed Item")
 	feedItem.Set("url", "https://example.com/item")
-	if err := app.Dao().SaveRecord(feedItem); err != nil {
+	if err := app.Save(feedItem); err != nil {
 		return nil, err
 	}
 	return feedItem, nil
 }
 
 func TestOnModelAfterCreateFeedItems(t *testing.T) {
-	setupTestApp := func(t *testing.T) *tests.TestApp {
+	setupTestApp := func(t testing.TB) *tests.TestApp {
 		testApp, err := tests.NewTestApp(testDataDir)
 		if err != nil {
 			t.Fatal(err)
@@ -532,19 +526,20 @@ func TestOnModelAfterCreateFeedItems(t *testing.T) {
 	})
 
 	// Create a test feed
-	feedCollection, err := testApp.Dao().FindCollectionByNameOrId("feeds")
+	feedCollection, err := testApp.FindCollectionByNameOrId("feeds")
 	if err != nil {
 		t.Fatal(err)
 	}
-	feed := models.NewRecord(feedCollection)
+	feed := core.NewRecord(feedCollection)
 	feed.Set("feed_url", "https://example.com/feed")
-	feed.Set("user", "test-user")
-	if err := testApp.Dao().SaveRecord(feed); err != nil {
+	feed.Set("name", "test feed")
+	feed.Set("user", "h4oofx0tx2eupnq")
+	if err := testApp.Save(feed); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create a test feed item
-	feedItem, err := createTestFeedItem(testApp, feed.Id, "test-user")
+	feedItem, err := createTestFeedItem(testApp, feed.Id, "h4oofx0tx2eupnq")
 	if err != nil {
 		t.Fatal(err)
 	}

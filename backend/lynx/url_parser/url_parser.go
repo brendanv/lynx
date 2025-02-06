@@ -9,25 +9,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/models"
 
 	"github.com/go-shiori/go-readability"
 )
 
 // Given a URL, load the URL (using relevant cookies for the authenticated
 // user), extract the article content, and create a new Link record in pocketbase.
-func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error) {
+func HandleParseURLRequest(app core.App, e *core.RequestEvent) (*core.Record, error) {
 	// Get the authenticated user
-	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+	authRecord := e.Auth
 	if authRecord == nil {
 		return nil, apis.NewForbiddenError("Not authenticated", nil)
 	}
 
-	urlParam := c.FormValue("url")
+	urlParam := e.Request.FormValue("url")
 	if urlParam == "" {
 		return nil, apis.NewBadRequestError("Missing 'url' parameter", nil)
 	}
@@ -37,10 +35,10 @@ func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error)
 		return nil, apis.NewBadRequestError("Failed to parse URL", err)
 	}
 
-	feedItemID := c.FormValue("feed_item")
-	var feedItem *models.Record
+	feedItemID := e.Request.FormValue("feed_item")
+	var feedItem *core.Record
 	if feedItemID != "" {
-		feedItem, err = app.Dao().FindRecordById("feed_items", feedItemID)
+		feedItem, err = app.FindRecordById("feed_items", feedItemID)
 		if err != nil {
 			return nil, apis.NewBadRequestError("Failed to find feed item", err)
 		}
@@ -51,10 +49,10 @@ func HandleParseURLRequest(app core.App, c echo.Context) (*models.Record, error)
 	return HandleParseURLViaParams(app, authRecord.Id, parsedURL, feedItem)
 }
 
-func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem *models.Record) (*models.Record, error) {
+func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem *core.Record) (*core.Record, error) {
 
 	// Load user cookies
-	cookieRecords, err := app.Dao().FindRecordsByFilter(
+	cookieRecords, err := app.FindRecordsByFilter(
 		"user_cookies",
 		"user = {:user} && domain = {:url}",
 		"-created",
@@ -119,12 +117,12 @@ func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem
 	}
 
 	// Create a new record in the links collection
-	collection, err := app.Dao().FindCollectionByNameOrId("links")
+	collection, err := app.FindCollectionByNameOrId("links")
 	if err != nil {
 		return nil, apis.NewBadRequestError("Failed to find links collection", err)
 	}
 
-	record := models.NewRecord(collection)
+	record := core.NewRecord(collection)
 	record.Set("added_to_library", time.Now().Format(time.RFC3339))
 	record.Set("original_url", url.String())
 	record.Set("cleaned_url", resp.Request.URL.String())
@@ -155,13 +153,13 @@ func HandleParseURLViaParams(app core.App, userId string, url *url.URL, feedItem
 	record.Set("read_time_seconds", int(math.Round(readTime.Seconds())))
 	record.Set("read_time_display", fmt.Sprintf("%d min", int(math.Round(readTime.Minutes()))))
 
-	if err := app.Dao().SaveRecord(record); err != nil {
+	if err := app.Save(record); err != nil {
 		return nil, apis.NewBadRequestError("Failed to save link", err)
 	}
 
 	if feedItem != nil {
 		feedItem.Set("saved_as_link", record.Id)
-		if err := app.Dao().SaveRecord(feedItem); err != nil {
+		if err := app.Save(feedItem); err != nil {
 			// Log the error but don't fail the request
 			app.Logger().Error("Failed to update feed item", "error", err, "feed_item", feedItem.Id, "link", record.Id)
 		}

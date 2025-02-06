@@ -6,11 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/models"
-	"github.com/pocketbase/pocketbase/tools/cron"
 	"github.com/pocketbase/pocketbase/tools/routine"
 	"github.com/pocketbase/pocketbase/tools/security"
 
@@ -41,124 +38,86 @@ func InitializePocketbase(app core.App) {
 
 	apiKeyAuth := ApiKeyAuthMiddleware(app)
 
-	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-		scheduler := cron.New()
+	app.Cron().MustAdd("FetchFeeds", "0 */6 * * *", func() {
+		feeds.FetchAllFeeds((app))
+	})
 
-		e.Router.GET(
-			"/*",
-			apis.StaticDirectoryHandler(os.DirFS("./pb_public"), true),
+	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		se.Router.POST("/lynx/parse_link", func(e *core.RequestEvent) error {
+			record, err := parseUrlHandlerFunc(app, e)
+			if err != nil {
+				return err
+			}
+			return e.JSON(http.StatusOK, map[string]interface{}{
+				"id": record.Id,
+			})
+		}).Bind(apiKeyAuth, apis.RequireAuth())
+
+		se.Router.POST("/lynx/generate_api_key", func(e *core.RequestEvent) error {
+			return handleGenerateAPIKey(app, e)
+		}).Bind(apis.RequireAuth())
+
+		se.Router.POST("/lynx/parse_feed", func(e *core.RequestEvent) error {
+			return parseFeedHandlerFunc(app, e)
+		}).Bind(apiKeyAuth, apis.RequireAuth())
+
+		se.Router.POST("/lynx/link/{id}/create_archive", func(e *core.RequestEvent) error {
+			return handleArchiveLink(app, e)
+		}).Bind(apis.RequireAuth())
+
+		se.Router.GET(
+			"/{path...}",
+			apis.Static(os.DirFS("./pb_public"), true),
 		)
 
-		e.Router.AddRoute(echo.Route{
-			Method: http.MethodPost,
-			Path:   "/lynx/parse_link",
-			Handler: func(c echo.Context) error {
-				record, err := parseUrlHandlerFunc(app, c)
-				if err != nil {
-					return err
-				}
-				return c.JSON(http.StatusOK, map[string]interface{}{
-					"id": record.Id,
-				})
-			},
-			Middlewares: []echo.MiddlewareFunc{
-				apis.ActivityLogger(app),
-				apiKeyAuth,
-				apis.RequireAdminOrRecordAuth(),
-			},
-		})
-
-		e.Router.AddRoute(echo.Route{
-			Method: http.MethodPost,
-			Path:   "/lynx/generate_api_key",
-			Handler: func(c echo.Context) error {
-				return handleGenerateAPIKey(app, c)
-			},
-			Middlewares: []echo.MiddlewareFunc{
-				apis.ActivityLogger(app),
-				apis.RequireAdminOrRecordAuth(),
-			},
-		})
-
-		e.Router.AddRoute(echo.Route{
-			Method: http.MethodPost,
-			Path:   "/lynx/parse_feed",
-			Handler: func(c echo.Context) error {
-				return parseFeedHandlerFunc(app, c)
-			},
-			Middlewares: []echo.MiddlewareFunc{
-				apis.ActivityLogger(app),
-				apiKeyAuth,
-				apis.RequireAdminOrRecordAuth(),
-			},
-		})
-
-		e.Router.AddRoute(echo.Route{
-			Method: http.MethodPost,
-			Path:   "/lynx/link/:id/create_archive",
-			Handler: func(c echo.Context) error {
-				return handleArchiveLink(app, c)
-			},
-			Middlewares: []echo.MiddlewareFunc{
-				apis.ActivityLogger(app),
-				apis.RequireAdminOrRecordAuth(),
-			},
-		})
-
-		scheduler.MustAdd("FetchFeeds", "0 */6 * * *", func() {
-			feeds.FetchAllFeeds(app)
-		})
-
-		scheduler.Start()
-
-		return nil
+		return se.Next()
 	})
 
 	// Automatically update last_viewed_at when links are loaded
 	// individually. However, let the client control this behavior
 	// with a header.
-	app.OnRecordViewRequest("links").Add(func(e *core.RecordViewEvent) error {
-		updateHeader := e.HttpContext.Request().Header.Get("X-Lynx-Update-Last-Viewed")
+	app.OnRecordViewRequest("links").BindFunc(func(e *core.RecordRequestEvent) error {
+		updateHeader := e.Request.Header.Get("X-Lynx-Update-Last-Viewed")
 		if updateHeader != "true" {
-			return nil
+			return e.Next()
 		}
 
 		e.Record.Set("last_viewed_at", time.Now().UTC().Format(time.RFC3339))
 
-		err := app.Dao().SaveRecord(e.Record)
+		err := app.Save(e.Record)
 		if err != nil {
 			log.Printf("Failed to update last_viewed_at: %v", err)
 			return err
 		}
 
-		return nil
+		return e.Next()
 	})
 
-	app.OnModelAfterCreate("links").Add(func(e *core.ModelEvent) error {
+	app.OnRecordAfterCreateSuccess("links").BindFunc(func(e *core.RecordEvent) error {
 		routine.FireAndForget(func() {
-			CurrentSummarizer.MaybeSummarizeLink(app, e.Model.GetId())
+			CurrentSummarizer.MaybeSummarizeLink(app, e.Record.Id)
 		})
 		routine.FireAndForget(func() {
-			singlefile.MaybeArchiveLink(app, e.Model.GetId())
+			singlefile.MaybeArchiveLink(app, e.Record.Id)
 		})
-		return nil
+		return e.Next()
 	})
 
-	app.OnModelAfterCreate("feed_items").Add(func(e *core.ModelEvent) error {
+	app.OnRecordAfterCreateSuccess("feed_items").BindFunc(func(e *core.RecordEvent) error {
 		routine.FireAndForget(func() {
-			convertFeedItemToLinkFunc(app, e.Model.GetId())
+			convertFeedItemToLinkFunc(app, e.Record.Id)
 		})
-		return nil
+		return e.Next()
 	})
 }
 
-func handleGenerateAPIKey(app core.App, c echo.Context) error {
-	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+func handleGenerateAPIKey(app core.App, e *core.RequestEvent) error {
+	authRecord := e.Auth
 	if authRecord == nil {
 		return apis.NewForbiddenError("Not authenticated", nil)
 	}
 
-	name := c.FormValue("name")
+	name := e.Request.FormValue("name")
 	if name == "" {
 		return apis.NewBadRequestError("'name' parameter is required", nil)
 	}
@@ -168,22 +127,22 @@ func handleGenerateAPIKey(app core.App, c echo.Context) error {
 	// Set expiration date to 6 months from now
 	expiresAt := time.Now().UTC().AddDate(0, 6, 0)
 
-	collection, err := app.Dao().FindCollectionByNameOrId("api_keys")
+	collection, err := app.FindCollectionByNameOrId("api_keys")
 	if err != nil {
 		return apis.NewBadRequestError("Failed to find api_keys collection", err)
 	}
 
-	record := models.NewRecord(collection)
+	record := core.NewRecord(collection)
 	record.Set("user", authRecord.Id)
 	record.Set("api_key", apiKey)
 	record.Set("name", name)
 	record.Set("expires_at", expiresAt.Format(time.RFC3339))
 
-	if err := app.Dao().SaveRecord(record); err != nil {
+	if err := app.Save(record); err != nil {
 		return apis.NewBadRequestError("Failed to save API key", err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return e.JSON(http.StatusOK, map[string]interface{}{
 		"name":       name,
 		"api_key":    apiKey,
 		"expires_at": expiresAt.Format(time.RFC3339),
@@ -191,18 +150,18 @@ func handleGenerateAPIKey(app core.App, c echo.Context) error {
 	})
 }
 
-func handleArchiveLink(app core.App, c echo.Context) error {
-	linkID := c.PathParam("id")
+func handleArchiveLink(app core.App, e *core.RequestEvent) error {
+	linkID := e.Request.PathValue("id")
 	if linkID == "" {
 		return apis.NewNotFoundError("Link ID is required", nil)
 	}
 
-	authRecord, _ := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+	authRecord := e.Auth
 	if authRecord == nil {
 		return apis.NewForbiddenError("Not authenticated", nil)
 	}
 
-	link, err := app.Dao().FindRecordById("links", linkID)
+	link, err := app.FindRecordById("links", linkID)
 	if err != nil {
 		return apis.NewNotFoundError("Link not found", err)
 	}
@@ -215,7 +174,7 @@ func handleArchiveLink(app core.App, c echo.Context) error {
 		singlefile.MaybeArchiveLink(app, linkID)
 	}()
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return e.JSON(http.StatusOK, map[string]interface{}{
 		"message": "Archive process started",
 	})
 }

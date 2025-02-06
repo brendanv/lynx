@@ -17,7 +17,6 @@ import (
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
@@ -39,7 +38,7 @@ func generateFilenameSuffix() string {
 func MaybeArchiveLink(app core.App, linkID string) {
 	logger := app.Logger().With("action", "createArchive", "linkID", linkID)
 
-	link, err := app.Dao().FindRecordById("links", linkID)
+	link, err := app.FindRecordById("links", linkID)
 	if err != nil {
 		logger.Error("Failed to find link", "error", err)
 		return
@@ -68,7 +67,6 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	// the link record. This should not be stored on the
 	// model beacuse it's computed by pocketbase
 	fileKey := fmt.Sprintf("archive_%s.html", generateFilenameSuffix())
-	fileName := link.BaseFilesPath() + "/" + fileKey
 	fs, err := app.NewFilesystem()
 	if err != nil {
 		logger.Error("Failed to create filesystem", "error", err)
@@ -76,7 +74,7 @@ func MaybeArchiveLink(app core.App, linkID string) {
 	}
 	defer fs.Close()
 
-	exists, err := fs.Exists(fileName)
+	exists, err := fs.Exists(fileKey)
 	if exists || err != nil {
 		logger.Info("Skipping archive creation, file already exists")
 		return
@@ -120,25 +118,19 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		return
 	}
 
-	fsFile, err := filesystem.NewFileFromBytes(body, fileName)
+	fsFile, err := filesystem.NewFileFromBytes(body, fileKey)
 	if err != nil {
 		logger.Error("Failed to create archive file", "error", err)
 		return
 	}
 
-	err = fs.UploadFile(fsFile, fileName)
-	if err != nil {
-		logger.Error("Failed to upload archive file", "error", err)
-		return
-	}
-
-	err = app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
-		updatedLink, err := txDao.FindRecordById("links", linkID)
+	err = app.RunInTransaction(func(txApp core.App) error {
+		updatedLink, err := txApp.FindRecordById("links", linkID)
 		if err != nil {
 			return err
 		}
-		updatedLink.Set("archive", fileKey)
-		if err := txDao.SaveRecord(updatedLink); err != nil {
+		updatedLink.Set("archive", fsFile)
+		if err := txApp.Save(updatedLink); err != nil {
 			return err
 		}
 
@@ -159,7 +151,7 @@ func getUserCookiesJSON(app core.App, userID string, urlStr string) (string, err
 		return "", fmt.Errorf("failed to parse URL: %w", err)
 	}
 
-	cookieRecords, err := app.Dao().FindRecordsByFilter(
+	cookieRecords, err := app.FindRecordsByFilter(
 		"user_cookies",
 		"user = {:user} && domain = {:domain}",
 		"-created",

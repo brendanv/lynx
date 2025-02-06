@@ -6,13 +6,13 @@ import {
   useContext,
 } from "react";
 import PocketBase from "pocketbase";
-import type { AuthModel } from "pocketbase";
+import type { AuthRecord } from "pocketbase";
 import { useNavigate } from "react-router-dom";
 import URLS from "@/lib/urls";
 
 type PocketBaseContextValue = {
   pb: PocketBase;
-  user: AuthModel;
+  user: AuthRecord;
   logout: () => void;
 };
 const PocketBaseContext = createContext<PocketBaseContextValue | null>(null);
@@ -21,7 +21,7 @@ const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL;
 
 export const PocketBaseProvider = ({ children }: { children: any }) => {
   const [pb, _] = useState(new PocketBase(POCKETBASE_URL));
-  const [user, setUser] = useState(pb.authStore.model);
+  const [user, setUser] = useState(pb.authStore.record);
 
   useEffect(() => {
     // Update user state when auth store changes
