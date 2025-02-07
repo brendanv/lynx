@@ -6,6 +6,7 @@ import {
   Group,
   Indicator,
   Menu,
+  Progress,
   rem,
   Skeleton,
   Text,
@@ -287,6 +288,20 @@ const LinkCard = ({ link, linkMutator }: Props) => {
           <Card.Section className={classes.footer}>
             <MetadataRow link={link} />
           </Card.Section>
+          {link.reading_progress ? (
+            <Card.Section>
+              <Progress
+                value={link.reading_progress * 100.0}
+                size="xs"
+                radius={0}
+                styles={{
+                  root: {
+                    backgroundColor: "transparent",
+                  },
+                }}
+              />
+            </Card.Section>
+          ) : null}
         </Card>
       </Indicator>
       <DrawerDialog

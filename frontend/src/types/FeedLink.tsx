@@ -14,5 +14,6 @@ type FeedLink = {
   tags: Tag[];
   title: string | null;
   archive: string | null;
+  reading_progress: number | null;
 };
 export default FeedLink;
