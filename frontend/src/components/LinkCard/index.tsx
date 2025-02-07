@@ -25,6 +25,8 @@ import {
   IconFileDownload,
   IconFileTextAi,
   IconPencil,
+  IconStar,
+  IconStarFilled,
   IconTrash,
   IconTags,
 } from "@tabler/icons-react";
@@ -93,6 +95,19 @@ const LinkCard = ({ link, linkMutator }: Props) => {
       },
     });
   };
+  const isStarred = link.starred_at !== null;
+  const handleToggleStarred = async () => {
+    linkMutator.mutate({
+      id: link.id,
+      updates: {
+        starred_at: isStarred ? null : new Date().toISOString(),
+      },
+      options: {
+        onSuccessMessage: `${isStarred ? "Removed from" : "Added to"} favorites`,
+        onErrorMessage: "Failed to update favorite status",
+      },
+    });
+  };
   const deleteMutator = useMutation({
     mutationFn: async () => {
       await pb.collection("links").delete(link.id);
@@ -140,6 +155,21 @@ const LinkCard = ({ link, linkMutator }: Props) => {
             <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
               <Group justify="flex-end" p="xs">
                 <ActionIcon.Group>
+                  <Tooltip
+                    label={
+                      isStarred ? "Remove from favorites" : "Add to favorites"
+                    }
+                  >
+                    <ActionIcon
+                      variant="light"
+                      onClick={handleToggleStarred}
+                      title={
+                        isStarred ? "Remove from favorites" : "Add to favorites"
+                      }
+                    >
+                      {isStarred ? <IconStarFilled /> : <IconStar />}
+                    </ActionIcon>
+                  </Tooltip>
                   {link.summary ? (
                     <Tooltip label="View Summary">
                       <ActionIcon

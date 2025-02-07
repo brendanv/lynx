@@ -44,6 +44,7 @@ export type FeedQueryItem = {
   user: string;
   archive: string | null;
   reading_progress: number | null;
+  starred_at: string | null;
 };
 
 // Must be kept in sync with the above
@@ -65,6 +66,7 @@ const getFields = () =>
     "user",
     "expand.tags.*",
     "reading_progress",
+    "starred_at",
   ].join(",");
 
 export const convertFeedQueryItemToFeedLink = (
@@ -92,6 +94,7 @@ export const convertFeedQueryItemToFeedLink = (
         : [],
     archive: item.archive,
     reading_progress: item.reading_progress,
+    starred_at: item.starred_at ? new Date(item.starred_at) : null,
   };
 };
 

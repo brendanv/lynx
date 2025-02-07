@@ -15,5 +15,6 @@ type FeedLink = {
   title: string | null;
   archive: string | null;
   reading_progress: number | null;
+  starred_at: Date | null;
 };
 export default FeedLink;
