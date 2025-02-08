@@ -24,6 +24,7 @@ import {
   IconSearch,
   IconSettings,
   IconSquareRoundedPlus,
+  IconStar,
   IconSun,
   IconSunMoon,
 } from "@tabler/icons-react";
@@ -37,6 +38,7 @@ const links = [
   { link: URLS.HOME, label: "Home", icon: IconHome },
   { link: URLS.ADD_LINK, label: "Add Link", icon: IconSquareRoundedPlus },
   { link: URLS.HIGHLIGHTS, label: "Highlights", icon: IconBlockquote },
+  { link: URLS.FAVORITES, label: "Favorites", icon: IconStar },
   { link: URLS.TAGS, label: "Tags", icon: IconTags },
   { link: URLS.FEEDS, label: "Feeds", icon: IconRss },
   { link: URLS.SETTINGS, label: "Settings", icon: IconSettings },
