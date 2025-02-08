@@ -11,19 +11,25 @@ import {
 import Client, { ListResult } from "pocketbase";
 import { notifications } from "@mantine/notifications";
 import { useCallback } from "react";
+import type {
+  ReadState,
+  HighlightState,
+  StarredState,
+  SortBy,
+} from "@/utils/searchUtils";
 
 // Works for 2- and 3- column grids
 const PAGE_SIZE = 18;
 
 type Props = {
   page?: number;
-  readState?: "unread" | "read" | "all";
-  highlightState?: "has_highlights" | "no_highlights" | "all";
-  starredState?: "is_starred" | "not_starred" | "all";
+  readState?: ReadState;
+  highlightState?: HighlightState;
+  starredState?: StarredState;
   tagId?: string;
   searchText?: string;
   feedId?: string;
-  sortBy: "added_to_library" | "article_date";
+  sortBy: SortBy;
 };
 
 export type FeedQueryItem = {

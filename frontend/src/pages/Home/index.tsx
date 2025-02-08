@@ -9,70 +9,58 @@ import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, Center, Loader, Pagination } from "@mantine/core";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxGrid from "@/components/LynxGrid";
+import {
+  getReadState,
+  getHighlightState,
+  getStarredState,
+  getSortBy,
+} from "@/utils/searchUtils";
 
 export function HomePage() {
   usePageTitle("My Feed");
   const [urlParams, setUrlParams] = useSearchParams();
-  const [searchParams, setSearchParams] = useState<
-    Omit<SearchParams, "searchText">
-  >({
-    readState: "all",
-    sortBy: "added_to_library",
-    starredState: "all",
-    highlightState: "all",
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    searchText: urlParams.get("s") || "",
+    tagId: urlParams.get("t") || undefined,
+    feedId: urlParams.get("f") || undefined,
+    readState: getReadState(urlParams.get("r")),
+    sortBy: getSortBy(urlParams.get("sort")),
+    starredState: getStarredState(urlParams.get("st")),
+    highlightState: getHighlightState(urlParams.get("h")),
   });
-  const searchText = urlParams.get("s") || "";
-  const tagId = urlParams.get("t") || undefined;
   const page = parseInt(urlParams.get("p") || "1");
-  const feedId = urlParams.get("f") || undefined;
-  const highlightState = (urlParams.get("h") || undefined) as
-    | "all"
-    | "has_highlights"
-    | "no_highlights"
-    | undefined;
-  const starredState = (urlParams.get("st") || undefined) as
-    | "all"
-    | "is_starred"
-    | "not_starred"
-    | undefined;
   const setPage = (p: number) => {
     setUrlParams((prev) => {
       prev.set("p", p.toString());
       return prev;
     });
   };
+  const queryProps = { ...searchParams, page };
 
-  const queryProps = {
-    page,
-    ...searchParams,
-    searchText,
-    tagId,
-    feedId,
-    highlightState,
-    starredState,
-  };
   const linksQuery = useLinksFeedQuery(queryProps);
   const linksMutation = useLinksFeedMutation(queryProps);
 
   const handleSearchParamsChange = (newSearchParams: SearchParams) => {
     setSearchParams(newSearchParams);
-    const newParams: { [key: string]: string } = {
-      s: newSearchParams.searchText,
-      p: "1",
-    };
-    if (newSearchParams.tagId) {
-      newParams["t"] = newSearchParams.tagId;
-    }
-    if (newSearchParams.feedId) {
-      newParams["f"] = newSearchParams.feedId;
-    }
-    if (newSearchParams.highlightState) {
-      newParams["h"] = newSearchParams.highlightState;
-    }
-    if (newSearchParams.starredState) {
-      newParams["st"] = newSearchParams.starredState;
-    }
-    setUrlParams(newParams);
+    const newUrlParams = new URLSearchParams();
+    if (newSearchParams.searchText)
+      newUrlParams.set("s", newSearchParams.searchText);
+    if (newSearchParams.tagId) newUrlParams.set("t", newSearchParams.tagId);
+    if (newSearchParams.feedId) newUrlParams.set("f", newSearchParams.feedId);
+    if (newSearchParams.readState !== "all")
+      newUrlParams.set("r", newSearchParams.readState);
+    if (newSearchParams.sortBy !== "added_to_library")
+      newUrlParams.set("sort", newSearchParams.sortBy);
+    if (newSearchParams.highlightState !== "all")
+      newUrlParams.set("h", newSearchParams.highlightState);
+    if (newSearchParams.starredState !== "all")
+      newUrlParams.set("st", newSearchParams.starredState);
+
+    // Preserve page number if it exists
+    const currentPage = urlParams.get("p");
+    if (currentPage) newUrlParams.set("p", currentPage);
+
+    setUrlParams(newUrlParams);
   };
 
   let content = null;
@@ -127,7 +115,7 @@ export function HomePage() {
   return (
     <LynxShell>
       <SearchBar
-        searchParams={{ ...searchParams, searchText, tagId, feedId }}
+        searchParams={queryProps}
         onSearchParamsChange={handleSearchParamsChange}
       />
       {content}
