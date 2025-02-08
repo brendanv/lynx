@@ -17,6 +17,7 @@ export type SearchParams = {
   searchText: string;
   readState: "all" | "read" | "unread";
   highlightState: "has_highlights" | "no_highlights" | "all";
+  starredState: "all" | "is_starred" | "not_starred";
   tagId?: string;
   feedId?: string;
   sortBy: "added_to_library" | "article_date";
@@ -42,6 +43,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
       searchText: "",
       readState: "all",
       highlightState: "all",
+      starredState: "all",
       tagId: undefined,
       feedId: undefined,
       sortBy: "added_to_library",
@@ -65,6 +67,12 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
     { value: "article_date", label: "Article Date" },
   ];
 
+  const starredStates = [
+    { value: "all", label: "All" },
+    { value: "is_starred", label: "Is Starred" },
+    { value: "not_starred", label: "Not Starred" },
+  ];
+
   const selectedFilters: string[] = [];
   if (searchParams.readState !== "all") {
     selectedFilters.push(`${searchParams.readState} only`);
@@ -73,6 +81,12 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
     selectedFilters.push(
       highlightStates.find((s) => s.value === searchParams.highlightState)
         ?.label || "",
+    );
+  }
+  if (searchParams.starredState !== "all") {
+    selectedFilters.push(
+      starredStates.find((s) => s.value === searchParams.starredState)?.label ||
+        "",
     );
   }
   if (searchParams.tagId) {
@@ -148,6 +162,29 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
                         | "all"
                         | "has_highlights"
                         | "no_highlights",
+                    })
+                  }
+                >
+                  {label}
+                </Menu.Item>
+              ))}
+              <Menu.Label>Starred</Menu.Label>
+              {starredStates.map(({ value, label }) => (
+                <Menu.Item
+                  key={value}
+                  leftSection={
+                    searchParams.starredState === value ? (
+                      <IconCheck className={dropdownClasses.dropdownIcon} />
+                    ) : (
+                      <span className={dropdownClasses.dropdownIcon} />
+                    )
+                  }
+                  onClick={() =>
+                    updateSearchParams({
+                      starredState: value as
+                        | "all"
+                        | "is_starred"
+                        | "not_starred",
                     })
                   }
                 >

@@ -19,6 +19,7 @@ type Props = {
   page?: number;
   readState?: "unread" | "read" | "all";
   highlightState?: "has_highlights" | "no_highlights" | "all";
+  starredState?: "is_starred" | "not_starred" | "all";
   tagId?: string;
   searchText?: string;
   feedId?: string;
@@ -99,7 +100,8 @@ export const convertFeedQueryItemToFeedLink = (
 };
 
 const buildFilters = (client: Client, props: Props) => {
-  const { readState, tagId, searchText, feedId, highlightState } = props;
+  const { readState, tagId, searchText, feedId, highlightState, starredState } =
+    props;
   const filterExprs: string[] = [];
 
   if (readState === "unread") {
@@ -130,6 +132,12 @@ const buildFilters = (client: Client, props: Props) => {
     filterExprs.push(client.filter("highlights_via_link.id != null"));
   } else if (highlightState === "no_highlights") {
     filterExprs.push(client.filter("highlights_via_link.id = null"));
+  }
+
+  if (starredState === "is_starred") {
+    filterExprs.push(client.filter("starred_at != null"));
+  } else if (starredState === "not_starred") {
+    filterExprs.push(client.filter("starred_at = null"));
   }
 
   return filterExprs.join(" && ");

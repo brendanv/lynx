@@ -18,6 +18,7 @@ export function HomePage() {
   >({
     readState: "all",
     sortBy: "added_to_library",
+    starredState: "all",
     highlightState: "all",
   });
   const searchText = urlParams.get("s") || "";
@@ -28,6 +29,11 @@ export function HomePage() {
     | "all"
     | "has_highlights"
     | "no_highlights"
+    | undefined;
+  const starredState = (urlParams.get("st") || undefined) as
+    | "all"
+    | "is_starred"
+    | "not_starred"
     | undefined;
   const setPage = (p: number) => {
     setUrlParams((prev) => {
@@ -43,6 +49,7 @@ export function HomePage() {
     tagId,
     feedId,
     highlightState,
+    starredState,
   };
   const linksQuery = useLinksFeedQuery(queryProps);
   const linksMutation = useLinksFeedMutation(queryProps);
@@ -61,6 +68,9 @@ export function HomePage() {
     }
     if (newSearchParams.highlightState) {
       newParams["h"] = newSearchParams.highlightState;
+    }
+    if (newSearchParams.starredState) {
+      newParams["st"] = newSearchParams.starredState;
     }
     setUrlParams(newParams);
   };
