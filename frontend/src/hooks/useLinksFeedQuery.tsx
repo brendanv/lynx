@@ -11,18 +11,25 @@ import {
 import Client, { ListResult } from "pocketbase";
 import { notifications } from "@mantine/notifications";
 import { useCallback } from "react";
+import type {
+  ReadState,
+  HighlightState,
+  StarredState,
+  SortBy,
+} from "@/utils/searchUtils";
 
 // Works for 2- and 3- column grids
 const PAGE_SIZE = 18;
 
 type Props = {
   page?: number;
-  readState?: "unread" | "read" | "all";
-  highlightState?: "has_highlights" | "no_highlights" | "all";
+  readState?: ReadState;
+  highlightState?: HighlightState;
+  starredState?: StarredState;
   tagId?: string;
   searchText?: string;
   feedId?: string;
-  sortBy: "added_to_library" | "article_date";
+  sortBy: SortBy;
 };
 
 export type FeedQueryItem = {
@@ -44,6 +51,7 @@ export type FeedQueryItem = {
   user: string;
   archive: string | null;
   reading_progress: number | null;
+  starred_at: string | null;
 };
 
 // Must be kept in sync with the above
@@ -65,6 +73,7 @@ const getFields = () =>
     "user",
     "expand.tags.*",
     "reading_progress",
+    "starred_at",
   ].join(",");
 
 export const convertFeedQueryItemToFeedLink = (
@@ -92,11 +101,13 @@ export const convertFeedQueryItemToFeedLink = (
         : [],
     archive: item.archive,
     reading_progress: item.reading_progress,
+    starred_at: item.starred_at ? new Date(item.starred_at) : null,
   };
 };
 
 const buildFilters = (client: Client, props: Props) => {
-  const { readState, tagId, searchText, feedId, highlightState } = props;
+  const { readState, tagId, searchText, feedId, highlightState, starredState } =
+    props;
   const filterExprs: string[] = [];
 
   if (readState === "unread") {
@@ -127,6 +138,12 @@ const buildFilters = (client: Client, props: Props) => {
     filterExprs.push(client.filter("highlights_via_link.id != null"));
   } else if (highlightState === "no_highlights") {
     filterExprs.push(client.filter("highlights_via_link.id = null"));
+  }
+
+  if (starredState === "is_starred") {
+    filterExprs.push(client.filter("starred_at != null"));
+  } else if (starredState === "not_starred") {
+    filterExprs.push(client.filter("starred_at = null"));
   }
 
   return filterExprs.join(" && ");
