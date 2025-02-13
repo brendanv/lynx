@@ -44,6 +44,11 @@
   text-overflow: ellipsis;
 }
 
+.feedLink {
+  text-decoration: none;
+  color: inherit;
+}
+
 .skeletons {
   display: flex;
   flex-direction: column;
