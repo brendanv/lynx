@@ -40,7 +40,7 @@ export type FeedQueryItem = {
   collectionId: string;
   collectionName: string;
   excerpt: string | null;
-  expand?: { tags: Tag[] };
+  expand?: { tags: Tag[]; created_from_feed?: { id: string; name: string } };
   header_image_url: string | null;
   hostname: string | null;
   last_viewed_at: string | null;
@@ -61,6 +61,7 @@ const getFields = () =>
     "added_to_library",
     "article_date",
     "author",
+    "created_from_feed",
     "excerpt",
     "header_image_url",
     "hostname",
@@ -72,6 +73,8 @@ const getFields = () =>
     "archive",
     "user",
     "expand.tags.*",
+    "expand.created_from_feed.id",
+    "expand.created_from_feed.name",
     "reading_progress",
     "starred_at",
   ].join(",");
@@ -99,6 +102,13 @@ export const convertFeedQueryItemToFeedLink = (
             slug,
           }))
         : [],
+    feed:
+      item.expand && item.expand.created_from_feed
+        ? {
+            id: item.expand.created_from_feed.id,
+            name: item.expand.created_from_feed.name,
+          }
+        : undefined,
     archive: item.archive,
     reading_progress: item.reading_progress,
     starred_at: item.starred_at ? new Date(item.starred_at) : null,
@@ -160,7 +170,7 @@ export const useLinksFeedMutation = (
         .collection("links")
         .update<FeedQueryItem>(id, updates, {
           fields: getFields(),
-          expand: "tags",
+          expand: "tags,created_from_feed",
         });
       return convertFeedQueryItemToFeedLink(mutationResult);
     },
@@ -227,7 +237,7 @@ const useLinksFeedQuery = (props: Props) => {
         .collection("links")
         .getList<FeedQueryItem>(queryProps.page || 1, PAGE_SIZE, {
           filter: buildFilters(pb, queryProps),
-          expand: "tags",
+          expand: "tags,created_from_feed",
           sort: `-${queryProps.sortBy}`,
         });
       return {

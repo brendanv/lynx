@@ -56,7 +56,13 @@ const MetadataRow = ({ link }: { link: FeedLink }) => {
   const items: React.ReactNode[] = [
     formattedDate,
     <span key="hostname" className={classes.hostname}>
-      {link.hostname}
+      {link.feed ? (
+        <Link to={URLS.FEED_ITEMS(link.feed.id)} className={classes.feedLink}>
+          {link.feed.name}
+        </Link>
+      ) : (
+        link.hostname
+      )}
     </span>,
     link.read_time_display,
   ].filter(Boolean);

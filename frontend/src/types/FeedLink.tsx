@@ -6,6 +6,7 @@ type FeedLink = {
   article_date: Date | null;
   author: string | null;
   excerpt: string | null;
+  feed?: { id: string; name: string };
   header_image_url: string | null;
   hostname: string | null;
   last_viewed_at: Date | null;
