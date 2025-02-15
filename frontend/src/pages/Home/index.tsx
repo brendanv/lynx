@@ -9,7 +9,6 @@ import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, Center, Loader, Pagination } from "@mantine/core";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxGrid from "@/components/LynxGrid";
-import { useMediaQuery } from "@mantine/hooks";
 import {
   getReadState,
   getHighlightState,
@@ -29,8 +28,6 @@ export function HomePage() {
     starredState: getStarredState(urlParams.get("st")),
     highlightState: getHighlightState(urlParams.get("h")),
   });
-  const narrowScreen = useMediaQuery("(min-width: 40rem)");
-  console.log(narrowScreen);
   const page = parseInt(urlParams.get("p") || "1");
   const setPage = (p: number) => {
     setUrlParams((prev) => {
