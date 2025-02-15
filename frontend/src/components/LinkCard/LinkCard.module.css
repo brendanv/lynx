@@ -1,5 +1,14 @@
 .card {
   background-color: var(--mantine-color-body);
+  --paper-radius: var(--mantine-radius-md);
+
+  /* mantine-breakpoint-xs */
+  /* When we go full bleed we don't want rouded corners or side borders */
+  @media (max-width: 36rem) {
+    --paper-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
 }
 
 .footer {

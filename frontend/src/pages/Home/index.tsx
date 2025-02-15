@@ -9,6 +9,7 @@ import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, Center, Loader, Pagination } from "@mantine/core";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxGrid from "@/components/LynxGrid";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   getReadState,
   getHighlightState,
@@ -28,6 +29,8 @@ export function HomePage() {
     starredState: getStarredState(urlParams.get("st")),
     highlightState: getHighlightState(urlParams.get("h")),
   });
+  const narrowScreen = useMediaQuery("(min-width: 40rem)");
+  console.log(narrowScreen);
   const page = parseInt(urlParams.get("p") || "1");
   const setPage = (p: number) => {
     setUrlParams((prev) => {
@@ -67,7 +70,7 @@ export function HomePage() {
 
   if (linksQuery.isPending) {
     content = (
-      <LynxGrid>
+      <LynxGrid fullBleedAtSingleColumn>
         {Array.from({ length: 5 }, (_, index) => (
           <LinkCardSkeleton key={`skeleton-${index}`} />
         ))}{" "}
@@ -93,7 +96,7 @@ export function HomePage() {
             <Loader />
           </Center>
         )}
-        <LynxGrid>
+        <LynxGrid fullBleedAtSingleColumn>
           {linksQuery.data.items.map((item) => {
             return (
               <LinkCard key={item.id} link={item} linkMutator={linksMutation} />

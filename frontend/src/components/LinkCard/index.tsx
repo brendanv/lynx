@@ -156,7 +156,7 @@ const LinkCard = ({ link, linkMutator }: Props) => {
   return (
     <>
       <Indicator disabled={!isUnread} position="top-start" withBorder size={15}>
-        <Card withBorder padding="lg" radius="md" className={classes.card}>
+        <Card withBorder padding="lg" className={classes.card}>
           <Card.Section mb="sm">
             <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
               <Group justify="flex-end" p="xs">
@@ -364,7 +364,7 @@ const LinkCard = ({ link, linkMutator }: Props) => {
 
 export const LinkCardSkeleton = () => {
   return (
-    <Card withBorder radius="md" className={classes.card}>
+    <Card withBorder className={classes.card}>
       <Card.Section mb="sm">
         <Skeleton className={classes.headerImage} />
       </Card.Section>
