@@ -3,6 +3,7 @@
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   grid-gap: var(--mantine-spacing-md);
   margin-bottom: var(--mantine-spacing-lg);
+  align-items: start;
 }
 
 .gridFullBleed {
