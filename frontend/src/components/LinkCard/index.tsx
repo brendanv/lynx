@@ -4,7 +4,6 @@ import {
   Card,
   Divider,
   Group,
-  Indicator,
   Menu,
   Progress,
   rem,
@@ -19,6 +18,7 @@ import URLS from "@/lib/urls";
 import {
   IconArchive,
   IconBlockquote,
+  IconCircleFilled,
   IconCircle,
   IconCircleCheck,
   IconDotsVertical,
@@ -47,13 +47,30 @@ interface Props {
   linkMutator: GenericLynxMutator<FeedLink>;
 }
 
-const MetadataRow = ({ link }: { link: FeedLink }) => {
+const MetadataRow = ({
+  link,
+  handleToggleUnread,
+}: {
+  link: FeedLink;
+  handleToggleUnread: () => void;
+}) => {
   const formattedDate = link.article_date?.toLocaleDateString("en-US", {
     year: "numeric" as const,
     month: "short" as const,
     day: "numeric" as const,
   });
+  const isUnread = link.last_viewed_at === null;
   const items: React.ReactNode[] = [
+    <Tooltip key="toggle" label={isUnread ? "Mark as read" : "Mark as unread"}>
+      <ActionIcon
+        size="xs"
+        variant="subtle"
+        onClick={handleToggleUnread}
+        title={isUnread ? "Mark as Read" : "Mark as Unread"}
+      >
+        {isUnread ? <IconCircleFilled /> : <IconCircleCheck />}
+      </ActionIcon>
+    </Tooltip>,
     formattedDate,
     <span key="hostname" className={classes.hostname}>
       {link.feed ? (
@@ -155,191 +172,178 @@ const LinkCard = ({ link, linkMutator }: Props) => {
 
   return (
     <>
-      <Indicator disabled={!isUnread} position="top-start" withBorder size={15}>
-        <Card withBorder padding="lg" radius="md" className={classes.card}>
-          <Card.Section mb="sm">
-            <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
-              <Group justify="flex-end" p="xs">
-                <ActionIcon.Group>
-                  <Tooltip
-                    label={
+      <Card withBorder padding="lg" className={classes.card}>
+        <Card.Section mb="sm">
+          <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
+            <Group justify="flex-end" p="xs">
+              <ActionIcon.Group>
+                <Tooltip
+                  label={
+                    isStarred ? "Remove from favorites" : "Add to favorites"
+                  }
+                >
+                  <ActionIcon
+                    variant="light"
+                    onClick={handleToggleStarred}
+                    title={
                       isStarred ? "Remove from favorites" : "Add to favorites"
                     }
                   >
+                    {isStarred ? <IconStarFilled /> : <IconStar />}
+                  </ActionIcon>
+                </Tooltip>
+                {link.summary ? (
+                  <Tooltip label="View Summary">
                     <ActionIcon
                       variant="light"
-                      onClick={handleToggleStarred}
-                      title={
-                        isStarred ? "Remove from favorites" : "Add to favorites"
+                      onClick={openSummary}
+                      title="View Summary"
+                    >
+                      <IconFileTextAi />
+                    </ActionIcon>
+                  </Tooltip>
+                ) : null}
+                <Tooltip label="Edit Tags">
+                  <ActionIcon
+                    variant="light"
+                    onClick={openTagsEdit}
+                    title="Edit Tags"
+                  >
+                    <IconTags />
+                  </ActionIcon>
+                </Tooltip>
+                <Menu zIndex={50}>
+                  <Menu.Target>
+                    <ActionIcon variant="light">
+                      <IconDotsVertical />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Label>Link</Menu.Label>
+                    <Menu.Item
+                      leftSection={
+                        <IconPencil className={dropdownClasses.dropdownIcon} />
+                      }
+                      component="a"
+                      href={URLS.EDIT_LINK(link.id)}
+                    >
+                      Edit Link
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <IconTags className={dropdownClasses.dropdownIcon} />
+                      }
+                      onClick={openTagsEdit}
+                    >
+                      Tags
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <IconBlockquote
+                          className={dropdownClasses.dropdownIcon}
+                        />
+                      }
+                      component={Link}
+                      to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
+                    >
+                      View Highlights
+                    </Menu.Item>
+                    <Menu.Item
+                      onClick={handleToggleUnread}
+                      leftSection={
+                        isUnread ? (
+                          <IconCircleCheck
+                            className={dropdownClasses.dropdownIcon}
+                          />
+                        ) : (
+                          <IconCircle
+                            className={dropdownClasses.dropdownIcon}
+                          />
+                        )
                       }
                     >
-                      {isStarred ? <IconStarFilled /> : <IconStar />}
-                    </ActionIcon>
-                  </Tooltip>
-                  {link.summary ? (
-                    <Tooltip label="View Summary">
-                      <ActionIcon
-                        variant="light"
-                        onClick={openSummary}
-                        title="View Summary"
-                      >
-                        <IconFileTextAi />
-                      </ActionIcon>
-                    </Tooltip>
-                  ) : null}
-                  <Tooltip label="Edit Tags">
-                    <ActionIcon
-                      variant="light"
-                      onClick={openTagsEdit}
-                      title="Edit Tags"
-                    >
-                      <IconTags />
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label={isUnread ? "Mark as Read" : "Mark as Unread"}>
-                    <ActionIcon
-                      variant="light"
-                      onClick={handleToggleUnread}
-                      title={isUnread ? "Mark as Read" : "Mark as Unread"}
-                    >
-                      {isUnread ? <IconCircle /> : <IconCircleCheck />}
-                    </ActionIcon>
-                  </Tooltip>
-                  <Menu zIndex={50}>
-                    <Menu.Target>
-                      <ActionIcon variant="light">
-                        <IconDotsVertical />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Label>Link</Menu.Label>
+                      {isUnread ? "Mark as Read" : "Mark as Unread"}
+                    </Menu.Item>
+                    {link.archive ? (
                       <Menu.Item
                         leftSection={
-                          <IconPencil
+                          <IconArchive
                             className={dropdownClasses.dropdownIcon}
                           />
                         }
                         component="a"
-                        href={URLS.EDIT_LINK(link.id)}
+                        href={URLS.LINK_ARCHIVE(link.id)}
                       >
-                        Edit Link
+                        View Archive
                       </Menu.Item>
+                    ) : (
                       <Menu.Item
+                        onClick={handleCreateArchive}
                         leftSection={
-                          <IconTags className={dropdownClasses.dropdownIcon} />
-                        }
-                        onClick={openTagsEdit}
-                      >
-                        Tags
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconBlockquote
+                          <IconFileDownload
                             className={dropdownClasses.dropdownIcon}
                           />
                         }
-                        component={Link}
-                        to={URLS.HIGHLIGHTS_WITH_LINK_SEARCH(link.id)}
                       >
-                        View Highlights
+                        Create Archive
                       </Menu.Item>
-                      <Menu.Item
-                        onClick={handleToggleUnread}
-                        leftSection={
-                          isUnread ? (
-                            <IconCircleCheck
-                              className={dropdownClasses.dropdownIcon}
-                            />
-                          ) : (
-                            <IconCircle
-                              className={dropdownClasses.dropdownIcon}
-                            />
-                          )
-                        }
-                      >
-                        {isUnread ? "Mark as Read" : "Mark as Unread"}
-                      </Menu.Item>
-                      {link.archive ? (
-                        <Menu.Item
-                          leftSection={
-                            <IconArchive
-                              className={dropdownClasses.dropdownIcon}
-                            />
-                          }
-                          component="a"
-                          href={URLS.LINK_ARCHIVE(link.id)}
-                        >
-                          View Archive
-                        </Menu.Item>
-                      ) : (
-                        <Menu.Item
-                          onClick={handleCreateArchive}
-                          leftSection={
-                            <IconFileDownload
-                              className={dropdownClasses.dropdownIcon}
-                            />
-                          }
-                        >
-                          Create Archive
-                        </Menu.Item>
-                      )}
-                      <Menu.Label>Danger Zone</Menu.Label>
-                      <Menu.Item
-                        onClick={() => deleteMutator.mutate()}
-                        leftSection={
-                          <IconTrash className={dropdownClasses.dropdownIcon} />
-                        }
-                        color="red"
-                      >
-                        Delete
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </ActionIcon.Group>
-              </Group>
-            </BackgroundImage>
+                    )}
+                    <Menu.Label>Danger Zone</Menu.Label>
+                    <Menu.Item
+                      onClick={() => deleteMutator.mutate()}
+                      leftSection={
+                        <IconTrash className={dropdownClasses.dropdownIcon} />
+                      }
+                      color="red"
+                    >
+                      Delete
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </ActionIcon.Group>
+            </Group>
+          </BackgroundImage>
+        </Card.Section>
+
+        {link.tags.length > 0 ? (
+          <div className={classes.tags}>
+            <LinkTagsDisplay link={link} size="xs" />
+          </div>
+        ) : null}
+
+        <Text
+          className={[classes.title, classes.clamp].join(" ")}
+          component="a"
+          href={URLS.LINK_VIEWER(link.id)}
+        >
+          {link.title}
+        </Text>
+        <Text
+          className={classes.clamp}
+          component="a"
+          href={URLS.LINK_VIEWER(link.id)}
+        >
+          {link.excerpt}
+        </Text>
+
+        <Card.Section className={classes.footer}>
+          <MetadataRow link={link} handleToggleUnread={handleToggleUnread} />
+        </Card.Section>
+        {link.reading_progress ? (
+          <Card.Section>
+            <Progress
+              value={link.reading_progress * 100.0}
+              size="xs"
+              radius={0}
+              styles={{
+                root: {
+                  backgroundColor: "transparent",
+                },
+              }}
+            />
           </Card.Section>
-
-          {link.tags.length > 0 ? (
-            <div className={classes.tags}>
-              <LinkTagsDisplay link={link} size="xs" />
-            </div>
-          ) : null}
-
-          <Text
-            className={[classes.title, classes.clamp].join(" ")}
-            component="a"
-            href={URLS.LINK_VIEWER(link.id)}
-          >
-            {link.title}
-          </Text>
-          <Text
-            className={classes.clamp}
-            component="a"
-            href={URLS.LINK_VIEWER(link.id)}
-          >
-            {link.excerpt}
-          </Text>
-
-          <Card.Section className={classes.footer}>
-            <MetadataRow link={link} />
-          </Card.Section>
-          {link.reading_progress ? (
-            <Card.Section>
-              <Progress
-                value={link.reading_progress * 100.0}
-                size="xs"
-                radius={0}
-                styles={{
-                  root: {
-                    backgroundColor: "transparent",
-                  },
-                }}
-              />
-            </Card.Section>
-          ) : null}
-        </Card>
-      </Indicator>
+        ) : null}
+      </Card>
       <DrawerDialog
         title="Edit Tags"
         open={isTagsEditOpen}
@@ -364,7 +368,7 @@ const LinkCard = ({ link, linkMutator }: Props) => {
 
 export const LinkCardSkeleton = () => {
   return (
-    <Card withBorder radius="md" className={classes.card}>
+    <Card withBorder className={classes.card}>
       <Card.Section mb="sm">
         <Skeleton className={classes.headerImage} />
       </Card.Section>

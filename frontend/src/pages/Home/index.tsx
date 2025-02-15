@@ -67,7 +67,7 @@ export function HomePage() {
 
   if (linksQuery.isPending) {
     content = (
-      <LynxGrid>
+      <LynxGrid fullBleedAtSingleColumn>
         {Array.from({ length: 5 }, (_, index) => (
           <LinkCardSkeleton key={`skeleton-${index}`} />
         ))}{" "}
@@ -93,7 +93,7 @@ export function HomePage() {
             <Loader />
           </Center>
         )}
-        <LynxGrid>
+        <LynxGrid fullBleedAtSingleColumn>
           {linksQuery.data.items.map((item) => {
             return (
               <LinkCard key={item.id} link={item} linkMutator={linksMutation} />

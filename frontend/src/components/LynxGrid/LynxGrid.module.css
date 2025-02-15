@@ -3,4 +3,14 @@
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   grid-gap: var(--mantine-spacing-md);
   margin-bottom: var(--mantine-spacing-lg);
+  align-items: start;
+}
+
+.gridFullBleed {
+  /* mantine-breakpoint-xs */
+  @media (max-width: 36rem) {
+    grid-gap: var(--mantine-spacing-md) 0;
+    margin-inline: calc(var(--mantine-spacing-md) * -1);
+    width: calc(100% + (var(--mantine-spacing-md) * 2));
+  }
 }
