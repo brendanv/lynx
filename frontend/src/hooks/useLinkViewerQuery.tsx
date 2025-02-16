@@ -10,6 +10,7 @@ export type LinkView = {
   article_date: Date | null;
   author: string | null;
   excerpt: string | null;
+  feed?: { id: string; name: string };
   header_image_url: string | null;
   hostname: string | null;
   last_viewed_at: Date | null;
@@ -34,6 +35,7 @@ type RawLinkQueryResult = {
   expand?: {
     tags?: Tag[];
     highlights_via_link?: { id: string; serialized_range: string }[];
+    created_from_feed?: { id: string; name: string };
   };
   header_image_url: string | null;
   hostname: string | null;
@@ -49,6 +51,7 @@ type RawLinkQueryResult = {
 
 const queryResultToLinkView = (queryResult: RawLinkQueryResult): LinkView => ({
   ...queryResult,
+  feed: queryResult.expand ? queryResult.expand.created_from_feed : undefined,
   article_date: queryResult.article_date
     ? new Date(queryResult.article_date)
     : null,
@@ -89,8 +92,11 @@ const getFields = () =>
     "expand.tags.*",
     "expand.highlights_via_link.id",
     "expand.highlights_via_link.serialized_range",
+    "expand.created_from_feed.id",
+    "expand.created_from_feed.name",
   ].join(",");
-const getExpand = () => ["tags", "highlights_via_link"].join(",");
+const getExpand = () =>
+  ["tags", "highlights_via_link", "created_from_feed"].join(",");
 
 export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
   const { pb } = usePocketBase();

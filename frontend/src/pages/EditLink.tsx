@@ -10,6 +10,7 @@ import {
   Alert,
   Center,
   Loader,
+  Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import useLinkViewerQuery, {
@@ -18,12 +19,14 @@ import useLinkViewerQuery, {
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxShell from "@/pages/LynxShell";
 import LinkTagsDisplay from "@/components/LinkTagsDisplay";
+import useAllUserFeeds from "@/hooks/useAllUserFeeds";
 
 const EditLink = () => {
   const { id } = useParams<{ id: string }>();
   usePageTitle("Edit Link");
 
   const linkQuery = useLinkViewerQuery(id || "", false);
+  const feedsQuery = useAllUserFeeds();
   const link = linkQuery.data;
   const linkMutation = useLinkViewerMutation();
 
@@ -33,6 +36,7 @@ const EditLink = () => {
       excerpt: "",
       summary: "",
       article_date: "",
+      feed_id: "",
     },
     validate: {
       title: (value) => (value.trim().length > 0 ? null : "Title is required"),
@@ -48,6 +52,7 @@ const EditLink = () => {
         article_date: link.article_date
           ? link.article_date.toISOString().split("T")[0]
           : "",
+        feed_id: link.feed?.id || "",
       });
       form.resetDirty();
     }
@@ -62,6 +67,7 @@ const EditLink = () => {
         excerpt: values.excerpt,
         summary: values.summary,
         article_date: values.article_date || null,
+        created_from_feed: values.feed_id || null,
       },
       options: {
         onSuccessMessage: "Your changes have been saved",
@@ -112,6 +118,22 @@ const EditLink = () => {
               type="date"
               size="md"
               {...form.getInputProps("article_date")}
+            />
+            <Select
+              label="Feed"
+              placeholder="Select a feed"
+              checkIconPosition="left"
+              nothingFoundMessage="No feeds found"
+              data={
+                feedsQuery.data?.map((feed) => ({
+                  value: feed.id,
+                  label: feed.name,
+                })) || []
+              }
+              clearable
+              searchable
+              size="md"
+              {...form.getInputProps("feed_id")}
             />
             <LinkTagsDisplay
               link={linkQuery.data}
