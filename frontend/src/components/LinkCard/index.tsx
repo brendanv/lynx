@@ -2,6 +2,7 @@ import React from "react";
 import {
   ActionIcon,
   Card,
+  Checkbox,
   Divider,
   Group,
   Menu,
@@ -45,6 +46,9 @@ import TagsEditor from "@/components/TagsEditor";
 interface Props {
   link: FeedLink;
   linkMutator: GenericLynxMutator<FeedLink>;
+  selectionModeEnabled?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 const MetadataRow = ({
@@ -97,7 +101,13 @@ const MetadataRow = ({
   return <div className={classes.metadata}>{itemsWithDividers}</div>;
 };
 
-const LinkCard = ({ link, linkMutator }: Props) => {
+const LinkCard = ({
+  link,
+  linkMutator,
+  selectionModeEnabled = false,
+  isSelected = false,
+  onToggleSelect,
+}: Props) => {
   const { pb } = usePocketBase();
   const invalidateLinksFeed = useInvalidateLinksFeed();
   const [isTagsEditOpen, { open: openTagsEdit, close: closeTagsEdit }] =
@@ -175,7 +185,16 @@ const LinkCard = ({ link, linkMutator }: Props) => {
       <Card withBorder padding="lg" className={classes.card}>
         <Card.Section mb="sm">
           <BackgroundImage linkId={link.id} imgSrc={link.header_image_url}>
-            <Group justify="flex-end" p="xs">
+            <Group justify="space-between" p="xs">
+              {selectionModeEnabled ? (
+                <Checkbox
+                  checked={isSelected}
+                  onChange={() => onToggleSelect?.(link.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <span />
+              )}
               <ActionIcon.Group>
                 <Tooltip
                   label={

@@ -7,6 +7,7 @@ import useLinksFeedQuery, {
 } from "@/hooks/useLinksFeedQuery";
 import LinkCard, { LinkCardSkeleton } from "@/components/LinkCard";
 import { Alert, Center, Loader, Pagination } from "@mantine/core";
+import BulkActions from "@/components/BulkActions";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LynxGrid from "@/components/LynxGrid";
 import {
@@ -62,6 +63,30 @@ export function HomePage() {
 
     setUrlParams(newUrlParams);
   };
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedItems(new Set());
+  };
+
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedItems(new Set());
+    setSelectionMode(false);
+  };
 
   let content = null;
 
@@ -94,11 +119,16 @@ export function HomePage() {
           </Center>
         )}
         <LynxGrid fullBleedAtSingleColumn>
-          {linksQuery.data.items.map((item) => {
-            return (
-              <LinkCard key={item.id} link={item} linkMutator={linksMutation} />
-            );
-          })}
+          {linksQuery.data.items.map((item) => (
+            <LinkCard
+              key={item.id}
+              link={item}
+              linkMutator={linksMutation}
+              selectionModeEnabled={selectionMode}
+              isSelected={selectedItems.has(item.id)}
+              onToggleSelect={toggleItemSelection}
+            />
+          ))}
         </LynxGrid>
         <Center>
           {linksQuery.data.totalPages > 1 && (
@@ -112,11 +142,19 @@ export function HomePage() {
       </>
     );
   }
+
   return (
     <LynxShell>
       <SearchBar
         searchParams={queryProps}
         onSearchParamsChange={handleSearchParamsChange}
+      />
+      <BulkActions
+        selectionMode={selectionMode}
+        selectedItems={selectedItems}
+        toggleSelectionMode={toggleSelectionMode}
+        clearSelection={clearSelection}
+        linkMutator={linksMutation}
       />
       {content}
     </LynxShell>
