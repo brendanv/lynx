@@ -98,7 +98,7 @@ const BulkActions: React.FC<BulkActionsProps> = ({
 
   return (
     <>
-      <Group mb="md" grow>
+      <Group grow>
         {selectionMode && (
           <Button variant="outline" onClick={toggleSelectionMode}>
             Clear Selection

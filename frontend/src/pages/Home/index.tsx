@@ -16,6 +16,8 @@ import {
   getStarredState,
   getSortBy,
 } from "@/utils/searchUtils";
+import classes from "./home.module.css";
+import cx from "clsx";
 
 export function HomePage() {
   usePageTitle("My Feed");
@@ -150,15 +152,19 @@ export function HomePage() {
         onSearchParamsChange={handleSearchParamsChange}
       />
       {selectionMode && (
-        <BulkActions
-          selectionMode={selectionMode}
-          selectedItems={selectedItems}
-          toggleSelectionMode={toggleSelectionMode}
-          clearSelection={clearSelection}
-          linkMutator={linksMutation}
-        />
+        <div className={classes.selectionControls}>
+          <BulkActions
+            selectionMode={selectionMode}
+            selectedItems={selectedItems}
+            toggleSelectionMode={toggleSelectionMode}
+            clearSelection={clearSelection}
+            linkMutator={linksMutation}
+          />
+        </div>
       )}
-      {content}
+      <div className={cx({ [classes.contentWrapper]: !selectionMode })}>
+        {content}
+      </div>
     </LynxShell>
   );
 }
