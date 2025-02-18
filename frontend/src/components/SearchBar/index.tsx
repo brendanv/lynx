@@ -104,7 +104,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
   }
 
   return (
-    <div className={classes.searchWrapper}>
+    <>
       <div className={classes.searchBar}>
         <TextInput
           placeholder="Search..."
@@ -313,7 +313,7 @@ const SearchBar = ({ searchParams, onSearchParamsChange }: SearchBarProps) => {
           </Badge>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

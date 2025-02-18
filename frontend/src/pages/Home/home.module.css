@@ -1,0 +1,20 @@
+.contentWrapper {
+  margin-top: var(--mantine-spacing-md);
+}
+
+.selectionControls {
+  position: sticky;
+  top: 60px;
+  z-index: 100;
+  background-color: var(--mantine-color-body);
+  padding: var(--mantine-spacing-md) 0;
+
+  /* mantine-breakpoint-xs */
+  /* When we go full bleed we need to extend all the way to the sides for the */
+  /* background, but also re-add padding so that the buttons don't look weird */
+  @media (max-width: 36rem) {
+    margin-inline: calc(var(--mantine-spacing-md) * -1);
+    width: calc(100% + (var(--mantine-spacing-md) * 2));
+    padding: var(--mantine-spacing-md);
+  }
+}
