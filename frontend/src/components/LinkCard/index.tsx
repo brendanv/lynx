@@ -19,6 +19,7 @@ import URLS from "@/lib/urls";
 import {
   IconArchive,
   IconBlockquote,
+  IconCheckbox,
   IconCircleFilled,
   IconCircle,
   IconCircleCheck,
@@ -239,6 +240,20 @@ const LinkCard = ({
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Label>Link</Menu.Label>
+                    {!selectionModeEnabled && (
+                      <Menu.Item
+                        onClick={() => {
+                          onToggleSelect?.(link.id);
+                        }}
+                        leftSection={
+                          <IconCheckbox
+                            className={dropdownClasses.dropdownIcon}
+                          />
+                        }
+                      >
+                        Select
+                      </Menu.Item>
+                    )}
                     <Menu.Item
                       leftSection={
                         <IconPencil className={dropdownClasses.dropdownIcon} />

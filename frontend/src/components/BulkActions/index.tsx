@@ -1,9 +1,6 @@
 import React from "react";
 import { Button, Group, Menu } from "@mantine/core";
 import {
-  IconDotsVertical,
-  IconSquare,
-  IconSquareCheck,
   IconTags,
   IconCircleCheck,
   IconCircle,
@@ -101,21 +98,17 @@ const BulkActions: React.FC<BulkActionsProps> = ({
 
   return (
     <>
-      <Group mb="md">
-        <Button
-          variant="subtle"
-          leftSection={selectionMode ? <IconSquareCheck /> : <IconSquare />}
-          onClick={toggleSelectionMode}
-        >
-          {selectionMode ? "Cancel Selection" : "Select Items"}
-        </Button>
+      <Group mb="md" grow>
+        {selectionMode && (
+          <Button variant="outline" onClick={toggleSelectionMode}>
+            Clear Selection
+          </Button>
+        )}
 
         {selectionMode && selectedItems.size > 0 && (
           <Menu>
             <Menu.Target>
-              <Button leftSection={<IconDotsVertical />}>
-                Bulk Actions ({selectedItems.size})
-              </Button>
+              <Button>Edit ({selectedItems.size})</Button>
             </Menu.Target>
             <Menu.Dropdown>
               <Menu.Label>Reading Status</Menu.Label>

@@ -70,8 +70,8 @@ export function HomePage() {
     setSelectionMode(!selectionMode);
     setSelectedItems(new Set());
   };
-
-  const toggleItemSelection = (id: string) => {
+  const selectItemAndEnableSelections = (id: string) => {
+    setSelectionMode(true);
     setSelectedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -126,7 +126,7 @@ export function HomePage() {
               linkMutator={linksMutation}
               selectionModeEnabled={selectionMode}
               isSelected={selectedItems.has(item.id)}
-              onToggleSelect={toggleItemSelection}
+              onToggleSelect={selectItemAndEnableSelections}
             />
           ))}
         </LynxGrid>
@@ -149,13 +149,15 @@ export function HomePage() {
         searchParams={queryProps}
         onSearchParamsChange={handleSearchParamsChange}
       />
-      <BulkActions
-        selectionMode={selectionMode}
-        selectedItems={selectedItems}
-        toggleSelectionMode={toggleSelectionMode}
-        clearSelection={clearSelection}
-        linkMutator={linksMutation}
-      />
+      {selectionMode && (
+        <BulkActions
+          selectionMode={selectionMode}
+          selectedItems={selectedItems}
+          toggleSelectionMode={toggleSelectionMode}
+          clearSelection={clearSelection}
+          linkMutator={linksMutation}
+        />
+      )}
       {content}
     </LynxShell>
   );
