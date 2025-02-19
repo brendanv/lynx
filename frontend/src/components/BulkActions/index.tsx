@@ -10,17 +10,15 @@ import {
 import { notifications } from "@mantine/notifications";
 import { useInvalidateLinksFeed } from "@/hooks/useLinksFeedQuery";
 import { useDisclosure } from "@mantine/hooks";
-import type FeedLink from "@/types/FeedLink";
-import { GenericLynxMutator } from "@/types/Mutations";
 import DrawerDialog from "@/components/DrawerDialog";
 import BulkTagsEditor from "./BulkTagsEditor";
+import { usePocketBase } from "@/hooks/usePocketBase";
 
 interface BulkActionsProps {
   selectionMode: boolean;
   selectedItems: Set<string>;
   toggleSelectionMode: () => void;
   clearSelection: () => void;
-  linkMutator: GenericLynxMutator<FeedLink>;
 }
 
 const BulkActions: React.FC<BulkActionsProps> = ({
@@ -28,9 +26,9 @@ const BulkActions: React.FC<BulkActionsProps> = ({
   selectedItems,
   toggleSelectionMode,
   clearSelection,
-  linkMutator,
 }) => {
   const invalidateLinksFeed = useInvalidateLinksFeed();
+  const { pb } = usePocketBase();
   const [isTagsDrawerOpen, { open: openTagsDrawer, close: closeTagsDrawer }] =
     useDisclosure(false);
 
@@ -40,16 +38,11 @@ const BulkActions: React.FC<BulkActionsProps> = ({
     errorMessage: string,
   ) => {
     try {
-      const promises = Array.from(selectedItems).map((id) =>
-        linkMutator.mutate({
-          id,
-          updates,
-          options: {
-            onErrorMessage: errorMessage,
-          },
-        }),
-      );
-      await Promise.all(promises);
+      const batch = pb.createBatch();
+      selectedItems.forEach((id) => {
+        batch.collection("links").update(id, updates);
+      });
+      await batch.send();
       await invalidateLinksFeed();
       notifications.show({ title: "Success", message: successMessage });
       clearSelection();

@@ -158,7 +158,6 @@ export function HomePage() {
             selectedItems={selectedItems}
             toggleSelectionMode={toggleSelectionMode}
             clearSelection={clearSelection}
-            linkMutator={linksMutation}
           />
         </div>
       )}
