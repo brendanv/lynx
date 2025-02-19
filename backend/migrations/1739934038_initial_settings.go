@@ -9,7 +9,7 @@ func init() {
 	m.Register(func(app core.App) error {
 		settings := app.Settings()
 
-        settings.Meta.AppName = "Lynx"
+		settings.Meta.AppName = "Lynx"
 		settings.Meta.HideControls = true
 
 		// Bulk updates use the batch api
@@ -17,6 +17,6 @@ func init() {
 		settings.Batch.MaxRequests = 25
 		settings.Batch.Timeout = 3
 
-        return app.Save(settings)
+		return app.Save(settings)
 	}, nil)
 }
