@@ -3,6 +3,7 @@ export default {
   HOME_WITH_SEARCH_STRING: (search: string) => `/?s=${search}`,
   HOME_WITH_TAGS_SEARCH: (tagId: string) => `/?t=${tagId}`,
   HOME_WITH_FEED_SEARCH: (feedId: string) => `/?f=${feedId}`,
+  HOME_WITH_UNREAD_LINKS: "/?r=unread",
   FAVORITES: "/?st=is_starred",
   LOGIN: "/login",
   FEEDS: "/settings/feeds",
