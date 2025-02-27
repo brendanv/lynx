@@ -188,7 +188,6 @@ const useUserHighlightsQuery = (props: Props) => {
       queryKey: ["highlights", Props & { user?: string }];
     }): Promise<ListResult<Highlight>> => {
       const [_1, queryProps] = queryKey;
-      console.log(buildFilters(pb, queryProps));
       const queryResult = await pb
         .collection("highlights")
         .getList(queryProps.page || 1, PAGE_SIZE, {

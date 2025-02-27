@@ -11,15 +11,74 @@ import {
   IconRss,
   IconSettings,
   IconSearch,
+  IconStar,
   IconCookie,
   IconKey,
   IconPlus,
   IconTag,
+  IconCircle,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import URLS from "@/lib/urls";
 import { useAllUserTagsWithoutMetadata } from "@/hooks/useAllUserTags";
 import useAllUserFeeds from "@/hooks/useAllUserFeeds";
+
+const BASE_ACTIONS = [
+  {
+    label: "Add Link",
+    description: "Add a new link",
+    url: URLS.ADD_LINK,
+    icon: IconPlus,
+  },
+  {
+    label: "Home",
+    description: "Go to the home page",
+    url: URLS.HOME,
+    icon: IconHome,
+  },
+  {
+    label: "Favorites",
+    description: "Re-read your favorite links",
+    url: URLS.FAVORITES,
+    icon: IconStar,
+  },
+  {
+    label: "Unread",
+    description: "View unread links",
+    url: URLS.HOME_WITH_UNREAD_LINKS,
+    icon: IconCircle,
+  },
+  {
+    label: "Feeds",
+    description: "Manage your feeds",
+    url: URLS.FEEDS,
+    icon: IconRss,
+  },
+  {
+    label: "Highlights",
+    description: "Review saved highlights",
+    url: URLS.HIGHLIGHTS,
+    icon: IconBlockquote,
+  },
+  {
+    label: "Settings",
+    description: "Adjust your account settings",
+    url: URLS.SETTINGS,
+    icon: IconSettings,
+  },
+  {
+    label: "Cookies",
+    description: "Manage your stored cookies",
+    url: URLS.COOKIES,
+    icon: IconCookie,
+  },
+  {
+    label: "API Keys",
+    description: "Manage your API keys",
+    url: URLS.API_KEYS,
+    icon: IconKey,
+  },
+];
 
 const LynxCommandMenu = () => {
   const navigate = useNavigate();
@@ -27,98 +86,31 @@ const LynxCommandMenu = () => {
 
   const tagsQuery = useAllUserTagsWithoutMetadata();
   const feedsQuery = useAllUserFeeds();
+  const navigateAndClear = useMemo(
+    () => (url: string) => {
+      navigate(url);
+      setQuery("");
+    },
+    [navigate, setQuery],
+  );
 
   const pageTagFeedActions: (SpotlightActionGroupData | SpotlightActionData)[] =
     useMemo(() => {
       const baseActions: (SpotlightActionGroupData | SpotlightActionData)[] = [
         {
           group: "Pages",
-          actions: [
-            {
-              id: "home",
-              label: "Home",
-              description: "Go to the home page",
-              onClick: () => navigate(URLS.HOME),
-              leftSection: (
-                <IconHome
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "feeds",
-              label: "Feeds",
-              description: "Manage your feeds",
-              onClick: () => navigate(URLS.FEEDS),
-              leftSection: (
-                <IconRss
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "highlights",
-              label: "Highlights",
-              description: "Review saved highlights",
-              onClick: () => navigate(URLS.HIGHLIGHTS),
-              leftSection: (
-                <IconBlockquote
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "settings",
-              label: "Settings",
-              description: "Adjust your account settings",
-              onClick: () => navigate(URLS.SETTINGS),
-              leftSection: (
-                <IconSettings
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "cookies",
-              label: "Cookies",
-              description: "Manage your stored cookies",
-              onClick: () => navigate(URLS.COOKIES),
-              leftSection: (
-                <IconCookie
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "api-keys",
-              label: "API Keys",
-              description: "Manage your API keys",
-              onClick: () => navigate(URLS.API_KEYS),
-              leftSection: (
-                <IconKey
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-            {
-              id: "add-link",
-              label: "Add Link",
-              description: "Add a new link",
-              onClick: () => navigate(URLS.ADD_LINK),
-              leftSection: (
-                <IconPlus
-                  style={{ width: rem(24), height: rem(24) }}
-                  stroke={1.5}
-                />
-              ),
-            },
-          ],
+          actions: BASE_ACTIONS.map((action) => ({
+            id: action.label,
+            label: action.label,
+            description: action.description,
+            onClick: () => navigateAndClear(action.url),
+            leftSection: (
+              <action.icon
+                style={{ width: rem(24), height: rem(24) }}
+                stroke={1.5}
+              />
+            ),
+          })),
         },
       ];
 
@@ -129,7 +121,8 @@ const LynxCommandMenu = () => {
           actions: feeds.map((feed) => ({
             id: `feed-${feed.id}`,
             label: feed.name,
-            onClick: () => navigate(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
+            onClick: () =>
+              navigateAndClear(URLS.HOME_WITH_FEED_SEARCH(feed.id)),
             leftSection: (
               <IconRss
                 style={{ width: rem(24), height: rem(24) }}
@@ -146,7 +139,7 @@ const LynxCommandMenu = () => {
           actions: tags.map((tag) => ({
             id: `tag-${tag.id}`,
             label: tag.name,
-            onClick: () => navigate(URLS.HOME_WITH_TAGS_SEARCH(tag.id)),
+            onClick: () => navigateAndClear(URLS.HOME_WITH_TAGS_SEARCH(tag.id)),
             leftSection: (
               <IconTag
                 style={{ width: rem(24), height: rem(24) }}
@@ -157,13 +150,13 @@ const LynxCommandMenu = () => {
         });
       }
       return baseActions;
-    }, [tagsQuery, navigate, feedsQuery]);
+    }, [tagsQuery, navigateAndClear, feedsQuery]);
 
   const searchAction = {
     id: "search",
     label: `Search for "${query}"`,
     description: "Search for links",
-    onClick: () => navigate(URLS.HOME_WITH_SEARCH_STRING(query)),
+    onClick: () => navigateAndClear(URLS.HOME_WITH_SEARCH_STRING(query)),
     leftSection: (
       <IconSearch style={{ width: rem(24), height: rem(24) }} stroke={1.5} />
     ),

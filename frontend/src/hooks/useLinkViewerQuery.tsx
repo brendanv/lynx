@@ -174,7 +174,6 @@ const runQuery = async (
         ? { "X-Lynx-Update-Last-Viewed": "true" }
         : {},
     });
-  console.log(queryResult);
   return queryResultToLinkView(queryResult);
 };
 
