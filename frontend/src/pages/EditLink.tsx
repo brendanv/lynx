@@ -39,7 +39,8 @@ const EditLink = () => {
       feed_id: "",
     },
     validate: {
-      title: (value) => (value.trim().length > 0 ? null : "Title is required"),
+      title: (value: string) =>
+        value.trim().length > 0 ? null : "Title is required",
     },
   });
 
