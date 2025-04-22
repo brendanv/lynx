@@ -81,7 +81,7 @@ const InnerContent = ({ feeds }: { feeds: Feed[] }) => {
       autoAdd: false,
     },
     validate: {
-      feedUrl: (value) => (value.length < 3 ? "URL is required" : null),
+      feedUrl: (value: string) => (value.length < 3 ? "URL is required" : null),
     },
   });
 

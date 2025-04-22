@@ -9,7 +9,7 @@ const CreateNewTagInput = () => {
       tagName: "",
     },
     validate: {
-      tagName: (value) =>
+      tagName: (value: string) =>
         value.trim().length > 0 ? null : "Tag name is required",
     },
   });
