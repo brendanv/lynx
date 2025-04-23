@@ -1,7 +1,7 @@
 # Build our Pocketbase executable with our 
 # custom routes, etc.
 # Output will be a `lynxapp` executable in /app
-FROM golang:1.23 AS backend-builder
+FROM golang:1.24 AS backend-builder
 WORKDIR /app
 # deps first, for caching on subsequent builds
 COPY backend/go.mod backend/go.sum ./
