@@ -54,6 +54,8 @@ func (s *OpenRouterSummarizer) SummarizeText(text string, apiKey string, model s
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("X-Title", "Lynx")
+	req.Header.Set("HTTP-Referer", "https://github.com/brendanv/lynx")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
