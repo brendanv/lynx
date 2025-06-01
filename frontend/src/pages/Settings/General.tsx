@@ -121,17 +121,19 @@ const General: React.FC = () => {
               size="md"
             />
           </Group>
-          {form.values.automatically_summarize_new_links && 
-           (!form.values.openrouter_api_key || !form.values.summarize_model) && (
-            <Alert
-              icon={<IconAlertTriangle size="1rem" />}
-              title="Configuration Required"
-              color="yellow"
-              mb="md"
-            >
-              Automatic summarizations will not run if there is no OpenRouter API key or summarize model set.
-            </Alert>
-          )}
+          {form.values.automatically_summarize_new_links &&
+            (!form.values.openrouter_api_key ||
+              !form.values.summarize_model) && (
+              <Alert
+                icon={<IconAlertTriangle size="1rem" />}
+                title="Configuration Required"
+                color="yellow"
+                mb="md"
+              >
+                Automatic summarizations will not run if there is no OpenRouter
+                API key or summarize model set.
+              </Alert>
+            )}
           <TextInput
             label="Summarization Model"
             {...form.getInputProps("summarize_model")}
