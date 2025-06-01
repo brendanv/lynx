@@ -21,7 +21,7 @@ const General: React.FC = () => {
     initialValues: {
       openrouter_api_key: "",
       automatically_summarize_new_links: false,
-      summarization_model: "",
+      summarize_model: "",
       id: "",
     },
   });
@@ -42,7 +42,7 @@ const General: React.FC = () => {
         openrouter_api_key: record.openrouter_api_key || "",
         automatically_summarize_new_links:
           record.automatically_summarize_new_links || false,
-        summarization_model: record.summarization_model || "",
+        summarize_model: record.summarize_model || "",
         id: record.id,
       });
       form.resetDirty();
@@ -119,21 +119,11 @@ const General: React.FC = () => {
               size="md"
             />
           </Group>
-          <Select
+          <TextInput
             label="Summarization Model"
-            size="md"
-            data={[
-              { value: "gpt-4o-mini", label: "GPT-4O Mini" },
-              { value: "gpt-4o", label: "GPT-4O" },
-              { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
-              {
-                value: "claude-3-5-sonnet-20240620",
-                label: "Claude 3.5 Sonnet",
-              },
-              { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
-            ]}
-            {...form.getInputProps("summarization_model")}
+            {...form.getInputProps("summarize_model")}
             mb="md"
+            size="md"
           />
           <Button
             type="submit"
