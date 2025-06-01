@@ -34,40 +34,20 @@ func MaybeSummarizeLink(app core.App, linkID string) {
 		return
 	}
 
-	summarizationModel := userSettings.GetString("summarization_model")
+	summarizationModel := userSettings.GetString("summarize_model")
 	if summarizationModel == "" {
 		logger.Info("Summarization skipped, summarization model not set for user", "userID", userID)
 		return
 	}
 
-	var summary string
-	var apiKey string
-
-	switch summarizationModel {
-	case string(GPT4o), string(GPT4Mini):
-		apiKey = userSettings.GetString("openai_api_key")
-		if apiKey == "" {
-			logger.Error("Summarization failed, OpenAI API key not set for user", "userID", userID)
-			return
-		}
-
-		summarizer := NewOpenAISummarizer()
-		summary, err = summarizer.SummarizeText(link.GetString("raw_text_content"), apiKey, OpenAIModel(summarizationModel))
-
-	case string(Claude3Opus), string(Claude3Sonnet), string(Claude3Haiku):
-		apiKey = userSettings.GetString("anthropic_api_key")
-		if apiKey == "" {
-			logger.Error("Summarization failed, Anthropic API key not set for user", "userID", userID)
-			return
-		}
-
-		summarizer := NewAnthropicSummarizer()
-		summary, err = summarizer.SummarizeText(link.GetString("raw_text_content"), apiKey, AnthropicModel(summarizationModel))
-
-	default:
-		logger.Error("Summarization failed, Unsupported summarization model", "model", summarizationModel)
+	apiKey := userSettings.GetString("openrouter_api_key")
+	if apiKey == "" {
+		logger.Error("Summarization failed, OpenRouter API key not set for user", "userID", userID)
 		return
 	}
+
+	summarizer := NewOpenRouterSummarizer()
+	summary, err := summarizer.SummarizeText(link.GetString("raw_text_content"), apiKey, summarizationModel)
 
 	if err != nil {
 		logger.Error("Summarization failed", "error", err)
