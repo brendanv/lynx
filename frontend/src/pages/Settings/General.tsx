@@ -19,8 +19,7 @@ const General: React.FC = () => {
   const { pb, user } = usePocketBase();
   const form = useForm({
     initialValues: {
-      openai_api_key: "",
-      anthropic_api_key: "",
+      openrouter_api_key: "",
       automatically_summarize_new_links: false,
       summarization_model: "",
       id: "",
@@ -40,8 +39,7 @@ const General: React.FC = () => {
         .collection("user_settings")
         .getFirstListItem(`user="${user.id}"`);
       form.setValues({
-        openai_api_key: record.openai_api_key || "",
-        anthropic_api_key: record.anthropic_api_key || "",
+        openrouter_api_key: record.openrouter_api_key || "",
         automatically_summarize_new_links:
           record.automatically_summarize_new_links || false,
         summarization_model: record.summarization_model || "",
@@ -106,16 +104,9 @@ const General: React.FC = () => {
       <Paper p="md" radius="md">
         <form onSubmit={handleSubmit}>
           <TextInput
-            label="OpenAI API Key"
+            label="OpenRouter API Key"
             type="password"
-            {...form.getInputProps("openai_api_key")}
-            mb="md"
-            size="md"
-          />
-          <TextInput
-            label="Anthropic API Key"
-            type="password"
-            {...form.getInputProps("anthropic_api_key")}
+            {...form.getInputProps("openrouter_api_key")}
             mb="md"
             size="md"
           />
