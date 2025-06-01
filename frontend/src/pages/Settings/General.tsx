@@ -5,7 +5,6 @@ import {
   Group,
   Switch,
   TextInput,
-  Select,
   Text,
   Paper,
   Alert,
