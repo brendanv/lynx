@@ -5,10 +5,11 @@ import {
   Group,
   Switch,
   TextInput,
-  Select,
   Text,
   Paper,
+  Alert,
 } from "@mantine/core";
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { usePocketBase } from "@/hooks/usePocketBase";
@@ -19,10 +20,9 @@ const General: React.FC = () => {
   const { pb, user } = usePocketBase();
   const form = useForm({
     initialValues: {
-      openai_api_key: "",
-      anthropic_api_key: "",
+      openrouter_api_key: "",
       automatically_summarize_new_links: false,
-      summarization_model: "",
+      summarize_model: "",
       id: "",
     },
   });
@@ -40,11 +40,10 @@ const General: React.FC = () => {
         .collection("user_settings")
         .getFirstListItem(`user="${user.id}"`);
       form.setValues({
-        openai_api_key: record.openai_api_key || "",
-        anthropic_api_key: record.anthropic_api_key || "",
+        openrouter_api_key: record.openrouter_api_key || "",
         automatically_summarize_new_links:
           record.automatically_summarize_new_links || false,
-        summarization_model: record.summarization_model || "",
+        summarize_model: record.summarize_model || "",
         id: record.id,
       });
       form.resetDirty();
@@ -106,16 +105,9 @@ const General: React.FC = () => {
       <Paper p="md" radius="md">
         <form onSubmit={handleSubmit}>
           <TextInput
-            label="OpenAI API Key"
+            label="OpenRouter API Key"
             type="password"
-            {...form.getInputProps("openai_api_key")}
-            mb="md"
-            size="md"
-          />
-          <TextInput
-            label="Anthropic API Key"
-            type="password"
-            {...form.getInputProps("anthropic_api_key")}
+            {...form.getInputProps("openrouter_api_key")}
             mb="md"
             size="md"
           />
@@ -128,21 +120,24 @@ const General: React.FC = () => {
               size="md"
             />
           </Group>
-          <Select
+          {form.values.automatically_summarize_new_links &&
+            (!form.values.openrouter_api_key ||
+              !form.values.summarize_model) && (
+              <Alert
+                icon={<IconAlertTriangle size="1rem" />}
+                title="Configuration Required"
+                color="yellow"
+                mb="md"
+              >
+                Automatic summarizations will not run if there is no OpenRouter
+                API key or summarize model set.
+              </Alert>
+            )}
+          <TextInput
             label="Summarization Model"
-            size="md"
-            data={[
-              { value: "gpt-4o-mini", label: "GPT-4O Mini" },
-              { value: "gpt-4o", label: "GPT-4O" },
-              { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
-              {
-                value: "claude-3-5-sonnet-20240620",
-                label: "Claude 3.5 Sonnet",
-              },
-              { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
-            ]}
-            {...form.getInputProps("summarization_model")}
+            {...form.getInputProps("summarize_model")}
             mb="md"
+            size="md"
           />
           <Button
             type="submit"
