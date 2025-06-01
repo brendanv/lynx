@@ -257,15 +257,17 @@ const ArticleView = ({ linkView }: { linkView: LinkView }) => {
   };
 
   useEffect(() => {
-    CSS.highlights.clear();
-    CSS.highlights.set(
-      "article-highlights",
-      new Highlight(
-        ...linkView.highlights
-          .map((h) => rangee.deserializeAtomic(h.serialized_range))
-          .flat(),
-      ),
-    );
+    if (typeof CSS !== "undefined" && CSS.highlights) {
+      CSS.highlights.clear();
+      CSS.highlights.set(
+        "article-highlights",
+        new Highlight(
+          ...linkView.highlights
+            .map((h) => rangee.deserializeAtomic(h.serialized_range))
+            .flat(),
+        ),
+      );
+    }
   }, [linkView.highlights]);
 
   return (
