@@ -23,6 +23,7 @@ const General: React.FC = () => {
       openrouter_api_key: "",
       automatically_summarize_new_links: false,
       summarize_model: "",
+      automatically_suggest_tags_for_new_links: false,
       id: "",
     },
   });
@@ -44,6 +45,8 @@ const General: React.FC = () => {
         automatically_summarize_new_links:
           record.automatically_summarize_new_links || false,
         summarize_model: record.summarize_model || "",
+        automatically_suggest_tags_for_new_links:
+          record.automatically_suggest_tags_for_new_links || false,
         id: record.id,
       });
       form.resetDirty();
@@ -52,6 +55,8 @@ const General: React.FC = () => {
         try {
           const newRecord = await pb.collection("user_settings").create({
             user: user.id,
+            automatically_summarize_new_links: false,
+            automatically_suggest_tags_for_new_links: false,
           });
           form.setValues(newRecord);
           form.resetDirty();
@@ -125,7 +130,7 @@ const General: React.FC = () => {
               !form.values.summarize_model) && (
               <Alert
                 icon={<IconAlertTriangle size="1rem" />}
-                title="Configuration Required"
+                title="Configuration Required for Summarization"
                 color="yellow"
                 mb="md"
               >
@@ -139,6 +144,30 @@ const General: React.FC = () => {
             mb="md"
             size="md"
           />
+          <Group mb="md">
+            <Switch
+              label="Automatically suggest tags for new links"
+              {...form.getInputProps(
+                "automatically_suggest_tags_for_new_links",
+                {
+                  type: "checkbox",
+                },
+              )}
+              size="md"
+            />
+          </Group>
+          {form.values.automatically_suggest_tags_for_new_links &&
+            !form.values.openrouter_api_key && (
+              <Alert
+                icon={<IconAlertTriangle size="1rem" />}
+                title="Configuration Required for Tag Suggestion"
+                color="yellow"
+                mb="md"
+              >
+                Automatic tag suggestions will not run if there is no OpenRouter
+                API key set.
+              </Alert>
+            )}
           <Button
             type="submit"
             disabled={!form.isDirty()}
