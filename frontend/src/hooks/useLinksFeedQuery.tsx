@@ -40,13 +40,18 @@ export type FeedQueryItem = {
   collectionId: string;
   collectionName: string;
   excerpt: string | null;
-  expand?: { tags: Tag[]; created_from_feed?: { id: string; name: string } };
+  expand?: {
+    tags: Tag[];
+    created_from_feed?: { id: string; name: string };
+    suggested_tags?: Tag[];
+  };
   header_image_url: string | null;
   hostname: string | null;
   last_viewed_at: string | null;
   read_time_display: string | null;
   summary: string | null;
   tags: string[];
+  suggested_tags?: string[];
   title: string | null;
   user: string;
   archive: string | null;
@@ -70,11 +75,13 @@ const getFields = () =>
     "summary",
     "title",
     "tags",
+    "suggested_tags",
     "archive",
     "user",
     "expand.tags.*",
     "expand.created_from_feed.id",
     "expand.created_from_feed.name",
+    "expand.suggested_tags.*",
     "reading_progress",
     "starred_at",
   ].join(",");
@@ -97,6 +104,14 @@ export const convertFeedQueryItemToFeedLink = (
     tags:
       item.expand && item.expand.tags
         ? item.expand.tags.map(({ id, name, slug }) => ({
+            id,
+            name,
+            slug,
+          }))
+        : [],
+    suggested_tags:
+      item.expand && item.expand.suggested_tags
+        ? item.expand.suggested_tags.map(({ id, name, slug }) => ({
             id,
             name,
             slug,
@@ -170,7 +185,7 @@ export const useLinksFeedMutation = (
         .collection("links")
         .update<FeedQueryItem>(id, updates, {
           fields: getFields(),
-          expand: "tags,created_from_feed",
+          expand: "tags,created_from_feed,suggested_tags", // Added suggested_tags to expand
         });
       return convertFeedQueryItemToFeedLink(mutationResult);
     },
@@ -179,6 +194,7 @@ export const useLinksFeedMutation = (
       queryClient.setQueryData(
         ["links", { source: "feed", ...props }],
         (oldData: DT) => {
+          if (!oldData) return oldData;
           return {
             ...oldData,
             items: oldData.items.map((item) => {
@@ -237,8 +253,9 @@ const useLinksFeedQuery = (props: Props) => {
         .collection("links")
         .getList<FeedQueryItem>(queryProps.page || 1, PAGE_SIZE, {
           filter: buildFilters(pb, queryProps),
-          expand: "tags,created_from_feed",
+          expand: "tags,created_from_feed,suggested_tags",
           sort: `-${queryProps.sortBy}`,
+          fields: getFields(), // Ensure fields are explicitly requested
         });
       return {
         ...queryResult,
