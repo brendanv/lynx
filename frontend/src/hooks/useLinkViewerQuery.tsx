@@ -17,6 +17,7 @@ export type LinkView = {
   read_time_display: string | null;
   summary: string | null;
   tags: Tag[];
+  suggested_tags?: Tag[];
   highlights: {
     id: string;
     serialized_range: string;
@@ -36,6 +37,7 @@ type RawLinkQueryResult = {
     tags?: Tag[];
     highlights_via_link?: { id: string; serialized_range: string }[];
     created_from_feed?: { id: string; name: string };
+    suggested_tags?: Tag[];
   };
   header_image_url: string | null;
   hostname: string | null;
@@ -43,6 +45,7 @@ type RawLinkQueryResult = {
   read_time_display: string | null;
   summary: string | null;
   tags: string[];
+  suggested_tags?: string[];
   cleaned_url: string | null;
   article_html: string | null;
   reading_progress: number | null;
@@ -61,6 +64,14 @@ const queryResultToLinkView = (queryResult: RawLinkQueryResult): LinkView => ({
   tags:
     queryResult.expand && queryResult.expand.tags
       ? queryResult.expand.tags.map(({ id, name, slug }) => ({
+          id,
+          name,
+          slug,
+        }))
+      : [],
+  suggested_tags:
+    queryResult.expand && queryResult.expand.suggested_tags
+      ? queryResult.expand.suggested_tags.map(({ id, name, slug }) => ({
           id,
           name,
           slug,
@@ -86,6 +97,7 @@ const getFields = () =>
     "summary",
     "title",
     "tags",
+    "suggested_tags",
     "cleaned_url",
     "article_html",
     "reading_progress",
@@ -94,9 +106,13 @@ const getFields = () =>
     "expand.highlights_via_link.serialized_range",
     "expand.created_from_feed.id",
     "expand.created_from_feed.name",
+    "expand.suggested_tags.*",
   ].join(",");
+
 const getExpand = () =>
-  ["tags", "highlights_via_link", "created_from_feed"].join(",");
+  ["tags", "highlights_via_link", "created_from_feed", "suggested_tags"].join(
+    ",",
+  );
 
 export const useLinkViewerMutation = (): GenericLynxMutator<LinkView> => {
   const { pb } = usePocketBase();
