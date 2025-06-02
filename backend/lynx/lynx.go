@@ -14,6 +14,7 @@ import (
 	"main/lynx/feeds"
 	"main/lynx/singlefile"
 	"main/lynx/summarizer"
+	"main/lynx/tagger"
 	"main/lynx/url_parser"
 )
 
@@ -99,6 +100,9 @@ func InitializePocketbase(app core.App) {
 		})
 		routine.FireAndForget(func() {
 			singlefile.MaybeArchiveLink(app, e.Record.Id)
+		})
+		routine.FireAndForget(func() {
+			tagger.MaybeSuggestTagsForLink(app, e.Record.Id)
 		})
 		return e.Next()
 	})
