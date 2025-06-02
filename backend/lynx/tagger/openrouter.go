@@ -85,6 +85,8 @@ Respond with a JSON object containing an array of suggested tag names.`, formatT
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("X-Title", "Lynx")
+	req.Header.Set("HTTP-Referer", "https://github.com/brendanv/lynx")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
