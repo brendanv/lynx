@@ -142,7 +142,11 @@ const buildFilters = (client: Client, props: Props) => {
   }
 
   if (tagId) {
-    filterExprs.push(client.filter("tags.id ?= {:tagId}", { tagId }));
+    filterExprs.push(
+      client.filter("(tags.id ?= {:tagId} || suggested_tags.id ?= {:tagId})", {
+        tagId,
+      }),
+    );
   }
 
   if (searchText) {
@@ -185,7 +189,7 @@ export const useLinksFeedMutation = (
         .collection("links")
         .update<FeedQueryItem>(id, updates, {
           fields: getFields(),
-          expand: "tags,created_from_feed,suggested_tags", // Added suggested_tags to expand
+          expand: "tags,created_from_feed,suggested_tags",
         });
       return convertFeedQueryItemToFeedLink(mutationResult);
     },
