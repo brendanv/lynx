@@ -136,7 +136,11 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
 
   return (
     <Stack>
-      <CreateNewTagInput />
+      <CreateNewTagInput
+        onTagCreated={(newTag) => {
+          addTag(newTag.id);
+        }}
+      />
 
       {link.suggested_tags && link.suggested_tags.length > 0 && (
         <Stack gap="xs" mt="sm">
@@ -207,7 +211,6 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
           </Text>
         )}
 
-      {/* Manage Applied Tags Section */}
       <Stack gap="xs" mt="md">
         <Title order={5}>Applied Tags</Title>
         {allTags.length > 0 ? (
