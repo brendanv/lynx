@@ -2,8 +2,13 @@ import { useCreateNewTagMutation } from "@/hooks/useAllUserTags";
 import { useForm } from "@mantine/form";
 import { ActionIcon, TextInput, rem } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
+import Tag from "@/types/Tag";
 
-const CreateNewTagInput = () => {
+interface CreateNewTagInputProps {
+  onTagCreated?: (tag: Tag) => void;
+}
+
+const CreateNewTagInput = ({ onTagCreated }: CreateNewTagInputProps) => {
   const form = useForm({
     initialValues: {
       tagName: "",
@@ -14,16 +19,27 @@ const CreateNewTagInput = () => {
     },
   });
   const createMutation = useCreateNewTagMutation();
+
   const handleAdd = ({ tagName }: { tagName: string }) => {
-    createMutation.mutate({
-      fields: { tagName },
-      options: {
-        onSuccessMessage: "Tag away!",
-        onErrorMessage: "Please try again",
-        afterSuccess: form.reset,
+    createMutation.mutate(
+      {
+        fields: { tagName },
+        options: {
+          onSuccessMessage: "Tag away!",
+          onErrorMessage: "Please try again",
+        },
       },
-    });
+      {
+        onSuccess: (newlyCreatedTag) => {
+          form.reset();
+          if (onTagCreated) {
+            onTagCreated(newlyCreatedTag);
+          }
+        },
+      },
+    );
   };
+
   return (
     <form onSubmit={form.onSubmit(handleAdd as any)}>
       <TextInput

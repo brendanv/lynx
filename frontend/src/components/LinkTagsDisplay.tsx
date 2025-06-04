@@ -8,6 +8,7 @@ import Tag from "@/types/Tag";
 interface Taggable {
   id: string;
   tags: Tag[];
+  suggested_tags?: Tag[];
 }
 
 interface Props {
@@ -20,6 +21,11 @@ const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
   const [isEditOpen, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   const editLabel = link.tags.length === 0 ? "Add Tags" : "Edit Tags";
+
+  const manualTagIds = new Set(link.tags.map((tag) => tag.id));
+  const uniqueSuggestedTags =
+    link.suggested_tags?.filter((tag) => !manualTagIds.has(tag.id)) || [];
+
   return (
     <Group>
       {link.tags.map((tag) => (
@@ -28,6 +34,16 @@ const LinkTagsDisplay = ({ link, linkMutator, size }: Props) => {
           size={size}
           variant="gradient"
           gradient={{ from: "blue", to: "cyan", deg: 90 }}
+        >
+          {tag.name}
+        </Badge>
+      ))}
+      {uniqueSuggestedTags.map((tag) => (
+        <Badge
+          key={`suggested-${tag.id}`}
+          size={size}
+          variant="gradient"
+          gradient={{ from: "gray", to: "rgba(84, 84, 84, 1)", deg: 0 }}
         >
           {tag.name}
         </Badge>

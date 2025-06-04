@@ -181,6 +181,13 @@ const LinkCard = ({
     }
   };
 
+  const hasManualTags = link.tags && link.tags.length > 0;
+  const manualTagIds = new Set(link.tags.map((tag) => tag.id));
+  const hasUniqueSuggestedTags =
+    link.suggested_tags &&
+    link.suggested_tags.filter((tag) => !manualTagIds.has(tag.id)).length > 0;
+  const shouldDisplayTags = hasManualTags || hasUniqueSuggestedTags;
+
   return (
     <>
       <Card withBorder padding="lg" className={classes.card}>
@@ -339,7 +346,7 @@ const LinkCard = ({
           </BackgroundImage>
         </Card.Section>
 
-        {link.tags.length > 0 ? (
+        {shouldDisplayTags ? (
           <div className={classes.tags}>
             <LinkTagsDisplay link={link} size="xs" />
           </div>

@@ -13,6 +13,7 @@ type FeedLink = {
   read_time_display: string | null;
   summary: string | null;
   tags: Tag[];
+  suggested_tags?: Tag[];
   title: string | null;
   archive: string | null;
   reading_progress: number | null;
