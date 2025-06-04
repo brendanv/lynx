@@ -38,8 +38,8 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
   useEffect(() => {
     const currentLinkTagIds = (link.tags || []).map((t) => t.id);
     setSelectedTagIds(currentLinkTagIds);
-    setHasChanges(false); // Reset hasChanges because we're syncing with the source of truth
-  }, [link.id, link.tags]); // Rerun if the link item changes or its tags array changes
+    setHasChanges(false);
+  }, [link.id, link.tags]);
 
   const removeTag = (tagId: string) => {
     setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
@@ -92,7 +92,6 @@ const TagsEditor = ({ link, linkMutator, afterSave }: Props) => {
       options: {
         onSuccessMessage: "Displayed suggestions dismissed",
         onErrorMessage: "Unable to dismiss displayed suggestions",
-        // Rely on query invalidation
       },
     });
   };
