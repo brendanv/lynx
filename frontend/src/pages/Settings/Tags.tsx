@@ -13,9 +13,10 @@ import {
   Text,
   Alert,
   Stack,
+  TextInput,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconAlertCircle, IconTrash } from "@tabler/icons-react";
+import { IconAlertCircle, IconTrash, IconEdit } from "@tabler/icons-react";
 import URLS from "@/lib/urls";
 import DrawerDialog from "@/components/DrawerDialog";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -33,10 +34,19 @@ const Tags: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<TagWithMetadata | null>(null);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [tagToRename, setTagToRename] = useState<TagWithMetadata | null>(null);
+  const [newTagName, setNewTagName] = useState("");
 
   const handleDeleteClick = (tag: TagWithMetadata) => {
     setTagToDelete(tag);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleRenameClick = (tag: TagWithMetadata) => {
+    setTagToRename(tag);
+    setNewTagName(tag.name);
+    setIsRenameModalOpen(true);
   };
 
   const deleteMutation = useMutation({
@@ -56,6 +66,42 @@ const Tags: React.FC = () => {
       });
       setIsDeleteModalOpen(false);
       setTagToDelete(null);
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async ({
+      tag,
+      newName,
+    }: {
+      tag: TagWithMetadata;
+      newName: string;
+    }) => {
+      const slug = newName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      return await pb.collection("tags").update(tag.id, {
+        name: newName,
+        slug: slug,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tags", "all", user?.id] });
+      setIsRenameModalOpen(false);
+      setTagToRename(null);
+      setNewTagName("");
+      notifications.show({
+        message: "Tag renamed successfully",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      console.error("Error renaming tag:", error);
+      notifications.show({
+        message: "Failed to rename tag. Please try again.",
+        color: "red",
+      });
     },
   });
 
@@ -164,15 +210,25 @@ const Tags: React.FC = () => {
                     )
                   </Table.Td>
                   <Table.Td>
-                    <Button
-                      variant="outline"
-                      color="red"
-                      size="xs"
-                      onClick={() => handleDeleteClick(tag)}
-                      leftSection={<IconTrash size="1rem" />}
-                    >
-                      Delete
-                    </Button>
+                    <Group gap="xs">
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={() => handleRenameClick(tag)}
+                        leftSection={<IconEdit size="1rem" />}
+                      >
+                        Rename
+                      </Button>
+                      <Button
+                        variant="outline"
+                        color="red"
+                        size="xs"
+                        onClick={() => handleDeleteClick(tag)}
+                        leftSection={<IconTrash size="1rem" />}
+                      >
+                        Delete
+                      </Button>
+                    </Group>
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -209,6 +265,59 @@ const Tags: React.FC = () => {
             </Button>
           </Group>
         </Stack>
+      </DrawerDialog>
+
+      <DrawerDialog
+        open={isRenameModalOpen}
+        onClose={() => {
+          setIsRenameModalOpen(false);
+          setTagToRename(null);
+          setNewTagName("");
+        }}
+        title="Rename Tag"
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (tagToRename && newTagName.trim()) {
+              renameMutation.mutate({
+                tag: tagToRename,
+                newName: newTagName.trim(),
+              });
+            }
+          }}
+        >
+          <Stack>
+            <TextInput
+              label="Tag Name"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              required
+              autoFocus
+            />
+            <Group justify="flex-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsRenameModalOpen(false);
+                  setTagToRename(null);
+                  setNewTagName("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  !newTagName.trim() || newTagName.trim() === tagToRename?.name
+                }
+                loading={renameMutation.isPending}
+              >
+                Rename
+              </Button>
+            </Group>
+          </Stack>
+        </form>
       </DrawerDialog>
     </Container>
   );
