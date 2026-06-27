@@ -18,7 +18,8 @@ services:
   #
   # singlefile:
   #   image: ghcr.io/brendanv/lynx-singlefile:latest
-  #   entrypoint: python3
-  #   command: webserver.py
+  #   entrypoint: gunicorn
+  #   command: ["--bind", "0.0.0.0:80", "--workers", "2", "--timeout", "110", "webserver:server"]
+  #   restart: unless-stopped
   #   expose:
   #     - 80
