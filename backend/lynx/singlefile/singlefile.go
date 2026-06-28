@@ -93,7 +93,7 @@ func MaybeArchiveLink(app core.App, linkID string) {
 		formData.Set("cookies", cookiesJSON)
 	}
 	client := &http.Client{
-		Timeout: 60 * time.Second,
+		Timeout: 5 * time.Minute,
 	}
 	resp, err := client.PostForm(singlefileURL, formData)
 	if err != nil {
