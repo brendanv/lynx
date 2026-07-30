@@ -36,7 +36,12 @@ func MaybeSuggestTagsForLink(app core.App, linkID string) {
 		return
 	}
 
-	taggingModel := "openai/gpt-4o-mini"
+	taggingModel := userSettings.GetString("classification_model")
+	if taggingModel == "" {
+		logger.Info("Tag suggestion skipped, classification model not set for user", "userID", userID)
+		return
+	}
+
 	apiKey := userSettings.GetString("openrouter_api_key")
 	if apiKey == "" {
 		logger.Error("Tag suggestion failed, OpenRouter API key not set for user", "userID", userID)

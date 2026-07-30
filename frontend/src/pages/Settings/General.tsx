@@ -24,6 +24,7 @@ const General: React.FC = () => {
       automatically_summarize_new_links: false,
       summarize_model: "",
       automatically_suggest_tags_for_new_links: false,
+      classification_model: "",
       id: "",
     },
   });
@@ -47,6 +48,7 @@ const General: React.FC = () => {
         summarize_model: record.summarize_model || "",
         automatically_suggest_tags_for_new_links:
           record.automatically_suggest_tags_for_new_links || false,
+        classification_model: record.classification_model || "",
         id: record.id,
       });
       form.resetDirty();
@@ -157,7 +159,8 @@ const General: React.FC = () => {
             />
           </Group>
           {form.values.automatically_suggest_tags_for_new_links &&
-            !form.values.openrouter_api_key && (
+            (!form.values.openrouter_api_key ||
+              !form.values.classification_model) && (
               <Alert
                 icon={<IconAlertTriangle size="1rem" />}
                 title="Configuration Required for Tag Suggestion"
@@ -165,9 +168,15 @@ const General: React.FC = () => {
                 mb="md"
               >
                 Automatic tag suggestions will not run if there is no OpenRouter
-                API key set.
+                API key or classification model set.
               </Alert>
             )}
+          <TextInput
+            label="Classification Model"
+            {...form.getInputProps("classification_model")}
+            mb="md"
+            size="md"
+          />
           <Button
             type="submit"
             disabled={!form.isDirty()}
