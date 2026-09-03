@@ -1,0 +1,21 @@
+{
+  "name": "lynx-browser-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Seeded browser tests and page screenshots for Lynx",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "install-browser": "playwright install chromium",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"lib/**/*.ts\" \"tests/**/*.ts\" playwright.config.ts",
+    "format:check": "prettier --check \"lib/**/*.ts\" \"tests/**/*.ts\" playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "~1.56.0",
+    "@types/node": "^22.20.1",
+    "prettier": "^3.9.6"
+  }
+}

@@ -41,6 +41,12 @@ src/
 - **Navigation**: Import `URLS` from `@/lib/urls` for all route paths — never hardcode strings.
 - **UI components**: Use Mantine components first. Custom components live in `src/components/`.
 
+## Browser tests
+
+`testing/` renders every route against a seeded database and screenshots it
+(`cd testing && ./run.sh`). Add new routes to the `cases()` table in
+`testing/tests/screenshots.spec.ts`.
+
 ## Collections / Data Model (key fields)
 
 - **`links`**: `title`, `url`, `excerpt`, `summary`, `header_image_url`, `hostname`, `author`, `article_date`, `last_viewed_at`, `reading_progress`, `starred_at`, `archive`, `read_time_display`, `tags` (relation), `feed` (relation)
