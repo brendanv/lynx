@@ -34,7 +34,7 @@ resources/      # Docker configs, screenshots, logos
 cd backend
 go build ./...          # Build
 go test ./...           # Run tests
-go run main.go serve    # Run dev server (default port 8080)
+go run main.go serve    # Run dev server (default port 8090)
 ```
 
 ### Frontend
@@ -77,3 +77,22 @@ All endpoints require authentication (session or API key).
 - Backend: standard Go tests (`go test ./...`)
 - Frontend: Vitest (`yarn test` or `yarn test:ci`)
 - CI runs both via GitHub Actions (`.github/workflows/`)
+
+### Test data and page screenshots
+
+`backend/cmd/seed` fills a PocketBase database with a deterministic library
+(users, tags, feeds, feed items, links in every display state, stored articles,
+offline archives, cookies, API keys). It writes to the database directly, so no
+server is needed and none of the async hooks fire.
+
+`testing/` is a Playwright suite that signs in as the seeded user, renders every
+route, asserts it produced content and no console errors, and saves a screenshot
+of each page in light, dark and mobile.
+
+```bash
+cd backend && go run ./cmd/seed --reset      # seed ./pb_data for manual dev
+cd testing && ./run.sh                       # seed, serve, render, screenshot
+```
+
+Screenshots land in `testing/screenshots/`. See `testing/README.md` for the
+fixtures, logins and options.

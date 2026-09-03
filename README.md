@@ -70,6 +70,8 @@ This process is not perfect and depending on your setup can be slow (it sends an
 
 Contributions are welcome but no guarantees that it will be accepted - I mostly built Lynx for myself so I'm somewhat opinionated on how it should evolve :)
 
+If you want a Lynx instance with realistic data to develop against, `backend/cmd/seed` fills a database with links, feeds, tags, highlights and archives, and `testing/` renders every page in a browser and screenshots it. See [testing/README.md](testing/README.md).
+
 ## License
 
 Lynx is released under the MIT License. See the `LICENSE` file for more details.

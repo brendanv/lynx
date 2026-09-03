@@ -1,3 +1,7 @@
 .replit
 .replit.nix
 .aider*
+
+# Test database created by testing/run.sh (backend/.gitignore covers pb_data)
+pb_test_data/
+seed-manifest.json

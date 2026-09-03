@@ -5,12 +5,13 @@ Go application built on [PocketBase](https://github.com/pocketbase/pocketbase). 
 ## Commands
 
 ```bash
-go build ./...          # Build
-go test ./...           # Run tests
-go run main.go serve    # Run dev server (port 8080)
+go build ./...              # Build
+go test ./...               # Run tests
+go run main.go serve        # Run dev server (port 8090)
+go run ./cmd/seed --reset   # Fill ./pb_data with deterministic test data
 ```
 
-Automigrate is enabled when running via `go run` (dev mode). To create a new migration, make schema changes via the PocketBase admin UI at `localhost:8080/_` and they will be written to `migrations/` automatically.
+Automigrate is enabled when running via `go run` (dev mode). To create a new migration, make schema changes via the PocketBase admin UI at `localhost:8090/_` and they will be written to `migrations/` automatically.
 
 ## Package Overview
 
@@ -23,6 +24,7 @@ Automigrate is enabled when running via `go run` (dev mode). To create a new mig
   - **`tagger/`** — Calls OpenRouter to suggest tags for newly saved links. Runs asynchronously after link creation.
   - **`singlefile/`** — Sends links to a `lynx-singlefile` container (headless Chrome) to create self-contained HTML archives. Runs asynchronously after link creation, or on-demand via `POST /lynx/link/{id}/create_archive`.
 - **`migrations/`** — Auto-generated PocketBase migrations. Do not edit by hand.
+- **`cmd/seed/`** — Test data generator. Opens the database through the PocketBase library rather than over HTTP, so no server is running and no hooks fire (no LLM or SingleFile calls). Records use fixed IDs and are upserted, so re-running updates in place. Fixtures live in `fixtures.go`, article bodies in `articles.go`. Used by the browser tests in `testing/`.
 
 ## Key Patterns
 
