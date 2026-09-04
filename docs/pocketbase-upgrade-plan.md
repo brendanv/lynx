@@ -1,7 +1,33 @@
 # PocketBase upgrade plan: v0.28.2 → v0.40.2
 
-Status: plan only, no code changed yet. Every claim below marked "verified" was
-reproduced against a scratch copy of this repo on 2026-09-03.
+Status: **executed**. The upgrade landed in the commit following this document;
+what remains open is the production rollout in step 5, which is a human
+operation. Every claim below marked "verified" was reproduced against this repo.
+
+Results of the verification gate (step 4), run against the real branch:
+
+- `go build ./...`, `go vet ./...`, `go test ./...` — all clean.
+- `yarn`/`npm` `format:check`, `lint`, `test:ci` (tsc + vitest), `build` — all clean.
+- `testing/run.sh` browser suite — **86/86 passed**, every route rendered in
+  desktop-light, desktop-dark and mobile-light with no console errors.
+- A v0.28-seeded `pb_data` migrated with the new binary: 17 -> 19 `_migrations`
+  rows, all 26 links intact, and the server then served the API normally.
+- `POST /lynx/parse_link` against a live URL produced a correct title, hostname
+  and read time; `POST /lynx/parse_feed` against a live RSS feed ingested 20
+  items, so the `feed_items` create hook fires under v0.40 too.
+
+Not exercised here, still on the manual list before production: SingleFile
+archiving (needs the SingleFile container), and summarization and tag
+suggestion (need OpenRouter credentials).
+
+Two things deliberately left alone, both pre-existing and out of scope:
+
+- `pb.authStore.model` (`useLinksFeedQuery.tsx`) and `pb.files.getUrl`
+  (`ArchiveViewer.tsx`) are deprecated SDK aliases. Both still exist in 0.28 and
+  work; migrating them to `.record` and `.getURL()` is a separate cleanup.
+- `frontend/package.json` declares `packageManager: yarn@4.5.0`, but the
+  committed `yarn.lock` is yarn v1 format and CI installs with `npm ci`. This
+  means a plain `yarn install` fails without corepack.
 
 ## Summary
 
