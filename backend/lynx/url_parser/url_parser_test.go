@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tests"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -140,7 +139,6 @@ func TestHandleParseURL(t *testing.T) {
 				tc.url = mockServer.URL
 			}
 
-			// e := echo.New()
 			form := url.Values{}
 			form.Set("url", tc.url)
 			if tc.feedItemId != "" {
@@ -148,7 +146,7 @@ func TestHandleParseURL(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/lynx/parse_url", strings.NewReader(form.Encode()))
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			record, err := HandleParseURLRequest(testApp, &core.RequestEvent{
 				Auth: user,
